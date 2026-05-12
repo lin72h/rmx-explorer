@@ -15,7 +15,7 @@ oracle source.
 
 Current milestone: OB2 Descriptor Transfer Semantics.
 
-Approximate oracle progress: 70%.
+Approximate oracle progress: 78%.
 
 Completed high-value gates:
 
@@ -23,10 +23,12 @@ Completed high-value gates:
 - OB1 foundation probes are accepted.
 - OB1 header COPY_SEND/MOVE_SEND probes are accepted.
 - OB2 descriptor COPY_SEND/MOVE_SEND probes are accepted.
+- OB2 send-once descriptor runner evidence is complete and pending parent
+  acceptance.
 
-Current approved next probe:
+Current blocked next probe:
 
-- OB2.3 `macos-validation/probes/m2/send_once_descriptor.c`
+- OB2.4 negative descriptor/error probes, pending parent acceptance of OB2.3
 
 ## Batch Status
 
@@ -40,7 +42,7 @@ Current approved next probe:
 | OB1.5 | `m1/header_move_send_accounting.c` | accepted |
 | OB2.1 | `m2/descriptor_copy_send.c` | accepted |
 | OB2.2 | `m2/descriptor_move_send.c` | accepted |
-| OB2.3 | `m2/send_once_descriptor.c` | approved, pending runner results |
+| OB2.3 | `m2/send_once_descriptor.c` | runner complete, pending parent acceptance |
 | OB2.4 | negative descriptor/error probes | planned, not approved |
 | OB2.5 | queued descriptor cleanup and endpoint-exit behavior | likely follow-up |
 | OB3 | fork/exec and special-port inheritance behavior | likely follow-up |
@@ -106,17 +108,22 @@ Accepted descriptor MOVE_SEND contract:
 Goal: establish public macOS behavior for descriptor
 `MACH_MSG_TYPE_MOVE_SEND_ONCE`.
 
-Questions to answer:
+Runner evidence is complete on both native macOS hosts and pending parent
+acceptance.
 
-- How is the child send-once right created?
-- Is the child send-once right consumed at successful `mach_msg(SEND)` return?
-- What right type does the parent receive?
-- Is the delivered send-once right usable exactly once?
-- What exact result appears on second use?
-- Does the child receive exactly one verification message?
-- Do parent and child cleanup return to baseline?
+Observed contract:
 
-Gate: both `mx-a64z` and `mx-x64z` must agree before OB2.4 is approved.
+- child creates the send-once right with
+  `mach_port_extract_right(MACH_MSG_TYPE_MAKE_SEND_ONCE)`
+- child send-once right is consumed at successful `mach_msg(SEND)` return
+- parent receives `MACH_PORT_TYPE_SEND_ONCE`
+- parent delivered send-once refs are `1`
+- first use succeeds with `MACH_MSG_SUCCESS`
+- second use fails with `MACH_SEND_INVALID_DEST`
+- child receives exactly one verification message
+- parent and child cleanup return to baseline
+
+Gate: parent must accept the OB2.3 comparison finding before OB2.4 is approved.
 
 ### OB2.4 Negative Descriptor/Error Probes
 
