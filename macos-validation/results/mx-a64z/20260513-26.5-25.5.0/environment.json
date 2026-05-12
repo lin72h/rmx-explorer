@@ -72,6 +72,12 @@
         "status": "signed",
         "return_code": 0,
         "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m1/header_move_send_accounting"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m2/descriptor_copy_send",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m2/descriptor_copy_send"
       }
     ]
   },

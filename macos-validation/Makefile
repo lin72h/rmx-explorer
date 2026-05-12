@@ -24,14 +24,15 @@ COMMON_OBJS = \
 	$(OBJ_DIR)/nx_mach_utils.o
 
 # Probes — explicit list
-PROBES = foundation/smoke foundation/port_names foundation/port_type foundation/port_get_refs m1/header_copy_send_accounting m1/header_move_send_accounting
+PROBES = foundation/smoke foundation/port_names foundation/port_type foundation/port_get_refs m1/header_copy_send_accounting m1/header_move_send_accounting m2/descriptor_copy_send
 PROBE_BINS = \
 	$(BIN_DIR)/foundation/smoke \
 	$(BIN_DIR)/foundation/port_names \
 	$(BIN_DIR)/foundation/port_type \
 	$(BIN_DIR)/foundation/port_get_refs \
 	$(BIN_DIR)/m1/header_copy_send_accounting \
-	$(BIN_DIR)/m1/header_move_send_accounting
+	$(BIN_DIR)/m1/header_move_send_accounting \
+	$(BIN_DIR)/m2/descriptor_copy_send
 
 AGENT    ?= rx
 
@@ -80,6 +81,10 @@ $(BIN_DIR)/m1/header_copy_send_accounting: probes/m1/header_copy_send_accounting
 $(BIN_DIR)/m1/header_move_send_accounting: probes/m1/header_move_send_accounting.c $(COMMON_OBJS)
 	@mkdir -p $(BIN_DIR)/m1
 	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/m1/header_move_send_accounting.c $(COMMON_OBJS)
+
+$(BIN_DIR)/m2/descriptor_copy_send: probes/m2/descriptor_copy_send.c $(COMMON_OBJS)
+	@mkdir -p $(BIN_DIR)/m2
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/m2/descriptor_copy_send.c $(COMMON_OBJS)
 
 clean:
 	rm -rf $(BUILD_DIR)
