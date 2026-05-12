@@ -15,7 +15,7 @@ oracle source.
 
 Current milestone: OB2 Descriptor Transfer Semantics.
 
-Approximate oracle progress: 78%.
+Approximate oracle progress: 82%.
 
 Completed high-value gates:
 
@@ -23,12 +23,11 @@ Completed high-value gates:
 - OB1 foundation probes are accepted.
 - OB1 header COPY_SEND/MOVE_SEND probes are accepted.
 - OB2 descriptor COPY_SEND/MOVE_SEND probes are accepted.
-- OB2 send-once descriptor runner evidence is complete and pending parent
-  acceptance.
+- OB2 send-once descriptor is accepted.
 
-Current blocked next probe:
+Current approved next probe group:
 
-- OB2.4 negative descriptor/error probes, pending parent acceptance of OB2.3
+- OB2.4 negative descriptor/error probes
 
 ## Batch Status
 
@@ -42,8 +41,8 @@ Current blocked next probe:
 | OB1.5 | `m1/header_move_send_accounting.c` | accepted |
 | OB2.1 | `m2/descriptor_copy_send.c` | accepted |
 | OB2.2 | `m2/descriptor_move_send.c` | accepted |
-| OB2.3 | `m2/send_once_descriptor.c` | runner complete, pending parent acceptance |
-| OB2.4 | negative descriptor/error probes | planned, not approved |
+| OB2.3 | `m2/send_once_descriptor.c` | accepted |
+| OB2.4 | negative descriptor/error probes | approved, pending runner results |
 | OB2.5 | queued descriptor cleanup and endpoint-exit behavior | likely follow-up |
 | OB3 | fork/exec and special-port inheritance behavior | likely follow-up |
 | OB4 | bootstrap/special-port mutation and permission edge cases | likely follow-up |
@@ -101,6 +100,19 @@ Accepted descriptor MOVE_SEND contract:
 - parent and child cleanup deltas are `0`
 - `entry_refs_*`: `null`
 
+Accepted descriptor SEND_ONCE contract:
+
+- child creates the send-once right with
+  `mach_port_extract_right(MACH_MSG_TYPE_MAKE_SEND_ONCE)`
+- child send-once right is consumed at successful `mach_msg(SEND)` return
+- parent receives `MACH_PORT_TYPE_SEND_ONCE`
+- parent delivered send-once refs are `1`
+- first use succeeds with `MACH_MSG_SUCCESS`
+- second use fails with `MACH_SEND_INVALID_DEST`
+- child second receive times out with `MACH_RCV_TIMED_OUT`
+- parent and child cleanup return to baseline
+- `entry_refs_*`: `null`
+
 ## Near-Term Work
 
 ### OB2.3 Send-Once Descriptor
@@ -108,8 +120,7 @@ Accepted descriptor MOVE_SEND contract:
 Goal: establish public macOS behavior for descriptor
 `MACH_MSG_TYPE_MOVE_SEND_ONCE`.
 
-Runner evidence is complete on both native macOS hosts and pending parent
-acceptance.
+OB2.3 is accepted as the macOS send-once descriptor contract.
 
 Observed contract:
 
@@ -123,23 +134,30 @@ Observed contract:
 - child receives exactly one verification message
 - parent and child cleanup return to baseline
 
-Gate: parent must accept the OB2.3 comparison finding before OB2.4 is approved.
-
 ### OB2.4 Negative Descriptor/Error Probes
 
 Goal: establish error surfaces and cleanup behavior for invalid or edge-case
 descriptor operations.
 
-Candidate probes:
+Approved probes:
 
-- invalid descriptor disposition
-- duplicate or double MOVE_SEND in one message
-- malformed complex message layout
-- failed descriptor copyin behavior
-- failed copyout behavior if observable through stock public APIs
+- `m2/invalid_descriptor_disposition.c`
+- `m2/dead_name_descriptor_right.c`
+- `m2/double_move_send_descriptor.c`
+
+Questions to answer:
+
+- invalid descriptor disposition return code, delivery behavior, right
+  consumption, and cleanup
+- destroyed/dead descriptor source name behavior
+- non-existent descriptor source name behavior
+- double `MOVE_SEND` with the same send right in one message
+- whether any failure path consumes rights or leaks cleanup
 
 Stop condition: do not require private entitlements, SIP changes, privileged
 helpers, private headers, or non-stock APIs.
+
+Gate: both native runners must agree before OB2 is closed.
 
 ## Likely Follow-Up Work
 
