@@ -24,8 +24,10 @@ COMMON_OBJS = \
 	$(OBJ_DIR)/nx_mach_utils.o
 
 # Probes — explicit list
-PROBES = foundation/smoke
-PROBE_BINS = $(BIN_DIR)/foundation/smoke
+PROBES = foundation/smoke foundation/port_names
+PROBE_BINS = \
+	$(BIN_DIR)/foundation/smoke \
+	$(BIN_DIR)/foundation/port_names
 
 AGENT    ?= rx
 
@@ -54,6 +56,10 @@ $(OBJ_DIR)/nx_mach_utils.o: $(COMMON_DIR)/nx_mach_utils.c $(COMMON_DIR)/nx_mach_
 $(BIN_DIR)/foundation/smoke: probes/foundation/smoke.c $(COMMON_OBJS)
 	@mkdir -p $(BIN_DIR)/foundation
 	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/foundation/smoke.c $(COMMON_OBJS)
+
+$(BIN_DIR)/foundation/port_names: probes/foundation/port_names.c $(COMMON_OBJS)
+	@mkdir -p $(BIN_DIR)/foundation
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/foundation/port_names.c $(COMMON_OBJS)
 
 clean:
 	rm -rf $(BUILD_DIR)

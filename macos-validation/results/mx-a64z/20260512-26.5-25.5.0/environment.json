@@ -1,0 +1,70 @@
+{
+  "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5\nBuildVersion:\t\t25F71",
+  "uname": "Darwin mm4.local 25.5.0 Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:26 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T8132 arm64",
+  "os_name": "Darwin",
+  "kernel_version": "25.5.0",
+  "result_dir_name": "20260512-26.5-25.5.0",
+  "arch": "arm64",
+  "machine": "arm64",
+  "compiler": "Apple clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 38c9bd4e92f23a7cbf1126f10b688eed60ec48d6)",
+  "sdk": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "sdk_version": "26.5",
+  "sdk_path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "xcode_select_path": "/Applications/Xcode.app/Contents/Developer",
+  "cpu_brand": "Apple M4",
+  "cpu_features": {
+    "machdep.cpu.features": "",
+    "machdep.cpu.leaf7_features": null,
+    "hw.optional.arm64": "1",
+    "hw.optional.arm.FEAT_PAuth": "1",
+    "hw.optional.arm.FEAT_PAuth2": "1"
+  },
+  "apple_silicon": {
+    "hw_optional_arm64": "1",
+    "arm64e": "1",
+    "pointer_authentication": "1",
+    "raw_sysctls": {
+      "hw.optional.arm64": "1",
+      "hw.optional.arm.FEAT_PAuth": "1",
+      "hw.optional.arm.FEAT_PAuth2": "1"
+    }
+  },
+  "rosetta": "native",
+  "sip_enabled": true,
+  "sandboxed": false,
+  "run_as_root": false,
+  "ad_hoc_signed": true,
+  "hardened_runtime": false,
+  "signing": {
+    "binaries": [
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_names",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_names"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/smoke",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/smoke"
+      }
+    ]
+  },
+  "zig_version": "0.16.0",
+  "zig_path": "/usr/local/bin/zig",
+  "zig_lib_dir": "/usr/local/lib/zig",
+  "zig_fallback": false,
+  "zig_fallback_reason": null,
+  "command_failures": [
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "machdep.cpu.leaf7_features"
+      ],
+      "return_code": 1,
+      "stderr": "sysctl: unknown oid 'machdep.cpu.leaf7_features'"
+    }
+  ]
+}

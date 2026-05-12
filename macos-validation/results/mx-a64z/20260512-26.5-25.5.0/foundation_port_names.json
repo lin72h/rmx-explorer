@@ -1,0 +1,71 @@
+{"schema":"nx-v64z.macos-oracle.v1","agent":"mx-a64z","test_id":"macos_foundation_port_names","cross_reference":{"nextbsd_test_id":null,"donor_equivalent_id":null},"status":"pass","semantic_class":"exact_contract","environment":{
+  "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5\nBuildVersion:\t\t25F71",
+  "uname": "Darwin mm4.local 25.5.0 Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:26 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T8132 arm64",
+  "os_name": "Darwin",
+  "kernel_version": "25.5.0",
+  "result_dir_name": "20260512-26.5-25.5.0",
+  "arch": "arm64",
+  "machine": "arm64",
+  "compiler": "Apple clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 38c9bd4e92f23a7cbf1126f10b688eed60ec48d6)",
+  "sdk": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "sdk_version": "26.5",
+  "sdk_path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "xcode_select_path": "/Applications/Xcode.app/Contents/Developer",
+  "cpu_brand": "Apple M4",
+  "cpu_features": {
+    "machdep.cpu.features": "",
+    "machdep.cpu.leaf7_features": null,
+    "hw.optional.arm64": "1",
+    "hw.optional.arm.FEAT_PAuth": "1",
+    "hw.optional.arm.FEAT_PAuth2": "1"
+  },
+  "apple_silicon": {
+    "hw_optional_arm64": "1",
+    "arm64e": "1",
+    "pointer_authentication": "1",
+    "raw_sysctls": {
+      "hw.optional.arm64": "1",
+      "hw.optional.arm.FEAT_PAuth": "1",
+      "hw.optional.arm.FEAT_PAuth2": "1"
+    }
+  },
+  "rosetta": "native",
+  "sip_enabled": true,
+  "sandboxed": false,
+  "run_as_root": false,
+  "ad_hoc_signed": true,
+  "hardened_runtime": false,
+  "signing": {
+    "binaries": [
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_names",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_names"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/smoke",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/smoke"
+      }
+    ]
+  },
+  "zig_version": "0.16.0",
+  "zig_path": "/usr/local/bin/zig",
+  "zig_lib_dir": "/usr/local/lib/zig",
+  "zig_fallback": false,
+  "zig_fallback_reason": null,
+  "command_failures": [
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "machdep.cpu.leaf7_features"
+      ],
+      "return_code": 1,
+      "stderr": "sysctl: unknown oid 'machdep.cpu.leaf7_features'"
+    }
+  ]
+}
+,"message":{"msgh_bits":"","remote_port":{"name":null,"disposition":null,"right_type":null},"local_port":{"name":null,"disposition":null,"right_type":null},"header_rights":[],"descriptor_count":0,"descriptors":[]},"returns":[{"call":"mach_port_names_before","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_allocate","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_names_after_allocate","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_destroy","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_names_after_destroy","returned":"KERN_SUCCESS","raw":0,"errno":null}],"right_deltas":[{"operation":"allocate receive right observed by mach_port_names","port_name":"port_names_probe_port","right_type":"MACH_PORT_TYPE_RECEIVE","before_urefs":null,"after_urefs":null,"entry_refs_before":null,"entry_refs_after":null,"expected":"present"},{"operation":"destroy receive right observed by mach_port_names","port_name":"port_names_probe_port","right_type":"MACH_PORT_TYPE_RECEIVE","before_urefs":null,"after_urefs":null,"entry_refs_before":null,"entry_refs_after":null,"expected":"removed"}],"observations":{"names_before":11,"names_after_allocate":12,"names_after_destroy":11,"allocation_delta":1,"cleanup_delta":0,"probe_port_seen":true,"probe_port_label":"port_names_probe_port"},"cleanup":{"returned_to_baseline":true,"notes":""},"notes":""}
