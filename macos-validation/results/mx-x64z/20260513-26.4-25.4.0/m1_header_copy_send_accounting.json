@@ -1,0 +1,143 @@
+{"schema":"nx-v64z.macos-oracle.v1","agent":"mx-x64z","test_id":"macos_m1_header_copy_send_accounting","cross_reference":{"nextbsd_test_id":null,"donor_equivalent_id":null},"status":"pass","semantic_class":"exact_contract","environment":{
+  "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4\nBuildVersion:\t\t25E246",
+  "uname": "Darwin rkl.local 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:27:54 PDT 2026; root:xnu-12377.101.15~1/RELEASE_X86_64 x86_64",
+  "os_name": "Darwin",
+  "kernel_version": "25.4.0",
+  "result_dir_name": "20260513-26.4-25.4.0",
+  "arch": "x86_64",
+  "machine": "x86_64",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+  "sdk": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "sdk_version": "26.5",
+  "sdk_path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "xcode_select_path": "/Applications/Xcode.app/Contents/Developer",
+  "cpu_brand": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+  "cpu_features": {
+    "machdep.cpu.features": "FPU VME DE PSE TSC MSR PAE MCE CX8 APIC SEP MTRR PGE MCA CMOV PAT PSE36 CLFSH DS ACPI MMX FXSR SSE SSE2 SS HTT TM PBE SSE3 PCLMULQDQ DTES64 MON DSCPL VMX SMX EST TM2 SSSE3 FMA CX16 TPR PDCM SSE4.1 SSE4.2 x2APIC MOVBE POPCNT AES PCID XSAVE OSXSAVE SEGLIM64 TSCTMR AVX1.0 RDRAND F16C",
+    "machdep.cpu.leaf7_features": "RDWRFSGS TSC_THREAD_OFFSET BMI1 AVX2 FDPEO SMEP BMI2 ERMS INVPCID FPU_CSDS MPX AVX512F AVX512DQ RDSEED ADX SMAP AVX512IFMA CLFSOPT IPT AVX512CD SHA AVX512BW AVX512VL AVX512VBMI UMIP PKU GFNI VAES VPCLMULQDQ AVX512VNNI AVX512BITALG AVX512VPOPCNTDQ RDPID FSREPMOV MDCLEAR IBRS STIBP L1DF ACAPMSR SSBD",
+    "hw.optional.arm64": null,
+    "hw.optional.arm.FEAT_PAuth": null,
+    "hw.optional.arm.FEAT_PAuth2": null
+  },
+  "apple_silicon": {
+    "hw_optional_arm64": null,
+    "arm64e": null,
+    "pointer_authentication": null,
+    "raw_sysctls": {
+      "hw.optional.arm64": null,
+      "hw.optional.arm.FEAT_PAuth": null,
+      "hw.optional.arm.FEAT_PAuth2": null
+    }
+  },
+  "rosetta": "unknown",
+  "sip_enabled": true,
+  "sandboxed": false,
+  "run_as_root": false,
+  "ad_hoc_signed": true,
+  "hardened_runtime": false,
+  "signing": {
+    "binaries": [
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_get_refs",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_get_refs"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_names",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_names"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_type",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_type"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/smoke",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/smoke"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m1/header_copy_send_accounting",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m1/header_copy_send_accounting"
+      }
+    ]
+  },
+  "zig_version": "0.16.0",
+  "zig_path": "/usr/local/bin/zig",
+  "zig_lib_dir": "/usr/local/lib/zig",
+  "zig_fallback": false,
+  "zig_fallback_reason": null,
+  "command_failures": [
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "hw.optional.arm64"
+      ],
+      "return_code": 1,
+      "stderr": "sysctl: unknown oid 'hw.optional.arm64'"
+    },
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "hw.optional.arm.FEAT_PAuth"
+      ],
+      "return_code": 1,
+      "stderr": "sysctl: unknown oid 'hw.optional.arm.FEAT_PAuth'"
+    },
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "hw.optional.arm.FEAT_PAuth2"
+      ],
+      "return_code": 1,
+      "stderr": "sysctl: unknown oid 'hw.optional.arm.FEAT_PAuth2'"
+    },
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "hw.optional.arm64"
+      ],
+      "return_code": 1,
+      "stderr": "sysctl: unknown oid 'hw.optional.arm64'"
+    },
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "hw.optional.arm.FEAT_PAuth"
+      ],
+      "return_code": 1,
+      "stderr": "sysctl: unknown oid 'hw.optional.arm.FEAT_PAuth'"
+    },
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "hw.optional.arm.FEAT_PAuth2"
+      ],
+      "return_code": 1,
+      "stderr": "sysctl: unknown oid 'hw.optional.arm.FEAT_PAuth2'"
+    },
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "sysctl.proc_translated"
+      ],
+      "return_code": 1,
+      "stderr": "sysctl: unknown oid 'sysctl.proc_translated'"
+    }
+  ]
+}
+,"message":{"msgh_bits":"0x13","remote_port":{"name":"service_port","disposition":"MACH_MSG_TYPE_COPY_SEND","right_type":"MACH_PORT_TYPE_SEND"},"local_port":{"name":null,"disposition":null,"right_type":null},"header_rights":[{"field":"msgh_remote_port","disposition":"MACH_MSG_TYPE_COPY_SEND","right_type_before":"MACH_PORT_TYPE_SEND","right_type_after":"MACH_PORT_TYPE_SEND"}],"descriptor_count":0,"descriptors":[]},"returns":[{"call":"mach_port_names_before","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_allocate_receive","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_insert_right_make_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_get_refs_send_before_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_type_before_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_msg_send_copy_send","returned":"MACH_MSG_SUCCESS","raw":0,"errno":null},{"call":"mach_port_get_refs_send_after_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_type_after_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_msg_receive","returned":"MACH_MSG_SUCCESS","raw":0,"errno":null},{"call":"mach_port_get_refs_send_after_receive","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_type_after_receive","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_destroy_service","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_names_after","returned":"KERN_SUCCESS","raw":0,"errno":null}],"right_deltas":[{"operation":"header COPY_SEND at SEND return","port_name":"service_port","right_type":"MACH_PORT_RIGHT_SEND","before_urefs":1,"after_urefs":1,"entry_refs_before":null,"entry_refs_after":null,"expected":"unchanged"},{"operation":"header COPY_SEND after RECEIVE","port_name":"service_port","right_type":"MACH_PORT_RIGHT_SEND","before_urefs":1,"after_urefs":1,"entry_refs_before":null,"entry_refs_after":null,"expected":"recorded"}],"observations":{"send_urefs_before_send":1,"send_urefs_after_send":1,"send_urefs_unchanged_at_send_return":true,"send_urefs_after_receive":1,"port_type_before_send":"MACH_PORT_TYPE_SEND_RECEIVE","port_type_after_send":"MACH_PORT_TYPE_SEND_RECEIVE","port_type_after_receive":"MACH_PORT_TYPE_SEND_RECEIVE","sent_msgh_bits_raw_hex":"0x13","sent_remote_disposition":"MACH_MSG_TYPE_COPY_SEND","sent_local_disposition":"0","received_msgh_bits_raw_hex":"0x1100","received_remote_disposition":"0","received_local_disposition":"MACH_MSG_TYPE_MOVE_SEND","received_remote_port":"MACH_PORT_NULL","received_local_port":"service_port","received_msgh_size":24,"received_msgh_id":1329738036,"names_before":12,"names_after":12,"cleanup_delta":0},"cleanup":{"returned_to_baseline":true,"notes":""},"notes":""}
