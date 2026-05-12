@@ -44,6 +44,12 @@
         "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_names"
       },
       {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_type",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_type"
+      },
+      {
         "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/smoke",
         "status": "signed",
         "return_code": 0,
