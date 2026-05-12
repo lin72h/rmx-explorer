@@ -1,0 +1,19 @@
+# GPT Oracle Workspace
+
+This workspace owns the macOS semantic oracle validation lane for the
+NextBSD/rmxOS Mach IPC roadmap.
+
+Primary package:
+
+- `macos-validation/`: Stage 1-2 harness, common C helpers, and the first
+  foundation smoke probe.
+
+Authority pointers:
+
+- `final-preimplementation-plan.md`: Stage 1-2 implementation checklist.
+- `post-final-parent-gpt-resolution.md`: final parent cleanup decisions.
+- `gpt-stage12-integration-review.md`: GPT review of OPUS's Stage 1-2
+  implementation and continuation advice for the oracle agent.
+- `parent-gpt-stage12-integration-review.md`: review of Parent GPT's Stage 1-2
+  draft and collaboration boundaries for the oracle agent.
+- `comprehensive-nx-v64z-macos-oracle-plan.md`: broader oracle design.

@@ -1,0 +1,4 @@
+macos-validation/.build/
+macos-validation/results/*/*/
+*.o
+*.dSYM/
