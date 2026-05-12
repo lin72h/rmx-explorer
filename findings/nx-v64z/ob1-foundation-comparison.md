@@ -3,13 +3,15 @@
 Date: 2026-05-13
 Oracle results: mx-a64z (macOS 26.5, Darwin 25.5.0, Apple M4)
                 mx-x64z (macOS 26.4, Darwin 25.4.0, Intel i7-11700K)
-NextBSD data: batches 3, 5, 21-22 serial logs
+NextBSD data: batches 3, 5, 6, 16, 21-22 serial logs
 
 ## Summary
 
 Three foundation probes passed on both macOS runners. The basic port operations
-contract is architecturally identical between Intel and Apple Silicon. One
-divergence found against our NextBSD implementation.
+contract is architecturally identical between Intel and Apple Silicon. All three
+probes are exact matches against our NextBSD implementation. (An earlier draft
+incorrectly reported a task_self type divergence — corrected after verifying
+probe source and serial logs.)
 
 ## OB1.1: port_names — EXACT MATCH
 
@@ -32,43 +34,27 @@ different again on NextBSD) is expected — different kernels and architectures
 create different numbers of startup ports. The contract is the delta, not the
 absolute count.
 
-## OB1.2: port_type — DIVERGENCE FOUND
+## OB1.2: port_type — EXACT MATCH (corrected)
 
-Classification: `divergence` — task_self right type
+Classification: `exact_match`
+
+**Correction (2026-05-13)**: The initial finding incorrectly reported a
+divergence for task_self type. The earlier context summary conflated type
+(MACH_PORT_TYPE_SEND) with entry_refs count (2). Investigation of our actual
+probe code and serial logs confirms NextBSD matches macOS exactly.
 
 macOS behavior (both runners agree):
 - Receive right: `MACH_PORT_TYPE_RECEIVE` (0x20000) — exact
 - Send+Receive right: `MACH_PORT_TYPE_SEND_RECEIVE` (0x30000) — exact
 - Port set: `MACH_PORT_TYPE_PORT_SET` (0x80000) — exact
-- **`mach_task_self()`: `MACH_PORT_TYPE_SEND` (0x10000)** — SEND only
+- `mach_task_self()`: `MACH_PORT_TYPE_SEND` (0x10000) — SEND only
 
 NextBSD behavior:
-- Our `task_self_trap` returns `MACH_PORT_TYPE_SEND_RECEIVE` with `entry_refs=2`
+- Our `task_self_trap` returns type `MACH_PORT_TYPE_SEND` (0x10000) with
+  `entry_refs=2`. Our probe at `nxplatform-mach-probe.c:3829` explicitly
+  asserts `before.type == MACH_PORT_TYPE_SEND` and passes.
 
-### Divergence Analysis
-
-On real macOS, `mach_task_self()` gives the process a **send-only** right to its
-own task port. The kernel holds the receive right. The process cannot receive
-messages on its task port — it can only use the send right to make kernel RPCs
-(like `mach_port_allocate`, `mach_port_mod_refs`, etc.).
-
-On NextBSD, our `task_self_trap` appears to return a combined `SEND_RECEIVE`
-right. This is overpermissive — user code should not hold the receive right to
-its own task port.
-
-**Severity**: Medium. Most code only uses task_self as a send right for kernel
-calls. But giving SEND_RECEIVE means user code could theoretically receive
-messages destined for the kernel's task port handler, which is incorrect.
-
-**Action required**: Investigate whether our NextBSD `task_self_trap`
-implementation incorrectly creates a combined right instead of a send-only
-right. The kernel should retain the receive right.
-
-**IMPORTANT caveat**: This finding needs verification. Our batch 21 measurement
-used `entry_refs` introspection via FreeBSD-specific `sysctl`, not
-`mach_port_type()`. The divergence might be in how we report the type rather
-than in the actual right granted. We should add a specific `mach_port_type()`
-check on task_self in our bhyve probe to confirm.
+All four type assertions match between macOS and NextBSD.
 
 ## OB1.3: port_get_refs — EXACT MATCH
 
@@ -123,15 +109,19 @@ behavioral differences in basic port operations.
 
 ## Action Items
 
-1. **[INVESTIGATE]** task_self right type divergence. Add `mach_port_type()`
-   check on task_self in our bhyve probe to confirm whether NextBSD truly
-   returns SEND_RECEIVE or if our batch 21 measurement was measuring something
-   else.
+1. **[RESOLVED]** task_self right type: NOT divergent. Our probe asserts
+   `MACH_PORT_TYPE_SEND` and passes. The earlier "SEND_RECEIVE" claim was a
+   context compaction error. NextBSD matches macOS: task_self is send-only
+   with entry_refs=2. Existing batch 16 task_self characterization is validated
+   against real macOS.
 
 2. **[CONFIRMED]** uref accounting contract matches macOS exactly. Our batches
    3, 5, 6 are validated.
 
-3. **[READY]** Foundation gate cleared. Oracle should proceed to OB1.4 (header
+3. **[CONFIRMED]** All four right type assertions match: RECEIVE (0x20000),
+   SEND_RECEIVE (0x30000), PORT_SET (0x80000), task_self SEND (0x10000).
+
+4. **[READY]** Foundation gate cleared. Oracle should proceed to OB1.4 (header
    COPY_SEND accounting). This is the probe that will confirm or deny our
    batch 21 finding.
 
