@@ -14,6 +14,8 @@ Authority pointers:
   runner agents after cloning this repository.
 - `parent-batch1-directive.md`: authoritative parent approval for Batch 1
   feature validation gates, stop conditions, and deliverables.
+- `parent-response-to-opus-oracle-batches.md`: parent-approved correction to
+  OPUS's Batch 1/2 dependency proposal, especially the urefs-vs-entry_refs rule.
 - `parent-progress-and-first-batch-request.md`: current oracle progress report
   and request for the parent agent to choose the first feature/regression batch.
 - `final-preimplementation-plan.md`: Stage 1-2 implementation checklist.

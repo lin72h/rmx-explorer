@@ -4,6 +4,13 @@ Date: 2026-05-12
 
 Status: approved
 
+Related addendum:
+
+- `parent-response-to-opus-oracle-batches.md` approves the OPUS two-batch
+  dependency model and extends this directive with Batch 2 requirements. Where
+  the OPUS proposal asks for stock-macOS `entry_refs`, the parent response
+  supersedes it: record `entry_refs_*` as null unless directly observable.
+
 ## Decision
 
 Proceed with Batch 1, but treat it as three ordered gates, not one flat probe
@@ -205,3 +212,8 @@ Descriptor transfer is useful, but only after source-side header behavior is
 nailed down. The oracle lane should not blur "we can write M2 probes" with "M2
 evidence is safe to interpret." Foundation and header accounting are the
 guardrails.
+
+Batch 2 remains approved only as a gated follow-up. Do not start M2.2/M2.3/M2.4
+rmxOS implementation until the matching oracle probes in
+`parent-response-to-opus-oracle-batches.md` exist and have run on both native
+macOS runners.

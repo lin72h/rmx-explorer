@@ -202,9 +202,22 @@ For Batch 1, implement only:
 3. `m2/descriptor_copy_send.c`
 4. `m2/descriptor_move_send.c`
 
+Batch 2 is approved in `parent-response-to-opus-oracle-batches.md` but remains
+gated behind Batch 1 foundation/header results. Batch 2 includes:
+
+1. `m2/descriptor_copy_send.c`
+2. `m2/descriptor_move_send.c`
+3. `m2/send_once_descriptor.c`
+4. negative descriptor probes
+
 Send-once, invalid descriptor, dead name, double-move, copyout failure,
-bootstrap, fork inheritance, and queued exit probes are Batch 2 unless parent
-explicitly reorders them.
+bootstrap, fork inheritance, and queued exit probes must not bypass the approved
+gate order unless parent explicitly reorders them.
+
+Do not treat `entry_refs` as stock-macOS-observable. Keep
+`entry_refs_before` and `entry_refs_after` null unless directly observable.
+Use `mach_port_get_refs()`, `mach_port_type()`, `mach_port_names()`,
+delivered-right usability, and cleanup-to-baseline as the oracle contract.
 
 Stop and ask parent if:
 
@@ -252,6 +265,7 @@ Read these before Stage 3 work:
 - `gpt-stage12-integration-review.md`
 - `parent-gpt-stage12-integration-review.md`
 - `parent-batch1-directive.md`
+- `parent-response-to-opus-oracle-batches.md`
 - `final-preimplementation-plan.md`
 - `comprehensive-nx-v64z-macos-oracle-plan.md`
 - `test-migration-map.md`
