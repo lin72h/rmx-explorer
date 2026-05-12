@@ -10,6 +10,8 @@ Primary package:
 
 Authority pointers:
 
+- `macos-runner-agent-handoff.md`: first-read instructions for native macOS
+  runner agents after cloning this repository.
 - `final-preimplementation-plan.md`: Stage 1-2 implementation checklist.
 - `post-final-parent-gpt-resolution.md`: final parent cleanup decisions.
 - `gpt-stage12-integration-review.md`: GPT review of OPUS's Stage 1-2
