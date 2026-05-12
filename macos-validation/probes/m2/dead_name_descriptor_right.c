@@ -273,31 +273,45 @@ run_case(ob24_case_t *c, mach_msg_id_t msg_id)
 #endif
 
 static bool
-case_source_unchanged(const ob24_case_t *c)
+case_dead_name_consumed_and_delivered(const ob24_case_t *c)
 {
-    if (c->use_dead_name) {
-        return c->kr_source_type_before == KERN_SUCCESS &&
-            c->kr_source_type_after == KERN_SUCCESS &&
-            c->source_type_before == c->source_type_after &&
-            c->kr_source_refs_before == KERN_SUCCESS &&
-            c->kr_source_refs_after == KERN_SUCCESS &&
-            c->source_refs_before == c->source_refs_after;
-    }
+    return c->use_dead_name &&
+        c->kr_source_type_before == KERN_SUCCESS &&
+        c->source_type_before == MACH_PORT_TYPE_DEAD_NAME &&
+        c->kr_source_refs_before == KERN_SUCCESS &&
+        c->source_refs_before == 1 &&
+        c->mr_send == MACH_MSG_SUCCESS &&
+        c->kr_source_type_after == KERN_INVALID_NAME &&
+        c->kr_source_refs_after == KERN_INVALID_NAME &&
+        c->mr_receive == MACH_MSG_SUCCESS &&
+        c->received_descriptor_count == 1 &&
+        c->kr_deallocate_delivered == KERN_SUCCESS &&
+        c->kr_deallocate_source == KERN_INVALID_NAME;
+}
 
+static bool
+case_nonexistent_rejected(const ob24_case_t *c)
+{
     return c->kr_source_type_before == KERN_INVALID_NAME &&
-        c->kr_source_type_after == KERN_INVALID_NAME;
+        c->kr_source_refs_before == KERN_INVALID_NAME &&
+        c->mr_send == MACH_SEND_INVALID_RIGHT &&
+        c->kr_source_type_after == KERN_INVALID_NAME &&
+        c->kr_source_refs_after == KERN_INVALID_NAME &&
+        c->mr_receive == MACH_RCV_TIMED_OUT;
 }
 
 static bool
 case_ok(const ob24_case_t *c)
 {
+    bool source_behavior_ok = c->use_dead_name ?
+        case_dead_name_consumed_and_delivered(c) :
+        case_nonexistent_rejected(c);
+
     return c->before.kr == KERN_SUCCESS &&
         c->kr_alloc_service == KERN_SUCCESS &&
         c->kr_insert_service_send == KERN_SUCCESS &&
         c->kr_alloc_dead_name == KERN_SUCCESS &&
-        c->mr_send != MACH_MSG_SUCCESS &&
-        c->mr_receive == MACH_RCV_TIMED_OUT &&
-        case_source_unchanged(c) &&
+        source_behavior_ok &&
         c->kr_destroy_service == KERN_SUCCESS &&
         c->after.kr == KERN_SUCCESS &&
         c->cleanup_ok;
@@ -398,7 +412,11 @@ emit_case_observation(nx_json_t *j, const ob24_case_t *c)
     nx_json_key_int(j, "source_refs_after",
         c->kr_source_refs_after == KERN_SUCCESS ?
             (long long)c->source_refs_after : -1);
-    nx_json_key_bool(j, "source_unchanged", case_source_unchanged(c));
+    nx_json_key_bool(j, "source_unchanged",
+        c->use_dead_name ? false : case_nonexistent_rejected(c));
+    nx_json_key_bool(j, "accepted_behavior_matched",
+        c->use_dead_name ? case_dead_name_consumed_and_delivered(c) :
+        case_nonexistent_rejected(c));
     nx_json_key_string(j, "receive_after_send",
         nx_msg_return_str(c->mr_receive));
     nx_json_key_bool(j, "message_delivered",
@@ -450,7 +468,9 @@ main(void)
 #else
     if (!all_ok) {
         status = NX_STATUS_FAIL;
-        notes = "dead or nonexistent descriptor source behavior violated negative probe expectations";
+        notes = "dead or nonexistent descriptor source behavior violated accepted macOS contract";
+    } else {
+        notes = "accepted macOS behavior: dead-name descriptor sources are delivered and consumed; the old no-delivery/no-mutation expectation was wrong";
     }
 #endif
 
@@ -523,7 +543,7 @@ main(void)
             (long long)dead_case.source_refs_before : -1,
         dead_case.kr_source_refs_after == KERN_SUCCESS ?
             (long long)dead_case.source_refs_after : -1,
-        -1, -1, "unchanged");
+        -1, -1, "consumed and delivered");
     nx_result_emit_right_delta(&j,
         "nonexistent descriptor source",
         "nonexistent_name",
@@ -545,8 +565,13 @@ main(void)
         dead_case.mr_receive == MACH_MSG_SUCCESS ||
         nonexistent_case.mr_receive == MACH_MSG_SUCCESS);
     nx_json_key_bool(&j, "all_sources_unchanged",
-        case_source_unchanged(&dead_case) &&
-        case_source_unchanged(&nonexistent_case));
+        false);
+    nx_json_key_bool(&j, "dead_name_accepted_contract",
+        case_dead_name_consumed_and_delivered(&dead_case));
+    nx_json_key_bool(&j, "nonexistent_name_accepted_contract",
+        case_nonexistent_rejected(&nonexistent_case));
+    nx_json_key_string(&j, "old_expectation_note",
+        "old expectation was no-delivery/no-mutation for dead names; native macOS delivers and consumes dead-name descriptor sources");
     nx_json_key_bool(&j, "all_cleanup_returned_to_baseline", cleanup_ok);
     nx_json_end_object(&j);
 

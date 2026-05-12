@@ -15,7 +15,7 @@ oracle source.
 
 Current milestone: OB2 Descriptor Transfer Semantics.
 
-Approximate oracle progress: 92%.
+Core OB2 progress: 100%.
 
 Completed high-value gates:
 
@@ -24,13 +24,11 @@ Completed high-value gates:
 - OB1 header COPY_SEND/MOVE_SEND probes are accepted.
 - OB2 descriptor COPY_SEND/MOVE_SEND probes are accepted.
 - OB2 send-once descriptor is accepted.
-- OB2 negative descriptor/error runner evidence is complete and pending parent
-  classification.
+- OB2 negative descriptor/error behavior is accepted.
 
-Current blocked decision:
+Current status:
 
-- parent must accept or reject OB2.4 dead-name descriptor behavior before OB2
-  is closed
+- core OB2 is closed and ready to drive rmxOS M2 implementation
 
 ## Batch Status
 
@@ -45,7 +43,7 @@ Current blocked decision:
 | OB2.1 | `m2/descriptor_copy_send.c` | accepted |
 | OB2.2 | `m2/descriptor_move_send.c` | accepted |
 | OB2.3 | `m2/send_once_descriptor.c` | accepted |
-| OB2.4 | negative descriptor/error probes | runner complete, pending parent classification |
+| OB2.4 | negative descriptor/error probes | accepted |
 | OB2.5 | queued descriptor cleanup and endpoint-exit behavior | likely follow-up |
 | OB3 | fork/exec and special-port inheritance behavior | likely follow-up |
 | OB4 | bootstrap/special-port mutation and permission edge cases | likely follow-up |
@@ -116,7 +114,34 @@ Accepted descriptor SEND_ONCE contract:
 - parent and child cleanup return to baseline
 - `entry_refs_*`: `null`
 
+Accepted negative descriptor/error contract:
+
+- invalid descriptor disposition `0xff` returns `MACH_SEND_INVALID_RIGHT`, does
+  not deliver a message, does not consume rights, and cleans up to baseline
+- nonexistent descriptor source returns `MACH_SEND_INVALID_RIGHT`, does not
+  deliver a message, leaves the source invalid, and cleans up to baseline
+- dead-name descriptor source returns `MACH_MSG_SUCCESS`, consumes the
+  dead-name entry, delivers a descriptor-bearing message, and cleans up to
+  baseline
+- duplicate `MOVE_SEND` descriptors for the same right return
+  `MACH_SEND_INVALID_RIGHT`, do not deliver a message, fully consume the
+  sender send right, and clean up to baseline
+
 ## Near-Term Work
+
+### rmxOS M2 Implementation Target
+
+Core OB2 is closed. The consolidated descriptor-transfer target is:
+
+- `findings/nx-v64z/ob2-core-descriptor-transfer-spec.md`
+
+The two most important negative-path surprises are:
+
+- dead-name descriptor sources are accepted, delivered, and consumed
+- duplicate `MOVE_SEND` failure still consumes the sender send right
+
+Do not infer descriptor behavior outside the accepted OB2 list. New behavior
+needs a new oracle probe or an explicit parent-approved intentional divergence.
 
 ### OB2.3 Send-Once Descriptor
 
@@ -142,8 +167,7 @@ Observed contract:
 Goal: establish error surfaces and cleanup behavior for invalid or edge-case
 descriptor operations.
 
-Runner evidence is complete on both native macOS hosts and pending parent
-classification.
+OB2.4 is accepted as the macOS negative descriptor/error contract.
 
 Probes:
 
@@ -167,8 +191,7 @@ Observed contract:
 Stop condition: do not require private entitlements, SIP changes, privileged
 helpers, private headers, or non-stock APIs.
 
-Gate: parent must accept or reject the dead-name descriptor behavior before OB2
-is closed.
+Gate: closed.
 
 ## Likely Follow-Up Work
 
