@@ -15,7 +15,7 @@ oracle source.
 
 Current milestone: OB2 Descriptor Transfer Semantics.
 
-Approximate oracle progress: 82%.
+Approximate oracle progress: 92%.
 
 Completed high-value gates:
 
@@ -24,10 +24,13 @@ Completed high-value gates:
 - OB1 header COPY_SEND/MOVE_SEND probes are accepted.
 - OB2 descriptor COPY_SEND/MOVE_SEND probes are accepted.
 - OB2 send-once descriptor is accepted.
+- OB2 negative descriptor/error runner evidence is complete and pending parent
+  classification.
 
-Current approved next probe group:
+Current blocked decision:
 
-- OB2.4 negative descriptor/error probes
+- parent must accept or reject OB2.4 dead-name descriptor behavior before OB2
+  is closed
 
 ## Batch Status
 
@@ -42,7 +45,7 @@ Current approved next probe group:
 | OB2.1 | `m2/descriptor_copy_send.c` | accepted |
 | OB2.2 | `m2/descriptor_move_send.c` | accepted |
 | OB2.3 | `m2/send_once_descriptor.c` | accepted |
-| OB2.4 | negative descriptor/error probes | approved, pending runner results |
+| OB2.4 | negative descriptor/error probes | runner complete, pending parent classification |
 | OB2.5 | queued descriptor cleanup and endpoint-exit behavior | likely follow-up |
 | OB3 | fork/exec and special-port inheritance behavior | likely follow-up |
 | OB4 | bootstrap/special-port mutation and permission edge cases | likely follow-up |
@@ -139,25 +142,33 @@ Observed contract:
 Goal: establish error surfaces and cleanup behavior for invalid or edge-case
 descriptor operations.
 
-Approved probes:
+Runner evidence is complete on both native macOS hosts and pending parent
+classification.
+
+Probes:
 
 - `m2/invalid_descriptor_disposition.c`
 - `m2/dead_name_descriptor_right.c`
 - `m2/double_move_send_descriptor.c`
 
-Questions to answer:
+Observed contract:
 
-- invalid descriptor disposition return code, delivery behavior, right
-  consumption, and cleanup
-- destroyed/dead descriptor source name behavior
-- non-existent descriptor source name behavior
-- double `MOVE_SEND` with the same send right in one message
-- whether any failure path consumes rights or leaks cleanup
+- invalid descriptor disposition `0xff` returns `MACH_SEND_INVALID_RIGHT`, does
+  not deliver a message, does not consume rights, and cleans up to baseline
+- nonexistent descriptor source returns `MACH_SEND_INVALID_RIGHT`, does not
+  deliver a message, leaves the source invalid, and cleans up to baseline
+- dead-name descriptor source returns `MACH_MSG_SUCCESS`, consumes the
+  dead-name entry, delivers a descriptor-bearing message, and cleans up to
+  baseline
+- duplicate `MOVE_SEND` descriptors for the same right return
+  `MACH_SEND_INVALID_RIGHT`, do not deliver a message, fully consume the
+  sender send right, and clean up to baseline
 
 Stop condition: do not require private entitlements, SIP changes, privileged
 helpers, private headers, or non-stock APIs.
 
-Gate: both native runners must agree before OB2 is closed.
+Gate: parent must accept or reject the dead-name descriptor behavior before OB2
+is closed.
 
 ## Likely Follow-Up Work
 
