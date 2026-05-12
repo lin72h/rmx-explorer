@@ -90,12 +90,15 @@ def require_keys(obj, keys, prefix, errors):
             errors.append(f"missing {prefix}.{key}")
 
 
-def is_str_or_null(value):
-    return value is None or isinstance(value, str)
+def require_string_or_null(value, prefix, errors):
+    if value is not None and not isinstance(value, str):
+        errors.append(f"{prefix} is not a string or null")
 
 
-def is_int_or_null(value):
-    return value is None or isinstance(value, int)
+def require_int_or_null(value, prefix, errors):
+    if value is not None or isinstance(value, bool):
+        if not isinstance(value, int) or isinstance(value, bool):
+            errors.append(f"{prefix} is not an integer or null")
 
 
 def validate_port_ref(obj, prefix, errors):
@@ -103,52 +106,53 @@ def validate_port_ref(obj, prefix, errors):
     if not isinstance(obj, dict):
         return
     for key in PORT_REF:
-        if key in obj and not is_str_or_null(obj.get(key)):
-            errors.append(f"{prefix}.{key} is not a string or null")
+        require_string_or_null(obj.get(key), f"{prefix}.{key}", errors)
 
 
 def validate_header_right(obj, prefix, errors):
     require_keys(obj, HEADER_RIGHT, prefix, errors)
     if not isinstance(obj, dict):
         return
-    for key in HEADER_RIGHT:
-        if key in obj and not isinstance(obj.get(key), str):
-            errors.append(f"{prefix}.{key} is not a string")
+    if not isinstance(obj.get("field"), str) or not obj.get("field"):
+        errors.append(f"{prefix}.field is not a non-empty string")
+    for key in ["disposition", "right_type_before", "right_type_after"]:
+        require_string_or_null(obj.get(key), f"{prefix}.{key}", errors)
 
 
 def validate_descriptor(obj, prefix, errors):
     require_keys(obj, DESCRIPTOR, prefix, errors)
     if not isinstance(obj, dict):
         return
-    for key in DESCRIPTOR:
-        if key in obj and not isinstance(obj.get(key), str):
-            errors.append(f"{prefix}.{key} is not a string")
+    if not isinstance(obj.get("name"), str) or not obj.get("name"):
+        errors.append(f"{prefix}.name is not a non-empty string")
+    for key in ["disposition", "right_type_before", "right_type_after"]:
+        require_string_or_null(obj.get(key), f"{prefix}.{key}", errors)
 
 
 def validate_return(obj, prefix, errors):
     require_keys(obj, RETURN, prefix, errors)
     if not isinstance(obj, dict):
         return
-    if "call" in obj and not isinstance(obj.get("call"), str):
-        errors.append(f"{prefix}.call is not a string")
-    if "returned" in obj and not isinstance(obj.get("returned"), str):
-        errors.append(f"{prefix}.returned is not a string")
-    if "raw" in obj and not isinstance(obj.get("raw"), int):
+    for key in ["call", "returned"]:
+        if not isinstance(obj.get(key), str) or not obj.get(key):
+            errors.append(f"{prefix}.{key} is not a non-empty string")
+    if not isinstance(obj.get("raw"), int) or isinstance(obj.get("raw"), bool):
         errors.append(f"{prefix}.raw is not an integer")
-    if "errno" in obj and not is_int_or_null(obj.get("errno")):
-        errors.append(f"{prefix}.errno is not an integer or null")
+    require_int_or_null(obj.get("errno"), f"{prefix}.errno", errors)
 
 
 def validate_right_delta(obj, prefix, errors):
     require_keys(obj, RIGHT_DELTA, prefix, errors)
     if not isinstance(obj, dict):
         return
-    for key in ("operation", "port_name", "right_type", "expected"):
-        if key in obj and not isinstance(obj.get(key), str):
-            errors.append(f"{prefix}.{key} is not a string")
-    for key in ("before_urefs", "after_urefs", "entry_refs_before", "entry_refs_after"):
-        if key in obj and not is_int_or_null(obj.get(key)):
-            errors.append(f"{prefix}.{key} is not an integer or null")
+    for key in ["operation", "port_name", "right_type", "expected"]:
+        if not isinstance(obj.get(key), str) or not obj.get(key):
+            errors.append(f"{prefix}.{key} is not a non-empty string")
+    for key in [
+        "before_urefs", "after_urefs", "entry_refs_before",
+        "entry_refs_after",
+    ]:
+        require_int_or_null(obj.get(key), f"{prefix}.{key}", errors)
 
 
 def validate(path):
