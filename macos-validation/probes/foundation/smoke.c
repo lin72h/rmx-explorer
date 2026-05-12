@@ -81,6 +81,14 @@ main(void)
         status = NX_STATUS_PROBE_FAILURE;
         sclass = NX_CLASS_PROBE_FAILURE;
         notes = "mach_port_allocate failed";
+    } else if (kr_type != KERN_SUCCESS) {
+        status = NX_STATUS_PROBE_FAILURE;
+        sclass = NX_CLASS_PROBE_FAILURE;
+        notes = "mach_port_type failed after mach_port_allocate succeeded";
+    } else if (kr_refs != KERN_SUCCESS) {
+        status = NX_STATUS_PROBE_FAILURE;
+        sclass = NX_CLASS_PROBE_FAILURE;
+        notes = "mach_port_get_refs failed after mach_port_allocate succeeded";
     } else if (kr_destroy != KERN_SUCCESS) {
         status = NX_STATUS_FAIL;
         sclass = NX_CLASS_PROBE_FAILURE;

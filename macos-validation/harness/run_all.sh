@@ -41,6 +41,7 @@ discover_probes() {
         probe_dir="$BUILD_BIN/$dir"
         if [ -d "$probe_dir" ]; then
             for bin in "$probe_dir"/*; do
+                [ -f "$bin" ] || continue
                 [ -x "$bin" ] || continue
                 probes="$probes $dir/$(basename "$bin")"
             done
@@ -167,6 +168,45 @@ with open(sys.argv[1]) as fh:
 PY
 )
 
+arch=$(python3 - "$RESULT_DIR/environment.json" <<'PY'
+import json
+import sys
+with open(sys.argv[1]) as fh:
+    print(json.load(fh).get("arch") or "")
+PY
+)
+
+rosetta=$(python3 - "$RESULT_DIR/environment.json" <<'PY'
+import json
+import sys
+with open(sys.argv[1]) as fh:
+    print(json.load(fh).get("rosetta") or "")
+PY
+)
+
+if [ "$os_name" = "Darwin" ]; then
+    case "$AGENT:$arch" in
+        mx-x64z:x86_64) ;;
+        mx-a64z:arm64)
+            if [ "$rosetta" = "active" ]; then
+                echo "Apple Silicon runner is executing under Rosetta; refusing mx-a64z evidence." >&2
+                exit 1
+            fi
+            ;;
+        rx:*)
+            echo "Agent rx is reserved for non-macOS development/comparison lanes; use mx-x64z or mx-a64z on native macOS." >&2
+            exit 1
+            ;;
+        *)
+            echo "Agent $AGENT does not match native macOS architecture $arch." >&2
+            exit 1
+            ;;
+    esac
+elif [ "$AGENT" != "rx" ]; then
+    echo "Agent $AGENT is reserved for native macOS; use rx on non-macOS hosts." >&2
+    exit 1
+fi
+
 if [ "$os_name" = "Darwin" ] && [ "$sign_fail" -ne 0 ]; then
     echo "Signing failed on macOS; refusing to run unsigned oracle probes." >&2
     exit 1
@@ -203,6 +243,12 @@ except Exception:
     print("probe_failure")
 PY
 )
+    if [ "$probe_rc" -ne 0 ]; then
+        fail=$((fail + 1))
+        echo "  FAIL: $p ($status, rc=$probe_rc)" >&2
+        continue
+    fi
+
     case "$status" in
         pass) pass=$((pass + 1)); echo "  PASS: $p" >&2 ;;
         skip) skip=$((skip + 1)); echo "  SKIP: $p" >&2 ;;

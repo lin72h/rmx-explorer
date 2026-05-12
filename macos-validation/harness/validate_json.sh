@@ -48,6 +48,14 @@ MESSAGE = [
     "msgh_bits", "remote_port", "local_port", "header_rights",
     "descriptor_count", "descriptors",
 ]
+PORT_REF = ["name", "disposition", "right_type"]
+HEADER_RIGHT = ["field", "disposition", "right_type_before", "right_type_after"]
+DESCRIPTOR = ["name", "disposition", "right_type_before", "right_type_after"]
+RETURN = ["call", "returned", "raw", "errno"]
+RIGHT_DELTA = [
+    "operation", "port_name", "right_type", "before_urefs", "after_urefs",
+    "entry_refs_before", "entry_refs_after", "expected",
+]
 CLEANUP = ["returned_to_baseline", "notes"]
 STATUSES = {"pass", "fail", "skip", "probe_failure"}
 CLASSES = {
@@ -80,6 +88,67 @@ def require_keys(obj, keys, prefix, errors):
     for key in keys:
         if key not in obj:
             errors.append(f"missing {prefix}.{key}")
+
+
+def is_str_or_null(value):
+    return value is None or isinstance(value, str)
+
+
+def is_int_or_null(value):
+    return value is None or isinstance(value, int)
+
+
+def validate_port_ref(obj, prefix, errors):
+    require_keys(obj, PORT_REF, prefix, errors)
+    if not isinstance(obj, dict):
+        return
+    for key in PORT_REF:
+        if key in obj and not is_str_or_null(obj.get(key)):
+            errors.append(f"{prefix}.{key} is not a string or null")
+
+
+def validate_header_right(obj, prefix, errors):
+    require_keys(obj, HEADER_RIGHT, prefix, errors)
+    if not isinstance(obj, dict):
+        return
+    for key in HEADER_RIGHT:
+        if key in obj and not isinstance(obj.get(key), str):
+            errors.append(f"{prefix}.{key} is not a string")
+
+
+def validate_descriptor(obj, prefix, errors):
+    require_keys(obj, DESCRIPTOR, prefix, errors)
+    if not isinstance(obj, dict):
+        return
+    for key in DESCRIPTOR:
+        if key in obj and not isinstance(obj.get(key), str):
+            errors.append(f"{prefix}.{key} is not a string")
+
+
+def validate_return(obj, prefix, errors):
+    require_keys(obj, RETURN, prefix, errors)
+    if not isinstance(obj, dict):
+        return
+    if "call" in obj and not isinstance(obj.get("call"), str):
+        errors.append(f"{prefix}.call is not a string")
+    if "returned" in obj and not isinstance(obj.get("returned"), str):
+        errors.append(f"{prefix}.returned is not a string")
+    if "raw" in obj and not isinstance(obj.get("raw"), int):
+        errors.append(f"{prefix}.raw is not an integer")
+    if "errno" in obj and not is_int_or_null(obj.get("errno")):
+        errors.append(f"{prefix}.errno is not an integer or null")
+
+
+def validate_right_delta(obj, prefix, errors):
+    require_keys(obj, RIGHT_DELTA, prefix, errors)
+    if not isinstance(obj, dict):
+        return
+    for key in ("operation", "port_name", "right_type", "expected"):
+        if key in obj and not isinstance(obj.get(key), str):
+            errors.append(f"{prefix}.{key} is not a string")
+    for key in ("before_urefs", "after_urefs", "entry_refs_before", "entry_refs_after"):
+        if key in obj and not is_int_or_null(obj.get(key)):
+            errors.append(f"{prefix}.{key} is not an integer or null")
 
 
 def validate(path):
@@ -116,10 +185,39 @@ def validate(path):
         if not isinstance(env.get("zig_fallback"), bool):
             errors.append("environment.zig_fallback is not boolean")
 
+    message = data.get("message")
+    if isinstance(message, dict):
+        if "msgh_bits" in message and not isinstance(message.get("msgh_bits"), str):
+            errors.append("message.msgh_bits is not a string")
+        validate_port_ref(message.get("remote_port"), "message.remote_port", errors)
+        validate_port_ref(message.get("local_port"), "message.local_port", errors)
+        if not isinstance(message.get("header_rights"), list):
+            errors.append("message.header_rights is not a list")
+        else:
+            for idx, item in enumerate(message.get("header_rights")):
+                validate_header_right(item, f"message.header_rights[{idx}]", errors)
+        if not isinstance(message.get("descriptor_count"), int):
+            errors.append("message.descriptor_count is not an integer")
+        if not isinstance(message.get("descriptors"), list):
+            errors.append("message.descriptors is not a list")
+        else:
+            for idx, item in enumerate(message.get("descriptors")):
+                validate_descriptor(item, f"message.descriptors[{idx}]", errors)
+            if isinstance(message.get("descriptor_count"), int):
+                if message.get("descriptor_count") != len(message.get("descriptors")):
+                    errors.append("message.descriptor_count does not match descriptors length")
+
     if not isinstance(data.get("returns"), list):
         errors.append("returns is not a list")
+    else:
+        for idx, item in enumerate(data.get("returns")):
+            validate_return(item, f"returns[{idx}]", errors)
+
     if not isinstance(data.get("right_deltas"), list):
         errors.append("right_deltas is not a list")
+    else:
+        for idx, item in enumerate(data.get("right_deltas")):
+            validate_right_delta(item, f"right_deltas[{idx}]", errors)
 
     return errors
 

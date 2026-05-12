@@ -135,8 +135,8 @@ nx_port_type_str(mach_port_type_t type)
 {
     static char buf[128];
 
-    /* Check known composite types first */
-    if ((type & MACH_PORT_TYPE_SEND_RECEIVE) == MACH_PORT_TYPE_SEND_RECEIVE)
+    /* Check known composite types first. Extra bits must remain visible. */
+    if (type == MACH_PORT_TYPE_SEND_RECEIVE)
         return "MACH_PORT_TYPE_SEND_RECEIVE";
 
     /* Single right types */
