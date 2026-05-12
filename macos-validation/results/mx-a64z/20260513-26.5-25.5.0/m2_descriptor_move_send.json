@@ -1,0 +1,107 @@
+{"schema":"nx-v64z.macos-oracle.v1","agent":"mx-a64z","test_id":"macos_m2_descriptor_move_send","cross_reference":{"nextbsd_test_id":null,"donor_equivalent_id":null},"status":"pass","semantic_class":"exact_contract","environment":{
+  "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5\nBuildVersion:\t\t25F71",
+  "uname": "Darwin mm4.local 25.5.0 Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:26 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T8132 arm64",
+  "os_name": "Darwin",
+  "kernel_version": "25.5.0",
+  "result_dir_name": "20260513-26.5-25.5.0",
+  "arch": "arm64",
+  "machine": "arm64",
+  "compiler": "Apple clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 38c9bd4e92f23a7cbf1126f10b688eed60ec48d6)",
+  "sdk": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "sdk_version": "26.5",
+  "sdk_path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "xcode_select_path": "/Applications/Xcode.app/Contents/Developer",
+  "cpu_brand": "Apple M4",
+  "cpu_features": {
+    "machdep.cpu.features": "",
+    "machdep.cpu.leaf7_features": null,
+    "hw.optional.arm64": "1",
+    "hw.optional.arm.FEAT_PAuth": "1",
+    "hw.optional.arm.FEAT_PAuth2": "1"
+  },
+  "apple_silicon": {
+    "hw_optional_arm64": "1",
+    "arm64e": "1",
+    "pointer_authentication": "1",
+    "raw_sysctls": {
+      "hw.optional.arm64": "1",
+      "hw.optional.arm.FEAT_PAuth": "1",
+      "hw.optional.arm.FEAT_PAuth2": "1"
+    }
+  },
+  "rosetta": "native",
+  "sip_enabled": true,
+  "sandboxed": false,
+  "run_as_root": false,
+  "ad_hoc_signed": true,
+  "hardened_runtime": false,
+  "signing": {
+    "binaries": [
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_get_refs",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_get_refs"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_names",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_names"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_type",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/port_type"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/smoke",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/foundation/smoke"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m1/header_copy_send_accounting",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m1/header_copy_send_accounting"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m1/header_move_send_accounting",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m1/header_move_send_accounting"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m2/descriptor_copy_send",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m2/descriptor_copy_send"
+      },
+      {
+        "path": "/Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m2/descriptor_move_send",
+        "status": "signed",
+        "return_code": 0,
+        "output": "signed: /Users/linz/Local/wip-mach/mach-oracle/macos-validation/.build/bin/m2/descriptor_move_send"
+      }
+    ]
+  },
+  "zig_version": "0.16.0",
+  "zig_path": "/usr/local/bin/zig",
+  "zig_lib_dir": "/usr/local/lib/zig",
+  "zig_fallback": false,
+  "zig_fallback_reason": null,
+  "command_failures": [
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "machdep.cpu.leaf7_features"
+      ],
+      "return_code": 1,
+      "stderr": "sysctl: unknown oid 'machdep.cpu.leaf7_features'"
+    }
+  ]
+}
+,"message":{"msgh_bits":"0x80000013","remote_port":{"name":"service_port","disposition":"MACH_MSG_TYPE_COPY_SEND","right_type":"MACH_PORT_TYPE_SEND"},"local_port":{"name":null,"disposition":null,"right_type":null},"header_rights":[{"field":"msgh_remote_port","disposition":"MACH_MSG_TYPE_COPY_SEND","right_type_before":"MACH_PORT_TYPE_SEND","right_type_after":"MACH_PORT_TYPE_SEND"}],"descriptor_count":1,"descriptors":[{"name":"cargo_send_descriptor","disposition":"MACH_MSG_TYPE_MOVE_SEND","right_type_before":"MACH_PORT_TYPE_SEND","right_type_after":"MACH_PORT_TYPE_SEND"}]},"returns":[{"call":"parent_mach_port_names_before","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_task_get_special_port_bootstrap","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_mach_port_allocate_service","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_mach_port_insert_right_service_make_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_task_set_special_port_service","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_task_set_special_port_restore","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"child_task_get_special_port_bootstrap","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"child_mach_port_allocate_cargo","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"child_mach_port_insert_right_cargo_make_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"child_mach_port_type_cargo_before_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"child_mach_port_get_refs_send_before_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"child_mach_msg_send_descriptor_move_send","returned":"MACH_MSG_SUCCESS","raw":0,"errno":null},{"call":"child_mach_port_type_cargo_after_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"child_mach_port_get_refs_send_after_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_mach_msg_receive_descriptor","returned":"MACH_MSG_SUCCESS","raw":0,"errno":null},{"call":"parent_mach_port_type_delivered","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_mach_port_get_refs_delivered_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_mach_msg_send_verify_copy_send","returned":"MACH_MSG_SUCCESS","raw":0,"errno":null},{"call":"child_mach_msg_receive_verify","returned":"MACH_MSG_SUCCESS","raw":0,"errno":null},{"call":"child_mach_port_type_cargo_after_verify","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"child_mach_port_get_refs_send_after_verify","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_mach_port_deallocate_delivered","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"child_mach_port_destroy_cargo","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_mach_port_destroy_service","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_mach_port_deallocate_original_bootstrap","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"child_mach_port_names_after","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"parent_mach_port_names_after","returned":"KERN_SUCCESS","raw":0,"errno":null}],"right_deltas":[{"operation":"descriptor MOVE_SEND child sender","port_name":"cargo_port","right_type":"MACH_PORT_RIGHT_SEND","before_urefs":1,"after_urefs":0,"entry_refs_before":null,"entry_refs_after":null,"expected":"consumed"},{"operation":"descriptor MOVE_SEND parent delivered","port_name":"delivered_cargo_send","right_type":"MACH_PORT_TYPE_SEND","before_urefs":null,"after_urefs":1,"entry_refs_before":null,"entry_refs_after":null,"expected":"usable send right"},{"operation":"descriptor MOVE_SEND child after verification","port_name":"cargo_port","right_type":"MACH_PORT_RIGHT_SEND","before_urefs":0,"after_urefs":0,"entry_refs_before":null,"entry_refs_after":null,"expected":"consumed"}],"observations":{"transport_setup":"bootstrap special-port inheritance plus status pipe","child_status_read":true,"child_waited":true,"child_wait_status":0,"child_cargo_type_before_send":"MACH_PORT_TYPE_SEND_RECEIVE","child_cargo_type_after_send":"MACH_PORT_TYPE_RECEIVE","child_cargo_type_lost_send_after_send":true,"child_cargo_send_urefs_before_send":1,"child_cargo_send_urefs_after_send":0,"child_cargo_send_urefs_consumed_after_send":true,"child_cargo_send_urefs_after_verify":0,"child_cargo_type_after_verify":"MACH_PORT_TYPE_RECEIVE","child_cargo_type_lost_send_after_verify":true,"child_cargo_send_urefs_consumed_after_verify":true,"sent_descriptor_disposition":"MACH_MSG_TYPE_MOVE_SEND","sent_msgh_bits_raw_hex":"0x80000013","received_msgh_bits_raw_hex":"0x80001100","received_remote_disposition":"0","received_local_disposition":"MACH_MSG_TYPE_MOVE_SEND_OR_PORT_SEND","received_msgh_size":40,"received_msgh_id":1329738290,"received_descriptor_count":1,"delivered_descriptor_name":"delivered_cargo_send","delivered_descriptor_type":"MACH_MSG_PORT_DESCRIPTOR","delivered_descriptor_disposition":"MACH_MSG_TYPE_MOVE_SEND_OR_PORT_SEND","delivered_descriptor_disposition_raw_hex":"0x11","parent_delivered_port_type":"MACH_PORT_TYPE_SEND","parent_delivered_send_refs":1,"delivered_right_usable":true,"parent_delivered_deallocate_count":1,"parent_delivered_one_deallocate_sufficient":true,"verify_sent_msgh_bits_raw_hex":"0x13","child_verify_received_msgh_bits_raw_hex":"0x1100","child_verify_received_remote_disposition":"0","child_verify_received_local_disposition":"MACH_MSG_TYPE_MOVE_SEND_OR_PORT_SEND","child_verify_received_msgh_size":24,"child_verify_received_msgh_id":1329738291,"child_cleanup_returned_to_baseline":true,"child_cleanup_delta":0,"parent_names_before":11,"parent_names_after":11,"parent_cleanup_delta":0},"cleanup":{"returned_to_baseline":true,"notes":""},"notes":""}
