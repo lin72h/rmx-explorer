@@ -11,6 +11,7 @@ defmodule RmxOSOracle.Env do
 
   @default_env_local "priv/env/env.local"
   @canonical_freebsd_src "/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15"
+  @official_stable15_candidate_src "/Users/me/wip-mach/freebsd-src-official-stable-15"
   @lanes %{
     "current-tree" => "NXPLATFORM_KERNEL_OBJDIRPREFIX_CURRENT_TREE",
     "launchd" => "NXPLATFORM_KERNEL_OBJDIRPREFIX_LAUNCHD",
@@ -43,7 +44,7 @@ defmodule RmxOSOracle.Env do
       |> require_dir("NXPLATFORM_FREEBSD_SRC", freebsd_src)
       |> reject_symlink("NXPLATFORM_FREEBSD_SRC", freebsd_src)
       |> reject_oracle_source_default(freebsd_src)
-      |> require_canonical_freebsd_src(freebsd_src)
+      |> require_profile_freebsd_src(freebsd_src, base_profile)
       |> require_configured_prefix(lane_key, configured_prefix)
       |> reject_unresolved_prefix(lane_key, configured_prefix, resolved_prefix)
       |> require_absolute_prefix(lane_key, resolved_prefix)
@@ -163,10 +164,18 @@ defmodule RmxOSOracle.Env do
     end
   end
 
-  defp require_canonical_freebsd_src(errors, freebsd_src) do
-    if is_binary(freebsd_src) and Path.expand(freebsd_src) != @canonical_freebsd_src do
+  defp require_profile_freebsd_src(errors, freebsd_src, base_profile) do
+    expected =
+      case base_profile do
+        "official-stable15-candidate" -> @official_stable15_candidate_src
+        _ -> @canonical_freebsd_src
+      end
+
+    if is_binary(freebsd_src) and Path.expand(freebsd_src) != expected do
       errors ++
-        ["NXPLATFORM_FREEBSD_SRC must match accepted M1 source pin: #{@canonical_freebsd_src}"]
+        [
+          "NXPLATFORM_FREEBSD_SRC must match accepted source pin for #{base_profile || "default"}: #{expected}"
+        ]
     else
       errors
     end
