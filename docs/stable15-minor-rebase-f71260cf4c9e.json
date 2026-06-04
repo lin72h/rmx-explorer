@@ -1,0 +1,153 @@
+{
+  "schema": "rmxos_oracle.stable15_minor_rebase_acceptance.v1",
+  "status": "accepted_candidate_run",
+  "date": "2026-06-05",
+  "claim_boundary": {
+    "certification_claim": false,
+    "activation_decision": false,
+    "source_deletion_authorized": false,
+    "nested_stable15_mutation_authorized": false
+  },
+  "commits": {
+    "oracle_repo_commit": "32e2a0f0d49d",
+    "source_policy_repo_commit": "f89bcad",
+    "source_policy_repo_commit_note": "f89bcad is the source-side policy/docs commit that required stdin isolation for minor rebase gates; it is not the Oracle repo commit.",
+    "candidate_source_commit": "f71260cf4c9e",
+    "candidate_base_commit": "2cdb0c07e25b",
+    "active_nested_freebsd_commit": "d4876c3fd9af",
+    "oracle_parity_tag_commit": "a30ef3f"
+  },
+  "paths": {
+    "oracle_repo": "/Users/me/wip-mach/wip-gpt-oracle",
+    "source_policy_repo": "/Users/me/wip-mach/wip-gpt",
+    "candidate_source": "/Users/me/wip-mach/freebsd-src-official-stable-15",
+    "candidate_objdir": "/Users/me/wip-mach/build/official-stable15-mach-obj",
+    "active_nested_freebsd_source": "/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15"
+  },
+  "sync_model": {
+    "type": "minor_rebase_merge_based_source_sync",
+    "description": "Same-base stable/15 source sync. The source-side operation is merge-based, not a literal git rebase, preserving fork history and upstream provenance."
+  },
+  "accepted_artifact_tuple": {
+    "candidate_head": "f71260cf4c9e",
+    "kernel": {
+      "path": "/Users/me/wip-mach/build/official-stable15-mach-obj/Users/me/wip-mach/freebsd-src-official-stable-15/amd64.amd64/sys/MACHDEBUGDEBUG/kernel",
+      "sha256": "39031adb1267455043f6b04f4e073dbb975e8aa91d80a7808fd9b92a2ec63fb5",
+      "size": 31404792
+    },
+    "kernel_full": {
+      "path": "/Users/me/wip-mach/build/official-stable15-mach-obj/Users/me/wip-mach/freebsd-src-official-stable-15/amd64.amd64/sys/MACHDEBUGDEBUG/kernel.full",
+      "sha256": "845982055bd8be6989ec63e84ba0c23e5ab851212a919a73c1e1dcc9830584c8",
+      "size": 133231776
+    },
+    "mach_ko": {
+      "path": "/Users/me/wip-mach/build/official-stable15-mach-obj/Users/me/wip-mach/freebsd-src-official-stable-15/amd64.amd64/sys/modules/mach/mach.ko",
+      "sha256": "f9c871ce59742dcda7d8fabb7e211177f84af5c9083cfa1e70023de1d80e625e",
+      "size": 345360
+    },
+    "staged_guest_image": {
+      "path": "/Users/me/wip-mach/vm/runs/nxplatform-dev.img",
+      "sha256": "d427e61c526469e4e6712bdf0313e1f997cbc9c7999b71b615262d2e9578ed3e",
+      "size": 6476638720
+    },
+    "tuple_rule": "Changing any single artifact invalidates this accepted tuple."
+  },
+  "evidence": {
+    "s3_stage": {
+      "result": "pass",
+      "path": "priv/runs/stable15-base-update/20260604T120142Z-s3-official-stable15-minor-rebase-stage/",
+      "summary_json": "priv/runs/stable15-base-update/20260604T120142Z-s3-official-stable15-minor-rebase-stage/s3-stage-result.json"
+    },
+    "d14": {
+      "result": "pass",
+      "path": "priv/runs/migration-parity/20260604T120612.655593Z-phase08-d14-launchctl-plist/",
+      "summary_json": "priv/runs/migration-parity/20260604T120612.655593Z-phase08-d14-launchctl-plist/parity.json",
+      "observation_basis": "L2_guest_integration"
+    },
+    "d17_initial_failed_run": {
+      "result": "fail",
+      "path": "priv/runs/stable15-base-update/20260604T120947Z-d17-official-stable15-fast-exit/",
+      "summary_json": "priv/runs/stable15-base-update/20260604T120947Z-d17-official-stable15-fast-exit/d17-result.json",
+      "candidate_commit": "f71260cf4c9e",
+      "classification": "d17_runner_or_stdin_finalization_failure",
+      "validator_failure": "missing integer marker PHASE08_PROC_SOURCE_CANCELLED",
+      "candidate_runtime_gap": false
+    },
+    "d17_timeout180_invalid_runner_setup": {
+      "result": "fail",
+      "path": "priv/runs/stable15-base-update/20260604T122111Z-d17-official-stable15-fast-exit-timeout180/",
+      "summary_json": "priv/runs/stable15-base-update/20260604T122111Z-d17-official-stable15-fast-exit-timeout180/d17-rerun-result.json",
+      "candidate_commit": "f71260cf4c9e",
+      "classification": "invalid_runner_setup_evidence",
+      "reason": "Guest stopped at FreeBSD single-user shell prompt before phase1 launchd harness markers.",
+      "candidate_runtime_gap": false
+    },
+    "d17_stdin_isolated": {
+      "result": "pass",
+      "path": "priv/runs/stable15-base-update/20260604T123146Z-d17-official-stable15-fast-exit-stdin-null-timeout180/",
+      "summary_json": "priv/runs/stable15-base-update/20260604T123146Z-d17-official-stable15-fast-exit-stdin-null-timeout180/d17-rerun-result.json",
+      "candidate_commit": "f71260cf4c9e",
+      "run_guest_stdin": "/dev/null",
+      "run_guest_rc": 1,
+      "validate_only_rc": 0,
+      "harness_end_rc_0": true,
+      "phase08_dispatch_launchctl_plist_exit_0": true,
+      "d17_fast_exit_confirmed": true,
+      "d17_fast_proc_source_cancelled": true,
+      "generic_proc_source_cancelled": true
+    },
+    "d18_stdin_isolated": {
+      "result": "pass",
+      "path": "priv/runs/stable15-base-update/20260604T123428Z-d18-official-stable15-signal-exit-stdin-null-timeout180/",
+      "summary_json": "priv/runs/stable15-base-update/20260604T123428Z-d18-official-stable15-signal-exit-stdin-null-timeout180/d18-rerun-result.json",
+      "candidate_commit": "f71260cf4c9e",
+      "run_guest_stdin": "/dev/null",
+      "run_guest_rc": 1,
+      "validate_only_rc": 0,
+      "d18_sigterm_signal_exit_confirmed": true,
+      "d18_sigkill_signal_exit_confirmed": true,
+      "harness_end_rc_0": true
+    }
+  },
+  "candidate_stability": {
+    "candidate_commit_unchanged_between_failed_and_passed_d17": true,
+    "failed_d17_candidate_commit": "f71260cf4c9e",
+    "passed_d17_candidate_commit": "f71260cf4c9e",
+    "interpretation": "The D17 pass was caused by runner stdin isolation, not by a candidate source change."
+  },
+  "runner_exit_code_policy": {
+    "run_guest_rc_1_observed_on_passed_d17": true,
+    "run_guest_rc_1_observed_on_passed_d18": true,
+    "non_authoritative_only_when": [
+      "validate-only exit code is 0",
+      "required marker contract passes",
+      "guest serial contains harness end rc=0",
+      "hard-stop scan is clean"
+    ],
+    "authoritative_serial_marker": "=== phase1 launchd harness end rc=0 ===",
+    "not_a_general_rule": true
+  },
+  "boot_mode_and_hard_stops": {
+    "bad_boot_markers_absent_in_passed_d17_d18": [
+      "Consoles: Dual (Video primary)",
+      "Enter full pathname of shell"
+    ],
+    "normal_multi_user_markers_present_in_passed_d17_d18": true,
+    "autoboot_marker_note": "Autoboot in 0 seconds is not captured in this serial path; prior accepted serial logs also begin after loader text.",
+    "nosys_468_absent": true,
+    "panic_absent": true,
+    "fatal_trap_absent": true,
+    "kassert_absent": true,
+    "lock_order_reversal_absent": true,
+    "witness_option_warning_present": true,
+    "witness_lock_order_hard_stop_absent": true
+  },
+  "guardrails": {
+    "certification_created": false,
+    "artifacts_dir_created_in_oracle_repo": false,
+    "source_deletion": false,
+    "nested_stable15_mutation": false,
+    "oracle_parity_tag_moved": false,
+    "raw_priv_runs_committed": false
+  }
+}
