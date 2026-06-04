@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rmxos_oracle.catalog.probe.v1",
+  "title": "RmxOS Oracle Catalog Probe v1",
+  "type": "object",
+  "additionalProperties": false,
+  "not": {
+    "required": ["canonical_status"]
+  },
+  "required": [
+    "schema",
+    "probe_id",
+    "domain",
+    "language",
+    "role",
+    "source_path",
+    "platforms",
+    "runner_artifact_ids",
+    "feature_refs",
+    "result_refs",
+    "notes"
+  ],
+  "properties": {
+    "schema": {
+      "const": "rmxos_oracle.catalog.probe.v1"
+    },
+    "probe_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "domain": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "enum": ["elixir", "zig", "c", "fixture", "other"]
+    },
+    "role": {
+      "description": "Probe role. Do not use canonical-flavored vocabulary here.",
+      "enum": [
+        "macos_oracle_probe",
+        "rx_guest_probe",
+        "rx_host_probe",
+        "host_semantic_probe",
+        "reference_probe",
+        "compatibility_shim"
+      ]
+    },
+    "source_path": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "^/"
+      }
+    },
+    "platforms": {
+      "type": "array",
+      "items": {
+        "enum": ["rx-x64", "rx-a64", "mx-x64", "mx-a64", "nx-r64"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "runner_artifact_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "feature_refs": {
+      "$ref": "#/$defs/strings"
+    },
+    "result_refs": {
+      "$ref": "#/$defs/repo_relative_refs"
+    },
+    "notes": {
+      "$ref": "#/$defs/strings"
+    }
+  },
+  "$defs": {
+    "repo_relative_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "not": {
+          "pattern": "^/"
+        }
+      }
+    },
+    "strings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rmxos_oracle.mismatch.v1",
+  "title": "RmxOS Oracle Mismatch v1",
+  "type": "object",
+  "additionalProperties": false,
+  "$comment": "Future validation must verify lifecycle field matches the containing mismatches/<lifecycle>/ directory. History is append-only by policy; every lifecycle transition must append at/event/from/to/reason and optional parent_decision_ref.",
+  "required": [
+    "schema",
+    "mismatch_id",
+    "title",
+    "domain",
+    "lifecycle",
+    "classification",
+    "comparison_axis",
+    "equivalence_class",
+    "probe_spec_refs",
+    "observation_basis",
+    "platforms",
+    "feature_refs",
+    "finding_refs",
+    "source_refs",
+    "probe_refs",
+    "rx_base_commit",
+    "macos_build_validity",
+    "probe_source_hashes",
+    "evidence_hashes",
+    "review",
+    "flags_ledger_review",
+    "certification_claim_refs",
+    "parent_decision_refs",
+    "history",
+    "notes"
+  ],
+  "properties": {
+    "schema": {
+      "const": "rmxos_oracle.mismatch.v1"
+    },
+    "mismatch_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "domain": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lifecycle": {
+      "enum": ["active", "deferred", "resolved"]
+    },
+    "classification": {
+      "enum": [
+        "match",
+        "acceptable_difference",
+        "design_choice",
+        "unsupported_feature",
+        "candidate_port",
+        "intrusive_kernel_required",
+        "cannot_observe",
+        "unknown",
+        "regression"
+      ]
+    },
+    "comparison_axis": {
+      "description": "What is being compared.",
+      "enum": ["semantic_behavior", "api_return_surface", "cleanup_semantics", "availability", "layout_same_arch"]
+    },
+    "equivalence_class": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "normalization_rule_refs"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normalization_rule_refs": {
+          "$ref": "#/$defs/repo_relative_refs"
+        }
+      }
+    },
+    "probe_spec_refs": {
+      "$ref": "#/$defs/repo_relative_refs"
+    },
+    "observation_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "rx": {
+          "enum": ["L2_guest_integration", "L1_host_semantic_probe", "not_observed"]
+        },
+        "mx": {
+          "enum": ["L3_macos_semantic_oracle", "not_observed", "cannot_observe"]
+        }
+      }
+    },
+    "platforms": {
+      "type": "object",
+      "propertyNames": {
+        "enum": ["rx-x64", "rx-a64", "mx-x64", "mx-a64", "nx-r64"]
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/platform_observation"
+      },
+      "minProperties": 1
+    },
+    "feature_refs": {
+      "$ref": "#/$defs/strings"
+    },
+    "finding_refs": {
+      "description": "Repo-relative from oracle repo root. findings/ and macos-validation/findings/ must remain distinguishable.",
+      "$ref": "#/$defs/repo_relative_refs"
+    },
+    "source_refs": {
+      "$ref": "#/$defs/repo_relative_refs"
+    },
+    "probe_refs": {
+      "$ref": "#/$defs/repo_relative_refs"
+    },
+    "rx_base_commit": {
+      "description": "Required when rx evidence is referenced; may be null only when rx is not observed.",
+      "type": ["string", "null"]
+    },
+    "macos_build_validity": {
+      "description": "Per-mx build validity when mx evidence is referenced.",
+      "type": "object",
+      "propertyNames": {
+        "enum": ["mx-x64", "mx-a64"]
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "probe_source_hashes": {
+      "description": "Hashes for probe sources where hashable.",
+      "$ref": "#/$defs/hash_refs"
+    },
+    "evidence_hashes": {
+      "description": "Hashes for evidence/source artifacts where hashable.",
+      "$ref": "#/$defs/hash_refs"
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "deadline"],
+      "properties": {
+        "owner": {
+          "type": ["string", "null"]
+        },
+        "deadline": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "flags_ledger_review": {
+      "description": "Review flag only. Does not directly block certification.",
+      "type": "boolean"
+    },
+    "certification_claim_refs": {
+      "description": "Must remain empty until the R0 claims-ledger contract exists.",
+      "$ref": "#/$defs/strings"
+    },
+    "parent_decision_refs": {
+      "$ref": "#/$defs/repo_relative_refs"
+    },
+    "history": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/history_event"
+      }
+    },
+    "notes": {
+      "$ref": "#/$defs/strings"
+    }
+  },
+  "$defs": {
+    "platform_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["behavior", "evidence_layer", "base_ref", "build_validity", "evidence_refs", "notes"],
+      "properties": {
+        "behavior": {
+          "type": "string"
+        },
+        "evidence_layer": {
+          "enum": ["L0", "L1", "L2", "L3", "L4", "not_observed"]
+        },
+        "base_ref": {
+          "type": "object",
+          "additionalProperties": true,
+          "minProperties": 1
+        },
+        "build_validity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/repo_relative_refs"
+        },
+        "notes": {
+          "$ref": "#/$defs/strings"
+        }
+      }
+    },
+    "history_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "event", "from", "to", "reason"],
+      "properties": {
+        "at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from": {
+          "type": ["string", "null"]
+        },
+        "to": {
+          "type": ["string", "null"]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_decision_ref": {
+          "type": ["string", "null"]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "hash_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "not": {
+              "pattern": "^/"
+            }
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "repo_relative_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "not": {
+          "pattern": "^/"
+        }
+      }
+    },
+    "strings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rmxos_oracle.catalog.feature.v1",
+  "title": "RmxOS Oracle Catalog Feature v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "feature_id",
+    "domain",
+    "title",
+    "surface",
+    "status",
+    "platforms",
+    "probe_refs",
+    "finding_refs",
+    "mismatch_refs",
+    "certification_claim_refs",
+    "notes",
+    "updated_at"
+  ],
+  "properties": {
+    "schema": {
+      "const": "rmxos_oracle.catalog.feature.v1"
+    },
+    "feature_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "domain": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "surface": {
+      "enum": ["rx-x64", "rx-a64", "mx-x64", "mx-a64", "nx-r64"]
+    },
+    "status": {
+      "description": "Overall inventory status. This is not automatically derived from per-platform availability and is not a certification claim.",
+      "enum": ["unknown", "exploring", "observed", "implemented", "blocked", "deferred", "retired"]
+    },
+    "platforms": {
+      "type": "object",
+      "description": "Per-platform availability. This is separate from the feature-level status.",
+      "propertyNames": {
+        "enum": ["rx-x64", "rx-a64", "mx-x64", "mx-a64", "nx-r64"]
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/platform_availability"
+      },
+      "minProperties": 1
+    },
+    "probe_refs": {
+      "$ref": "#/$defs/repo_relative_refs"
+    },
+    "finding_refs": {
+      "description": "Repo-relative from oracle repo root. findings/ and macos-validation/findings/ must remain distinguishable.",
+      "$ref": "#/$defs/repo_relative_refs"
+    },
+    "mismatch_refs": {
+      "$ref": "#/$defs/repo_relative_refs"
+    },
+    "certification_claim_refs": {
+      "description": "Must remain empty until the R0 claims-ledger contract exists.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "$ref": "#/$defs/strings"
+    },
+    "updated_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "platform_availability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["availability", "evidence_refs", "source_refs", "notes"],
+      "properties": {
+        "availability": {
+          "description": "Platform-specific state. This does not create certification status.",
+          "enum": [
+            "unknown",
+            "not_applicable",
+            "not_observed",
+            "observed",
+            "implemented",
+            "missing",
+            "partial",
+            "blocked"
+          ]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/repo_relative_refs"
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        },
+        "notes": {
+          "$ref": "#/$defs/strings"
+        }
+      }
+    },
+    "source_ref": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["repo", "path"],
+      "properties": {
+        "repo": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha": {
+          "type": ["string", "null"]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "repo_relative_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "not": {
+          "pattern": "^/"
+        }
+      }
+    },
+    "strings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
