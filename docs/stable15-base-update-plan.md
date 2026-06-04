@@ -282,6 +282,44 @@ After D14 passes, parent decides whether D17/D18 are required before broader
 adoption. D17/D18 must not be migrated or executed as part of this base-update
 commit unless parent explicitly expands scope.
 
+## 5.1 S3/D14 Candidate Result
+
+The first official stable/15 candidate S3/D14 attempt is preserved as ignored
+evidence:
+
+- S3 staging evidence:
+  `priv/runs/stable15-base-update/20260604T095633Z-s3-official-stable15-stage/s3-stage-result.json`
+- D14 evidence:
+  `priv/runs/migration-parity/20260604T095950.862739Z-phase08-d14-launchctl-plist/`
+
+Observed result:
+
+- S3 staging: pass.
+- D14 verification: fail.
+- Failure class: `candidate_source_runtime_gap`.
+- This was not a staging/path mixup: boot identity passed with the official
+  stable/15 candidate source, `MACHDEBUGDEBUG` kernel, candidate `mach.ko`, and
+  candidate guest image hashes.
+- Candidate source commit: `63ce90100a4e`.
+- First hard stop: `nosys 468`.
+- Second hard stop: WITNESS `lock order reversal`.
+
+Current interpretation:
+
+- The candidate tree has `THRWORKQ` config plumbing, but syscall 468 is still
+  reserved/nosys in the official stable/15 candidate.
+- The active nested releng tree defines syscall 468 as `twq_kernreturn`.
+- THRWORKQ source/libthr workqueue support appears incomplete in the official
+  stable/15 candidate.
+
+Required next source-side fix:
+
+- Restore THRWORKQ syscall 468 and workqueue/libthr support in the official
+  stable/15 candidate before another D14 acceptance attempt.
+- Do not broaden stable/15 validation until D14 passes again.
+- After syscall 468 no longer stops the run, classify the WITNESS lock-order
+  result separately.
+
 ## 6. Failure Policy
 
 If D14 fails on the candidate source root, stop and classify the failure before
