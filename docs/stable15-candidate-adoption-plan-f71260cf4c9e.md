@@ -88,23 +88,33 @@ Rollback source:
 - objdir: `/Users/me/wip-mach/build/releng151-mach-obj`
 - profile: `releng151-current`
 
+Rollback commit pinning rule:
+
+- `releng151-current` is an explicit fallback profile, but it does not itself carry a commit pin.
+- Rollback source HEAD must therefore be checked out-of-band before rollback use:
+  - `git -C /Users/me/wip-mach/wip-gpt/freebsd-src-stable-15 rev-parse --short HEAD`
+  - required result: `d4876c3fd9af`
+- Rollback validation must fail closed if the nested source HEAD differs.
+
 Rollback tuple source evidence:
 
 - `priv/runs/migration-parity/20260604T090700.280459Z-phase08-d14-launchctl-plist/boot_identity.json`
 - `priv/runs/migration-parity/20260604T090700.280459Z-phase08-d14-launchctl-plist/env_resolved.json`
+- on-disk releng objdir check for `kernel.full` before this plan patch
 
 Verified rollback tuple from existing evidence:
 
 | Artifact | SHA256 | Size | Path |
 | --- | --- | ---: | --- |
 | kernel | `c6f0d3eb12498504243c60694969790893e397fcfb367e10f39ddf12d4a680eb` | `31398456` | `/Users/me/wip-mach/build/releng151-mach-obj/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15/amd64.amd64/sys/MACHDEBUGDEBUG/kernel` |
+| kernel.full | `f0d2032e8a441c4c95d9f10bfd201f8629a2206a6c6bfc4fe874e4bbc0b22412` | `133129888` | `/Users/me/wip-mach/build/releng151-mach-obj/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15/amd64.amd64/sys/MACHDEBUGDEBUG/kernel.full` |
 | mach.ko | `e529ff107eaa49fa780aabd9487fc04dd20069ccec72a48cb939d88ab626d0c8` | `345360` | `/Users/me/wip-mach/build/releng151-mach-obj/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15/amd64.amd64/sys/modules/mach/mach.ko` |
-| guest image | `1d8245bb7f4e1bfca0462dd2e4f489d89ec992aaa58fedbce4f4f36920a16f72` | `6476638720` | `/Users/me/wip-mach/vm/runs/nxplatform-dev.img` |
+| guest image run provenance only | `1d8245bb7f4e1bfca0462dd2e4f489d89ec992aaa58fedbce4f4f36920a16f72` | `6476638720` | `/Users/me/wip-mach/vm/runs/nxplatform-dev.img` |
 
 Rollback evidence limitation:
 
-- `kernel.full` is not recorded in the existing rollback D14 boot identity evidence.
-- This plan does not compute or add a replacement `kernel.full` rollback hash because the requested rollback tuple must be sourced from existing evidence before writing the plan.
+- `kernel.full` is present on disk in the rollback objdir and is recorded above, but it is not part of the existing rollback D14 boot identity evidence.
+- The rollback guest image hash is run provenance from the old D14 evidence, not retained restore bytes.
 - Rollback guest image bytes are not retained as an archived immutable image in this plan. The path `/Users/me/wip-mach/vm/runs/nxplatform-dev.img` is a single live image path and may have been overwritten by later staging.
 - Rollback must therefore restage or rebuild the guest image from frozen nested source `/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15` before D14 rollback validation, unless an archived copy is separately found and verified by content hash.
 - Rollback must not reuse `/Users/me/wip-mach/vm/runs/nxplatform-dev.img` as the old rollback image unless its current hash is explicitly verified to match `1d8245bb7f4e1bfca0462dd2e4f489d89ec992aaa58fedbce4f4f36920a16f72`.
@@ -140,6 +150,22 @@ The activation commit must align `env.local` and lane defaults so `oracle.env.ch
 
 The same no-silent-releng rule applies to other lane prefixes when they are selected for a stable15-active run.
 
+Activation env-check matrix:
+
+| Case | Setup | Expected result | Required observable output |
+| --- | --- | --- | --- |
+| default launchd profile | `NXPLATFORM_BASE_PROFILE` unset, launchd lane configured for official stable/15 source and objdir | pass | `accepted_source_profile=stable15-active`, `source_pin_id=stable15-active`, `freebsd_src=/Users/me/wip-mach/freebsd-src-official-stable-15`, `freebsd_src_commit=f71260cf4c9e`, `expected_freebsd_src_commit=f71260cf4c9e`, `kernel_objdirprefix=/Users/me/wip-mach/build/official-stable15-mach-obj` |
+| explicit active profile | `NXPLATFORM_BASE_PROFILE=stable15-active`, launchd lane configured for official stable/15 source and objdir | pass | same source, commit, expected commit, and objdir as default launchd profile |
+| explicit candidate alias | `NXPLATFORM_BASE_PROFILE=official-stable15-candidate`, launchd lane configured for official stable/15 source and objdir | pass | same shared source, commit, expected commit, and objdir constants as `stable15-active` |
+| explicit releng fallback | `NXPLATFORM_BASE_PROFILE=releng151-current`, nested releng source and releng objdir selected | pass | `freebsd_src=/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15`; source HEAD must be separately verified as `d4876c3fd9af` before rollback use |
+| default profile with releng launchd objdir | `NXPLATFORM_BASE_PROFILE` unset, selected launchd objdir is `/Users/me/wip-mach/build/releng151-mach-obj` or `/Users/me/wip-mach/build/releng151-rc1-mach-obj` | fail | explicit profile/objdir mismatch error |
+| default profile with `/usr/obj` | `NXPLATFORM_BASE_PROFILE` unset, selected launchd objdir is `/usr/obj` | fail | explicit profile/objdir mismatch error |
+| active profile with nested releng source | `NXPLATFORM_BASE_PROFILE=stable15-active`, source is `/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15` | fail | explicit profile/source mismatch error |
+| active profile with stale candidate commit | `NXPLATFORM_BASE_PROFILE=stable15-active`, candidate source HEAD is not `f71260cf4c9e` | fail | explicit expected-vs-actual source commit error |
+| active profile with releng objdir | `NXPLATFORM_BASE_PROFILE=stable15-active`, selected objdir is any releng151 or `/usr/obj` path | fail | explicit profile/objdir mismatch error |
+| candidate alias drift | `official-stable15-candidate` resolves to a different source, commit, or objdir than `stable15-active` | fail | explicit alias drift error |
+| unknown profile | `NXPLATFORM_BASE_PROFILE` is any unrecognized value | fail | explicit unknown profile error |
+
 Activation must not:
 
 - Repoint the unpinned canonical releng profile to the candidate.
@@ -159,6 +185,8 @@ Allowed rollback paths:
 Rollback rules:
 
 - Keep frozen nested tree `/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15` untouched.
+- Confirm nested source HEAD out-of-band as `d4876c3fd9af` before rollback use because `releng151-current` has no commit pin.
+- Restage or rebuild the rollback guest image from the frozen nested source before D14 rollback validation unless an archived rollback image is separately verified by content hash.
 - Keep `oracle-parity-a30ef3f` untouched.
 - Rerun minimal D14 only if rollback is actually executed.
 - Do not delete candidate evidence or rollback evidence.
