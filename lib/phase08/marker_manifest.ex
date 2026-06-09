@@ -6,7 +6,189 @@ defmodule Phase08.MarkerManifest do
   @d23_inert_label "org.rmxos.phase08.d23.inert-reload"
   @d23_keepalive_label "org.rmxos.phase08.d23.keepalive-reload"
 
-  @markers [
+  @d19_shared_order_markers [
+    %{
+      id: :d19_gate_start,
+      key: "phase08_dispatch_launchctl_keepalive_restart_start",
+      gate: :d19,
+      arm: nil,
+      type: :presence,
+      policy: :must_be_present,
+      producer: :harness,
+      role: :gate_start,
+      claim: "D19 KeepAlive restart gate started."
+    },
+    %{
+      id: :d19_management_request_sent,
+      key: "PHASE08_D19_MANAGEMENT_REQUEST_SENT",
+      gate: :d19,
+      arm: nil,
+      type: :bool_int,
+      policy: {:must_equal, "1"},
+      producer: :donor,
+      producer_detail: :launchctl_client,
+      role: :management_request,
+      claim: "D19 launchctl client sent the management request."
+    },
+    %{
+      id: :d19_caller_pid_match,
+      key: "PHASE08_D19_CALLER_PID_MATCH",
+      gate: :d19,
+      arm: nil,
+      type: :bool_int,
+      policy: {:must_equal, "1"},
+      producer: :donor,
+      producer_detail: :donor_runtime,
+      role: :caller_identity,
+      claim: "D19 caller PID matched the expected management client PID."
+    },
+    %{
+      id: :d19_runtime_demux,
+      key: "PHASE08_D19_DONOR_RUNTIME_DEMUX_CALLED",
+      gate: :d19,
+      arm: nil,
+      type: :bool_int,
+      policy: {:must_equal, "1"},
+      producer: :donor,
+      producer_detail: :donor_runtime,
+      role: :runtime_demux,
+      claim: "D19 donor runtime demux handled the management request."
+    },
+    %{
+      id: :d19_start_pending,
+      key: "PHASE08_D19_START_PENDING_SET",
+      gate: :d19,
+      arm: nil,
+      type: :bool_int,
+      policy: {:must_equal, "1"},
+      producer: :donor,
+      producer_detail: :donor_job,
+      role: :start_state,
+      claim: "D19 start_pending was set before the initial start."
+    },
+    %{
+      id: :d19_initial_keepalive_reason,
+      key: "PHASE08_D19_JOB_KEEPALIVE_REASON",
+      gate: :d19,
+      arm: nil,
+      type: :enum,
+      policy: {:must_equal, "start_pending"},
+      producer: :donor,
+      producer_detail: :donor_job,
+      role: :keepalive_decision,
+      claim: "D19 initial keepalive reason was start_pending."
+    },
+    %{
+      id: :d19_cycle1_start,
+      key: "PHASE08_D19_CYCLE1_JOB_START_CALLED",
+      gate: :d19,
+      arm: :cycle1,
+      type: :bool_int,
+      policy: {:must_equal, "1"},
+      producer: :donor,
+      producer_detail: :donor_job,
+      role: :cycle1_start,
+      claim: "D19 cycle 1 started through the donor job path."
+    },
+    %{
+      id: :d19_cycle1_exec_bridge,
+      key: "PHASE08_D19_POSIX_SPAWN_SETEXEC_BRIDGE",
+      gate: :d19,
+      arm: :cycle1,
+      type: :enum,
+      policy: {:must_equal, "direct_exec"},
+      producer: :donor,
+      producer_detail: :donor_exec_bridge,
+      role: :exec_bridge,
+      claim: "D19 cycle 1 used the direct exec bridge."
+    },
+    %{
+      id: :d19_cycle1_reap,
+      key: "PHASE08_D19_CYCLE1_REAP_PATH",
+      gate: :d19,
+      arm: :cycle1,
+      type: :enum,
+      policy: {:must_equal, "dispatch_proc_source"},
+      producer: :donor,
+      producer_detail: :donor_proc_source,
+      role: :cycle1_reap,
+      claim: "D19 cycle 1 reaped through the dispatch proc-source path."
+    },
+    %{
+      id: :d19_cycle2_start,
+      key: "PHASE08_D19_CYCLE2_JOB_START_CALLED",
+      gate: :d19,
+      arm: :cycle2,
+      type: :bool_int,
+      policy: {:must_equal, "1"},
+      producer: :donor,
+      producer_detail: :donor_job,
+      role: :cycle2_start,
+      claim: "D19 cycle 2 started through the donor job path."
+    },
+    %{
+      id: :d19_post_cycle1_keepalive,
+      key: "PHASE08_D19_POST_CYCLE1_KEEPALIVE_REASON",
+      gate: :d19,
+      arm: :cycle1,
+      type: :enum,
+      policy: {:must_equal, "keepalive"},
+      producer: :donor,
+      producer_detail: :donor_job,
+      role: :restart_decision,
+      claim: "D19 post-cycle1 keepalive decision requested a restart."
+    },
+    %{
+      id: :d19_cycle2_limit_armed,
+      key: "PHASE08_D19_STOP_AFTER_CYCLE2_ARMED",
+      gate: :d19,
+      arm: :cycle2,
+      type: :bool_int,
+      policy: {:must_equal, "1"},
+      producer: :donor,
+      producer_detail: :donor_job,
+      role: :harness_cycle_limit,
+      claim: "D19 armed the harness cycle limit before cycle 2 completion."
+    },
+    %{
+      id: :d19_cycle2_reap,
+      key: "PHASE08_D19_CYCLE2_REAP_PATH",
+      gate: :d19,
+      arm: :cycle2,
+      type: :enum,
+      policy: {:must_equal, "dispatch_proc_source"},
+      producer: :donor,
+      producer_detail: :donor_proc_source,
+      role: :cycle2_reap,
+      claim: "D19 cycle 2 reaped through the dispatch proc-source path."
+    },
+    %{
+      id: :d19_restart_suppressed,
+      key: "PHASE08_D19_STOP_RESTART_SUPPRESSED",
+      gate: :d19,
+      arm: :cycle2,
+      type: :enum,
+      policy: {:must_equal, "harness_cycle_limit"},
+      producer: :donor,
+      producer_detail: :donor_job,
+      role: :restart_suppression,
+      claim: "D19 suppressed the third restart because the harness cycle limit was reached."
+    },
+    %{
+      id: :d19_confirmed,
+      key: "PHASE08_D19_KEEPALIVE_RESTART_CONFIRMED",
+      gate: :d19,
+      arm: nil,
+      type: :bool_int,
+      policy: {:must_equal, "1"},
+      producer: :donor,
+      producer_detail: :donor_job,
+      role: :gate_confirmation,
+      claim: "D19 KeepAlive restart behavior was confirmed."
+    }
+  ]
+
+  @d22_d23_markers [
     %{
       id: :d22_running_live_job_label,
       key: "PHASE08_D22_RUNNING_REMOVE_LIVE_JOB_LABEL",
@@ -641,6 +823,118 @@ defmodule Phase08.MarkerManifest do
     }
   ]
 
+  @markers @d19_shared_order_markers ++ @d22_d23_markers
+
+  @d19_frozen_generator_anchor_specs [
+    %{
+      id: :d19_gate_start,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :literal,
+      source_fragment: ~S|printf("phase08_dispatch_launchctl_keepalive_restart_start\n");|,
+      expands_to: ["phase08_dispatch_launchctl_keepalive_restart_start"]
+    },
+    %{
+      id: :d19_management_request_sent,
+      source_path: "scripts/launchd/build-phase08-d15-launchctl-json-hardfail.sh",
+      kind: :literal,
+      source_fragment: ~S|PHASE08_D19_MANAGEMENT_REQUEST_SENT=1\\n|,
+      expands_to: ["PHASE08_D19_MANAGEMENT_REQUEST_SENT=1"]
+    },
+    %{
+      id: :d19_caller_pid_match,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :dynamic_value,
+      dynamic: %{accepted_value: "1"},
+      source_fragment: ~S|printf("PHASE08_D19_CALLER_PID_MATCH=%d\n",|,
+      expands_to: ["PHASE08_D19_CALLER_PID_MATCH=1"]
+    },
+    %{
+      id: :d19_runtime_demux,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :dynamic_value,
+      dynamic: %{accepted_value: "1"},
+      source_fragment: ~S|printf("PHASE08_D19_DONOR_RUNTIME_DEMUX_CALLED=%d\n",|,
+      expands_to: ["PHASE08_D19_DONOR_RUNTIME_DEMUX_CALLED=1"]
+    },
+    %{
+      id: :d19_start_pending,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :literal,
+      source_fragment: ~S|printf("PHASE08_D19_START_PENDING_SET=1\n");|,
+      expands_to: ["PHASE08_D19_START_PENDING_SET=1"]
+    },
+    %{
+      id: :d19_initial_keepalive_reason,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :literal,
+      source_fragment: ~S|printf("PHASE08_D19_JOB_KEEPALIVE_REASON=start_pending\n");|,
+      expands_to: ["PHASE08_D19_JOB_KEEPALIVE_REASON=start_pending"]
+    },
+    %{
+      id: :d19_cycle_job_start,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :dynamic_cycle,
+      dynamic: %{cycles: [1, 2], source_format: "PHASE08_D19_CYCLE%d_JOB_START_CALLED=1"},
+      source_fragment: ~S|printf("PHASE08_D19_CYCLE%d_JOB_START_CALLED=1\n",|,
+      expands_to: [
+        "PHASE08_D19_CYCLE1_JOB_START_CALLED=1",
+        "PHASE08_D19_CYCLE2_JOB_START_CALLED=1"
+      ]
+    },
+    %{
+      id: :d19_exec_bridge,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :literal,
+      source_fragment: ~S|PHASE08_D19_POSIX_SPAWN_SETEXEC_BRIDGE=direct_exec\\n|,
+      expands_to: ["PHASE08_D19_POSIX_SPAWN_SETEXEC_BRIDGE=direct_exec"]
+    },
+    %{
+      id: :d19_cycle_reap_path,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :dynamic_cycle_value,
+      dynamic: %{
+        cycles: [1, 2],
+        accepted_value: "dispatch_proc_source",
+        source_format: "PHASE08_D19_CYCLE%d_REAP_PATH=%s"
+      },
+      source_fragment: ~S|printf("PHASE08_D19_CYCLE%d_REAP_PATH=%s\n",|,
+      expands_to: [
+        "PHASE08_D19_CYCLE1_REAP_PATH=dispatch_proc_source",
+        "PHASE08_D19_CYCLE2_REAP_PATH=dispatch_proc_source"
+      ]
+    },
+    %{
+      id: :d19_post_cycle1_keepalive,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :dynamic_value,
+      dynamic: %{accepted_value: "keepalive"},
+      source_fragment: ~S|printf("PHASE08_D19_POST_CYCLE1_KEEPALIVE_REASON=%s\n",|,
+      expands_to: ["PHASE08_D19_POST_CYCLE1_KEEPALIVE_REASON=keepalive"]
+    },
+    %{
+      id: :d19_cycle2_limit_armed,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :literal,
+      source_fragment: ~S|printf("PHASE08_D19_STOP_AFTER_CYCLE2_ARMED=1\n");|,
+      expands_to: ["PHASE08_D19_STOP_AFTER_CYCLE2_ARMED=1"]
+    },
+    %{
+      id: :d19_restart_suppressed,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :literal,
+      source_fragment: ~S|printf("PHASE08_D19_STOP_RESTART_SUPPRESSED=harness_cycle_limit\n");|,
+      expands_to: ["PHASE08_D19_STOP_RESTART_SUPPRESSED=harness_cycle_limit"]
+    },
+    %{
+      id: :d19_confirmation,
+      source_path: "scripts/launchd/link-launchd-harness.sh",
+      kind: :dynamic_value,
+      dynamic: %{accepted_value: "1"},
+      source_fragment: ~S|printf("PHASE08_D19_KEEPALIVE_RESTART_CONFIRMED=%d\n",|,
+      expands_to: ["PHASE08_D19_KEEPALIVE_RESTART_CONFIRMED=1"]
+    }
+  ]
+
   def markers, do: @markers
 
   def for_gate(gate) do
@@ -667,6 +961,7 @@ defmodule Phase08.MarkerManifest do
   def emit_c(id, value_expr, fmt, opts)
       when is_atom(id) and is_binary(fmt) and is_list(opts) do
     spec = spec!(id)
+    validate_emit_c_policy!(spec)
     value_expr = validate_value_expr!(id, value_expr)
     validate_static_value!(spec, Keyword.fetch(opts, :value))
 
@@ -681,6 +976,79 @@ defmodule Phase08.MarkerManifest do
   def c_key!(id) when is_atom(id), do: c_escape(key!(id))
 
   def c_string_literal(value) when is_binary(value), do: ~s|"#{c_escape(value)}"|
+
+  def marker_literal(%{policy: :must_be_present} = spec), do: spec.key
+
+  def marker_literal(%{policy: {:must_equal, expected}} = spec) do
+    "#{spec.key}=#{expected}"
+  end
+
+  def marker_literal(%{policy: {:must_include, expected}} = spec) do
+    "#{spec.key}=#{expected}"
+  end
+
+  def marker_literal(%{policy: {:must_be_one_of, [expected | _rest]}} = spec) do
+    "#{spec.key}=#{expected}"
+  end
+
+  def d19_frozen_generator_anchor_source_reference do
+    %{
+      source_repo: "/Users/me/wip-mach/wip-gpt",
+      commit: "089311cff65bf116323a1e2e2d5ccf602432a22c",
+      short_commit: "089311cff65b",
+      fixture:
+        "test/fixtures/phase08/launchctl/d19_frozen_generator_anchors_089311cff65b.source.txt",
+      source_refs: [
+        %{
+          path: "scripts/launchd/build-phase08-d15-launchctl-json-hardfail.sh",
+          sha256: "b46b055378b85e4e07c6bbda29420100ea8c878d6c1f53943ccab74ce850a356"
+        },
+        %{
+          path: "scripts/launchd/link-launchd-harness.sh",
+          sha256: "622e039124dcc58d094d8c19b931dd225fe8986960ef4d77d2f3fddd814378f3"
+        }
+      ]
+    }
+  end
+
+  def d19_frozen_generator_anchor_specs, do: @d19_frozen_generator_anchor_specs
+
+  def d19_frozen_generator_anchors_from_text(source_text) when is_binary(source_text) do
+    @d19_frozen_generator_anchor_specs
+    |> Enum.filter(&String.contains?(source_text, &1.source_fragment))
+    |> Enum.flat_map(fn spec ->
+      Enum.map(spec.expands_to, fn literal ->
+        spec
+        |> Map.take([:id, :source_path, :kind, :dynamic])
+        |> Map.put(:literal, literal)
+      end)
+    end)
+  end
+
+  def validate_d19_frozen_generator_anchor_drift!(source_text) when is_binary(source_text) do
+    validate_d19_frozen_generator_anchor_drift!(source_text, d19_manifest_literals())
+  end
+
+  def validate_d19_frozen_generator_anchor_drift!(source_text, manifest_literals)
+      when is_binary(source_text) and is_list(manifest_literals) do
+    source_literals =
+      source_text
+      |> d19_frozen_generator_anchors_from_text()
+      |> Enum.map(& &1.literal)
+
+    unless MapSet.new(manifest_literals) == MapSet.new(source_literals) do
+      raise ArgumentError,
+            "D19 manifest/frozen generator anchor drift manifest=#{inspect(manifest_literals)} source=#{inspect(source_literals)}"
+    end
+
+    :ok
+  end
+
+  defp d19_manifest_literals do
+    :d19
+    |> for_gate()
+    |> Enum.map(&marker_literal/1)
+  end
 
   def validate_unique! do
     duplicate_ids =
@@ -724,6 +1092,18 @@ defmodule Phase08.MarkerManifest do
   end
 
   defp validate_marker_in_log!(log, spec) do
+    if spec.policy == :must_be_present do
+      unless String.contains?(log, spec.key) do
+        raise ArgumentError, "missing marker #{spec.key}: #{spec.claim}"
+      end
+
+      :ok
+    else
+      validate_keyed_marker_in_log!(log, spec)
+    end
+  end
+
+  defp validate_keyed_marker_in_log!(log, spec) do
     values = marker_values(log, spec.key)
 
     if values == [] do
@@ -774,7 +1154,15 @@ defmodule Phase08.MarkerManifest do
           "marker #{inspect(id)} emit_c requires a binary value expression, got #{inspect(value_expr)}"
   end
 
+  defp validate_emit_c_policy!(%{policy: :must_be_present} = spec) do
+    raise ArgumentError, "presence-only marker cannot be emitted with emit_c/...: #{spec.key}"
+  end
+
+  defp validate_emit_c_policy!(_spec), do: :ok
+
   defp validate_static_value!(_spec, :error), do: :ok
+
+  defp validate_static_value!(%{policy: :must_be_present}, {:ok, _value}), do: :ok
 
   defp validate_static_value!(%{policy: {:must_equal, expected}} = spec, {:ok, value}) do
     unless to_string(value) == to_string(expected) do

@@ -1,0 +1,23 @@
+# source: scripts/launchd/build-phase08-d15-launchctl-json-hardfail.sh
+print "\t\tprintf(\"PHASE08_D19_MANAGEMENT_REQUEST_SENT=1\\n\");"
+
+# source: scripts/launchd/link-launchd-harness.sh
+printf("phase08_dispatch_launchctl_keepalive_restart_start\n");
+printf("PHASE08_D19_CALLER_PID_MATCH=%d\n",
+    pid_match ? 1 : 0);
+printf("PHASE08_D19_DONOR_RUNTIME_DEMUX_CALLED=%d\n",
+    d11_count);
+printf("PHASE08_D19_START_PENDING_SET=1\n");
+printf("PHASE08_D19_JOB_KEEPALIVE_REASON=start_pending\n");
+printf("PHASE08_D19_CYCLE%d_JOB_START_CALLED=1\n",
+    s->job_start_count);
+print "\t\t\tprintf(\"PHASE08_D19_POSIX_SPAWN_SETEXEC_BRIDGE=direct_exec\\n\");"
+printf("PHASE08_D19_CYCLE%d_REAP_PATH=%s\n",
+    cycle, dispatch_reap ? "dispatch_proc_source" : "fallback_waitpid");
+printf("PHASE08_D19_POST_CYCLE1_KEEPALIVE_REASON=%s\n",
+    post1_snapshot.postreap_keepalive_reason_keepalive ?
+    "keepalive" : "missing");
+printf("PHASE08_D19_STOP_AFTER_CYCLE2_ARMED=1\n");
+printf("PHASE08_D19_STOP_RESTART_SUPPRESSED=harness_cycle_limit\n");
+printf("PHASE08_D19_KEEPALIVE_RESTART_CONFIRMED=%d\n",
+    confirmed ? 1 : 0);
