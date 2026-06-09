@@ -41,7 +41,7 @@ defmodule RmxOSOracleUIValidatorTest do
               "summary" => value,
               "actions" =>
                 Map.new(
-                  ~w(keep_elixir keep_fixture port_to_elixir port_to_zig retain_c_reference_until_zig_parity relocate_zig),
+                  ~w(keep_elixir keep_fixture port_to_elixir port_to_zig retain_c_reference_until_zig_parity relocate_zig evaluate_c_support keep_c_support),
                   fn action ->
                     {action,
                      %{
@@ -120,6 +120,43 @@ defmodule RmxOSOracleUIValidatorTest do
     assert Enum.any?(errors, &String.contains?(&1, "UTC ISO-8601"))
     assert Enum.any?(errors, &String.contains?(&1, "duplicate ids"))
     assert Enum.any?(errors, &String.contains?(&1, "surface_id"))
+  end
+
+  test "rejects inconsistent canonicalization action counts" do
+    invalid =
+      snapshot("canonicalization")
+      |> put_in(["data", "actions", "keep_elixir", "entry_count"], 1)
+
+    assert {:error, errors} = Validator.validate(invalid)
+    assert Enum.any?(errors, &String.contains?(&1, "entry_count must equal entries length"))
+  end
+
+  test "rejects unexpected canonicalization action keys" do
+    invalid =
+      snapshot("canonicalization")
+      |> put_in(["data", "actions", "unknown_action"], %{
+        "action" => "unknown_action",
+        "label" => "unknown_action",
+        "status" => "not_applicable",
+        "status_meaning" => "manifest_classification_readiness",
+        "entry_count" => 0,
+        "entries" => [],
+        "source_refs" => []
+      })
+
+    assert {:error, errors} = Validator.validate(invalid)
+    assert Enum.any?(errors, &String.contains?(&1, "not an approved canonicalization action"))
+  end
+
+  test "rejects malformed canonicalization blocked dependency edges" do
+    invalid =
+      snapshot("canonicalization")
+      |> put_in(["data", "blocked_dependency_edges"], [
+        "blocked dependency edge: source -> target"
+      ])
+
+    assert {:error, errors} = Validator.validate(invalid)
+    assert Enum.any?(errors, &String.contains?(&1, "blocked dependency edge"))
   end
 
   defp snapshot(page) do

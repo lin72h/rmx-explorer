@@ -70,8 +70,10 @@ defmodule RmxOSOracleUIModelTest do
     actions = result["data"]["actions"]
 
     assert Map.keys(actions) |> Enum.sort() ==
-             ~w(keep_elixir keep_fixture port_to_elixir port_to_zig relocate_zig retain_c_reference_until_zig_parity)
+             ~w(evaluate_c_support keep_c_support keep_elixir keep_fixture port_to_elixir port_to_zig relocate_zig retain_c_reference_until_zig_parity)
 
+    assert actions["evaluate_c_support"]["entry_count"] == 4
+    assert actions["keep_c_support"]["entry_count"] == 2
     assert actions["keep_elixir"]["entry_count"] == 36
     assert actions["keep_fixture"]["entry_count"] == 17
     assert actions["port_to_elixir"]["entry_count"] == 44
@@ -79,7 +81,8 @@ defmodule RmxOSOracleUIModelTest do
     assert actions["retain_c_reference_until_zig_parity"]["entry_count"] == 16
     assert actions["relocate_zig"]["entry_count"] == 2
 
-    assert result["data"]["status_semantics"] =~ "do not certify completion"
+    assert result["data"]["status_semantics"] =~ "not migrated status"
+    assert result["data"]["other_actions"] == []
     assert is_list(result["data"]["blocked_dependency_edges"])
   end
 end

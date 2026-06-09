@@ -21,6 +21,8 @@ defmodule RmxOSOracle.UI.Validator do
     port_to_zig
     retain_c_reference_until_zig_parity
     relocate_zig
+    evaluate_c_support
+    keep_c_support
   )
 
   @catalog "rmxos_oracle.ui.catalog.v1"
@@ -491,6 +493,7 @@ defmodule RmxOSOracle.UI.Validator do
     |> Kernel.++(common_item_errors(data["summary"], "/data/summary"))
     |> Kernel.++(canonicalization_action_errors(data["actions"]))
     |> Kernel.++(canonicalization_other_action_errors(data["other_actions"]))
+    |> Kernel.++(blocked_dependency_edge_errors(data["blocked_dependency_edges"]))
     |> nested_type_error(
       data["dependency_audit"],
       "blocked_edge_count",
@@ -613,12 +616,18 @@ defmodule RmxOSOracle.UI.Validator do
       |> Enum.reject(&Map.has_key?(actions, &1))
       |> Enum.map(&"/data/actions/#{&1} is required")
 
+    unexpected =
+      actions
+      |> Map.keys()
+      |> Enum.reject(&(&1 in @canonicalization_actions))
+      |> Enum.map(&"/data/actions/#{&1} is not an approved canonicalization action")
+
     item_errors =
       Enum.flat_map(actions, fn {action, item} ->
         canonicalization_action_item_errors(action, item)
       end)
 
-    missing ++ item_errors
+    missing ++ unexpected ++ item_errors
   end
 
   defp canonicalization_action_errors(_actions), do: []
@@ -642,7 +651,20 @@ defmodule RmxOSOracle.UI.Validator do
         canonicalization_entry_errors(entry, "/data/actions/#{action}/entries/#{index}")
       end)
 
-    if action_name == action, do: entry_errors, else: ["/data/actions/#{action}/action mismatch"]
+    count_errors =
+      if entry_count == length(entries),
+        do: [],
+        else: ["/data/actions/#{action}/entry_count must equal entries length"]
+
+    ref_errors =
+      if string_list?(refs),
+        do: [],
+        else: ["/data/actions/#{action}/source_refs must be an array of strings"]
+
+    action_errors =
+      if action_name == action, do: [], else: ["/data/actions/#{action}/action mismatch"]
+
+    action_errors ++ count_errors ++ ref_errors ++ entry_errors
   end
 
   defp canonicalization_action_item_errors(action, _item),
@@ -650,7 +672,7 @@ defmodule RmxOSOracle.UI.Validator do
 
   defp canonicalization_entry_errors(
          %{
-           "path" => path,
+           "path" => file_path,
            "language" => language,
            "role" => role,
            "target_action" => target_action,
@@ -659,12 +681,14 @@ defmodule RmxOSOracle.UI.Validator do
            "status_meaning" => status_meaning,
            "source_refs" => refs
          },
-         _path
+         path
        )
-       when is_binary(path) and is_binary(language) and is_binary(role) and
+       when is_binary(file_path) and is_binary(language) and is_binary(role) and
               is_binary(target_action) and is_boolean(canonical) and status in @statuses and
-              is_binary(status_meaning) and is_list(refs) do
-    []
+              is_binary(status_meaning) do
+    if string_list?(refs),
+      do: [],
+      else: ["#{path}/source_refs must be an array of strings"]
   end
 
   defp canonicalization_entry_errors(_entry, path),
@@ -680,8 +704,10 @@ defmodule RmxOSOracle.UI.Validator do
          "status" => status,
          "source_refs" => refs
        }, _index}
-      when is_binary(action) and is_integer(entry_count) and status in @statuses and is_list(refs) ->
-        []
+      when is_binary(action) and is_integer(entry_count) and status in @statuses ->
+        if string_list?(refs),
+          do: [],
+          else: ["/data/other_actions contains non-string source_refs"]
 
       {_item, index} ->
         ["/data/other_actions/#{index} is not an other-action item"]
@@ -689,6 +715,29 @@ defmodule RmxOSOracle.UI.Validator do
   end
 
   defp canonicalization_other_action_errors(_actions), do: []
+
+  defp blocked_dependency_edge_errors(edges) when is_list(edges) do
+    edges
+    |> Enum.with_index()
+    |> Enum.flat_map(fn
+      {%{
+         "source" => source,
+         "target" => target,
+         "kind" => kind,
+         "reason" => reason,
+         "source_refs" => refs
+       }, _index}
+      when is_binary(source) and is_binary(target) and is_binary(kind) and is_binary(reason) ->
+        if string_list?(refs),
+          do: [],
+          else: ["/data/blocked_dependency_edges contains non-string source_refs"]
+
+      {_edge, index} ->
+        ["/data/blocked_dependency_edges/#{index} is not a blocked dependency edge"]
+    end)
+  end
+
+  defp blocked_dependency_edge_errors(_edges), do: []
 
   defp type_error(errors, map, key, type, path) do
     nested_type_error(errors, map, key, type, path)

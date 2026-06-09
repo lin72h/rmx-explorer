@@ -42,7 +42,7 @@ defmodule RmxOSOracleUIExportTest do
           "summary" => [],
           "actions" =>
             Map.new(
-              ~w(keep_elixir keep_fixture port_to_elixir port_to_zig retain_c_reference_until_zig_parity relocate_zig),
+              ~w(keep_elixir keep_fixture port_to_elixir port_to_zig retain_c_reference_until_zig_parity relocate_zig evaluate_c_support keep_c_support),
               fn action ->
                 {action,
                  %{

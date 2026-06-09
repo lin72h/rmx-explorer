@@ -17,6 +17,8 @@ defmodule RmxOSOracle.UI.Model do
     port_to_zig
     retain_c_reference_until_zig_parity
     relocate_zig
+    evaluate_c_support
+    keep_c_support
   )
 
   def overview(opts \\ []) do
@@ -143,6 +145,7 @@ defmodule RmxOSOracle.UI.Model do
     {manifest, manifest_warnings} = manifest(repo_root, "migration")
     {preflight, preflight_warnings} = manifest_preflight(source, repo_root)
     {dependency, dependency_warnings} = dependency_audit(repo_root)
+    blocked_edges = blocked_dependency_edges(dependency["errors"])
     {fixtures, fixture_warnings} = fixture_inventory(repo_root)
     {imports, import_warnings} = imported_files(repo_root)
 
@@ -213,7 +216,7 @@ defmodule RmxOSOracle.UI.Model do
           "status" => dependency["status"],
           "scope" => "original_m1_scan_set",
           "edge_count" => dependency["edge_count"] || 0,
-          "blocked_edges" => dependency["errors"] || [],
+          "blocked_edges" => blocked_edges,
           "allowed_edges" => [],
           "source_refs" => [SourceInventory.dependency_path()]
         },
@@ -229,7 +232,7 @@ defmodule RmxOSOracle.UI.Model do
     {dependency, dependency_warnings} = dependency_audit(repo_root)
 
     files = manifest_payload["files"] || []
-    blocked_edges = dependency["errors"] || []
+    blocked_edges = blocked_dependency_edges(dependency["errors"])
     grouped = Enum.group_by(files, & &1["target_action"])
     manifest_available = manifest["status"] == "pass"
 
@@ -284,7 +287,7 @@ defmodule RmxOSOracle.UI.Model do
           blocked_edge_warnings(blocked_edges),
       "data" => %{
         "status_semantics" =>
-          "Action and entry status report whether the M0 manifest classification and dependency audit were readable; they do not certify completion or platform evidence.",
+          "Action and entry status report whether the M0 manifest classification and dependency audit were readable; they are not migrated status and do not certify completion or platform evidence.",
         "summary" =>
           Enum.map(@canonicalization_actions, fn action ->
             action_summary(Map.fetch!(actions, action))
@@ -491,6 +494,63 @@ defmodule RmxOSOracle.UI.Model do
       "source_refs" => [SourceInventory.manifest_path()]
     }
   end
+
+  defp blocked_dependency_edges(errors) when is_list(errors) do
+    Enum.map(errors, &blocked_dependency_edge/1)
+  end
+
+  defp blocked_dependency_edges(_errors), do: []
+
+  defp blocked_dependency_edge(error) when is_binary(error) do
+    case String.split(error, " -> ", parts: 2) do
+      ["blocked dependency edge: " <> source, target] ->
+        blocked_dependency_edge(String.trim(source), String.trim(target), "blocked", error)
+
+      _ ->
+        blocked_dependency_edge("unknown", "unknown", "dependency_audit_error", error)
+    end
+  end
+
+  defp blocked_dependency_edge(error) when is_map(error) do
+    blocked_dependency_edge(
+      string_field(error, ~w(source consumer from source_path)),
+      string_field(error, ~w(target dependency to target_path)),
+      string_field(error, ~w(kind edge_kind type)),
+      string_field(error, ~w(reason message error))
+    )
+  end
+
+  defp blocked_dependency_edge(error) do
+    blocked_dependency_edge("unknown", "unknown", "dependency_audit_error", inspect(error))
+  end
+
+  defp blocked_dependency_edge(source, target, kind, reason) do
+    %{
+      "source" => non_empty_string(source, "unknown"),
+      "target" => non_empty_string(target, "unknown"),
+      "kind" => non_empty_string(kind, "dependency_audit_error"),
+      "reason" => non_empty_string(reason, "dependency audit reported a blocked edge"),
+      "source_refs" => [SourceInventory.dependency_path()]
+    }
+  end
+
+  defp string_field(map, keys) do
+    Enum.find_value(keys, fn key ->
+      case Map.get(map, key) do
+        value when is_binary(value) -> value
+        _ -> nil
+      end
+    end)
+  end
+
+  defp non_empty_string(value, fallback) when is_binary(value) do
+    case String.trim(value) do
+      "" -> fallback
+      trimmed -> trimmed
+    end
+  end
+
+  defp non_empty_string(_value, fallback), do: fallback
 
   defp action_summary(action) do
     %{
