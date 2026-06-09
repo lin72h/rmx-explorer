@@ -1,0 +1,17 @@
+{
+  "accepted_claim": "not_accepted",
+  "blockers": [
+    "project-owned decoder",
+    "substring marker validation",
+    "prefix-only OOL integrity"
+  ],
+  "classification": "transport_infrastructure_only",
+  "evidence_path": "priv/runs/asl-a1/20260609T085402837615Z-asl-server-message-ool",
+  "evidence_tree_digest": "229fd5d1c617a9446c8adae7ca9f98e8bf2ad3c3874fa5fa4e6a419f7c09412f",
+  "raw_evidence_copied": false,
+  "schema": "rmxos_oracle.asl_a1.first_attempt_disposition.v1",
+  "supersession": {
+    "path": "priv/runs/asl-a1/20260609T085402837615Z-asl-server-message-ool/revalidation.json",
+    "statement": "The original revalidation.json claiming acceptance is superseded and non-authoritative."
+  }
+}

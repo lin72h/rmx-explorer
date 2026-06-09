@@ -2,6 +2,7 @@ defmodule Mix.Tasks.Oracle.Migration.Parity do
   use Mix.Task
 
   alias RmxOSOracle.Migration.{
+    AslA1ServerMessageOol,
     Phase08D14LaunchctlPlist,
     Phase08MarkerManifest,
     Phase08SourceTransform
@@ -19,7 +20,8 @@ defmodule Mix.Tasks.Oracle.Migration.Parity do
           oracle_repo: :string,
           out_root: :string,
           env_path: :string,
-          lane: :string
+          lane: :string,
+          host_only: :boolean
         ]
       )
 
@@ -33,9 +35,12 @@ defmodule Mix.Tasks.Oracle.Migration.Parity do
       ["phase08.d14.launchctl_plist_inert_load"] ->
         run_slice("phase08.d14.launchctl_plist_inert_load", Phase08D14LaunchctlPlist, opts)
 
+      ["asl.a1.server_message_ool"] ->
+        run_slice("asl.a1.server_message_ool", AslA1ServerMessageOol, opts)
+
       [] ->
         Mix.shell().error(
-          "missing slice id; expected phase08.source_transform, phase08.marker_manifest, or phase08.d14.launchctl_plist_inert_load"
+          "missing slice id; expected phase08.source_transform, phase08.marker_manifest, phase08.d14.launchctl_plist_inert_load, or asl.a1.server_message_ool"
         )
 
         exit({:shutdown, 1})
@@ -47,15 +52,22 @@ defmodule Mix.Tasks.Oracle.Migration.Parity do
   end
 
   defp run_slice(slice_id, module, opts) do
+    default_out_root =
+      if String.starts_with?(slice_id, "asl.") do
+        Path.join(File.cwd!(), "priv/runs/asl-a1")
+      else
+        Path.join(File.cwd!(), "priv/runs/migration-parity")
+      end
+
     report =
       module.run(
         legacy_repo: Keyword.get(opts, :legacy_repo, "/Users/me/wip-mach/wip-gpt"),
         legacy_ref: Keyword.get(opts, :legacy_ref, "oracle-parity-a30ef3f"),
         oracle_repo: Keyword.get(opts, :oracle_repo, File.cwd!()),
-        out_root:
-          Keyword.get(opts, :out_root, Path.join(File.cwd!(), "priv/runs/migration-parity")),
+        out_root: Keyword.get(opts, :out_root, default_out_root),
         env_path: Keyword.get(opts, :env_path, "priv/env/env.local"),
-        lane: Keyword.get(opts, :lane, "launchd")
+        lane: Keyword.get(opts, :lane, "launchd"),
+        host_only: Keyword.get(opts, :host_only, false)
       )
 
     Mix.shell().info("oracle.migration.parity #{slice_id}: #{report["status"]}")
@@ -80,7 +92,7 @@ defmodule Mix.Tasks.Oracle.Migration.Parity do
       end
     )
 
-    if report["parity_passed"] do
+    if report["parity_passed"] or report["host_checks_passed"] do
       :ok
     else
       exit({:shutdown, 1})
