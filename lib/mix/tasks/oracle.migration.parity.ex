@@ -2,6 +2,7 @@ defmodule Mix.Tasks.Oracle.Migration.Parity do
   use Mix.Task
 
   alias RmxOSOracle.Migration.{
+    AslA2LaunchdHandoff,
     AslA1ServerMessageOol,
     Phase08D14LaunchctlPlist,
     Phase08MarkerManifest,
@@ -38,9 +39,12 @@ defmodule Mix.Tasks.Oracle.Migration.Parity do
       ["asl.a1.server_message_ool"] ->
         run_slice("asl.a1.server_message_ool", AslA1ServerMessageOol, opts)
 
+      ["asl.a2.launchd_handoff"] ->
+        run_slice("asl.a2.launchd_handoff", AslA2LaunchdHandoff, opts)
+
       [] ->
         Mix.shell().error(
-          "missing slice id; expected phase08.source_transform, phase08.marker_manifest, phase08.d14.launchctl_plist_inert_load, or asl.a1.server_message_ool"
+          "missing slice id; expected phase08.source_transform, phase08.marker_manifest, phase08.d14.launchctl_plist_inert_load, asl.a1.server_message_ool, or asl.a2.launchd_handoff"
         )
 
         exit({:shutdown, 1})
@@ -54,7 +58,7 @@ defmodule Mix.Tasks.Oracle.Migration.Parity do
   defp run_slice(slice_id, module, opts) do
     default_out_root =
       if String.starts_with?(slice_id, "asl.") do
-        Path.join(File.cwd!(), "priv/runs/asl-a1")
+        asl_run_root(slice_id)
       else
         Path.join(File.cwd!(), "priv/runs/migration-parity")
       end
@@ -98,4 +102,7 @@ defmodule Mix.Tasks.Oracle.Migration.Parity do
       exit({:shutdown, 1})
     end
   end
+
+  defp asl_run_root("asl.a2." <> _), do: Path.join(File.cwd!(), "priv/runs/asl-a2")
+  defp asl_run_root(_slice_id), do: Path.join(File.cwd!(), "priv/runs/asl-a1")
 end

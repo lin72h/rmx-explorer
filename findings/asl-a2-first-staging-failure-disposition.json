@@ -1,0 +1,26 @@
+{
+  "accepted_claim": "not_accepted",
+  "attempt_consumed": false,
+  "blockers": [
+    "staged guest ran the stale ASL A1 rc path",
+    "no ASL_A2 runtime markers were emitted",
+    "source donor-bootstrap staging did not prove MachServices fixture consumption"
+  ],
+  "classification": "runner_staging_setup_failure",
+  "evidence_path": "priv/runs/asl-a2/20260609T1310016671Z-system-logger-handoff",
+  "evidence_tree_digest": "60d5c1de40627841d3edc3a9eb780a08e3b87b0c0a792fb28a6b4e78db58a24c",
+  "observed": {
+    "boot_identity_passed": true,
+    "hard_stop_scan_passed": true,
+    "marker_comparison_passed": false,
+    "runtime_fixture_consumed_by_existing_harness": false,
+    "serial_contains_asl_a1_markers": true,
+    "serial_contains_asl_a2_markers": false
+  },
+  "raw_evidence_copied": false,
+  "schema": "rmxos_oracle.asl_a2.first_staging_failure_disposition.v1",
+  "supersession": {
+    "path": "priv/runs/asl-a2/20260609T1310016671Z-system-logger-handoff/parity.json",
+    "statement": "The original parity.json remains preserved as raw failed-run output; this disposition is the durable classification record and marks the run as runner_staging_setup_failure with attempt_consumed=false."
+  }
+}

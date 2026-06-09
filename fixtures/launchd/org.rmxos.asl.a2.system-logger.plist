@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+ "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>org.rmxos.asl.a2.system-logger</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/root/nxplatform/asl/asl-a2-launchd-server</string>
+	</array>
+	<key>MachServices</key>
+	<dict>
+		<key>com.apple.system.logger</key>
+		<true/>
+	</dict>
+</dict>
+</plist>
