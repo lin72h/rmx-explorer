@@ -306,6 +306,53 @@ defmodule RmxOSOracle.UI.Model do
     }
   end
 
+  def platforms(opts \\ []) do
+    repo_root = Keyword.get(opts, :repo_root, File.cwd!())
+
+    %{
+      "source_refs" =>
+        Enum.uniq(
+          SourceInventory.platform_refs() ++
+            SourceInventory.migration_refs() ++
+            Enum.map(SourceInventory.platform_artifact_paths(), & &1["path"])
+        ),
+      "warnings" => [
+        warning(
+          "platforms.runner_mapping_parser_missing",
+          "warning",
+          "No runner/platform mapping audit exists yet; historical runner IDs are provenance-only aliases.",
+          SourceInventory.platform_refs()
+        ),
+        warning(
+          "platforms.platform_evidence_parser_missing",
+          "warning",
+          "No platform evidence classifier exists yet; evidence_status remains parser_missing.",
+          SourceInventory.platform_refs()
+        )
+      ],
+      "data" => %{
+        "status_semantics" =>
+          "Platform status reports static identity/provenance inventory readiness only; evidence_status reports that platform evidence classification is unavailable until later parsers/audits exist.",
+        "canonical_platforms" =>
+          Enum.map(SourceInventory.canonical_platforms(), &platform_item/1),
+        "historical_runner_ids" =>
+          Enum.map(SourceInventory.historical_runner_ids(), &historical_runner_item/1),
+        "runner_mapping_audit" => %{
+          "status" => "parser_missing",
+          "status_meaning" => "historical_runner_mapping_audit_not_implemented",
+          "summary" =>
+            "Historical runner IDs are shown as provenance-only aliases until a runner/platform audit exists.",
+          "source_refs" => SourceInventory.platform_refs()
+        },
+        "artifact_availability" =>
+          Enum.map(
+            SourceInventory.platform_artifact_paths(),
+            &artifact_availability(repo_root, &1)
+          )
+      }
+    }
+  end
+
   def repo_status(repo_root \\ File.cwd!()) do
     sha = git(repo_root, ["rev-parse", "HEAD"])
     status = git(repo_root, ["status", "--short", "--untracked-files=all"])
@@ -565,6 +612,41 @@ defmodule RmxOSOracle.UI.Model do
       "details" => [],
       "source_refs" => action["source_refs"]
     }
+  end
+
+  defp platform_item(platform) do
+    %{
+      "id" => platform["id"],
+      "label" => platform["label"],
+      "arch" => platform["arch"],
+      "status" => "pass",
+      "status_meaning" => "static_identity_metadata_only",
+      "evidence_status" => "parser_missing",
+      "evidence_levels" => [],
+      "runner_ids" => platform["runner_ids"],
+      "source_refs" => SourceInventory.platform_refs()
+    }
+  end
+
+  defp historical_runner_item(runner) do
+    %{
+      "id" => runner["id"],
+      "canonical_platform_id" => runner["canonical_platform_id"],
+      "provenance_only" => true,
+      "status" => "pass",
+      "status_meaning" => "historical_runner_id_sourced_mapping_not_audited",
+      "source_refs" => runner["source_refs"]
+    }
+  end
+
+  defp artifact_availability(repo_root, artifact) do
+    exists = File.exists?(Path.join(repo_root, artifact["path"]))
+
+    artifact
+    |> Map.put("exists", exists)
+    |> Map.put("status", if(exists, do: "pass", else: "unknown"))
+    |> Map.put("status_meaning", "presence_only_not_evidence")
+    |> Map.put("source_refs", [artifact["path"] | SourceInventory.platform_refs()])
   end
 
   defp zig_scaffold(repo_root) do

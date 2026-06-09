@@ -85,4 +85,29 @@ defmodule RmxOSOracleUIModelTest do
     assert result["data"]["other_actions"] == []
     assert is_list(result["data"]["blocked_dependency_edges"])
   end
+
+  test "platforms exposes canonical ids and provenance-only historical runners" do
+    result = Model.platforms()
+    data = result["data"]
+    platforms = Map.new(data["canonical_platforms"], &{&1["id"], &1})
+    runners = Map.new(data["historical_runner_ids"], &{&1["id"], &1})
+
+    assert Map.keys(platforms) |> Enum.sort() == ~w(mx-a64 mx-x64 nx-r64 rx-a64 rx-x64)
+    assert platforms["rx-a64"]["evidence_status"] == "parser_missing"
+    assert platforms["rx-a64"]["runner_ids"] == []
+    assert platforms["mx-a64"]["runner_ids"] == ["mx-a64z"]
+    assert platforms["nx-r64"]["runner_ids"] == ["nx-v64z"]
+
+    assert runners["mx-a64z"]["canonical_platform_id"] == "mx-a64"
+    assert runners["mx-a64z"]["provenance_only"] == true
+    assert runners["nx-v64z"]["canonical_platform_id"] == "nx-r64"
+
+    assert data["runner_mapping_audit"]["status"] == "parser_missing"
+    assert Enum.all?(data["artifact_availability"], &is_boolean(&1["exists"]))
+
+    assert Enum.any?(result["warnings"], fn warning ->
+             warning["id"] == "platforms.runner_mapping_parser_missing" and
+               warning["severity"] == "warning"
+           end)
+  end
 end

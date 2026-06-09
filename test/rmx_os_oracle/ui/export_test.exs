@@ -63,8 +63,65 @@ defmodule RmxOSOracleUIExportTest do
       }
     end
 
+    def platforms(_opts) do
+      %{
+        "source_refs" => [],
+        "warnings" => [],
+        "data" => %{
+          "status_semantics" => "platform status semantics",
+          "canonical_platforms" =>
+            Enum.map(~w(rx-x64 rx-a64 mx-x64 mx-a64 nx-r64), fn id ->
+              %{
+                "id" => id,
+                "label" => id,
+                "arch" => String.split(id, "-") |> List.last(),
+                "status" => "pass",
+                "status_meaning" => "static_identity_metadata_only",
+                "evidence_status" => "parser_missing",
+                "evidence_levels" => [],
+                "runner_ids" => [],
+                "source_refs" => ["docs/migration-m2-authority-design.md"]
+              }
+            end),
+          "historical_runner_ids" => [
+            historical_runner("mx-a64z", "mx-a64"),
+            historical_runner("mx-x64z", "mx-x64"),
+            historical_runner("nx-v64z", "nx-r64")
+          ],
+          "runner_mapping_audit" => %{
+            "status" => "parser_missing",
+            "status_meaning" => "historical_runner_mapping_audit_not_implemented",
+            "summary" => "parser missing",
+            "source_refs" => ["docs/migration-m2-authority-design.md"]
+          },
+          "artifact_availability" => [
+            %{
+              "id" => "mx_a64z_runner_dir",
+              "path" => "mx-a64z",
+              "kind" => "historical_runner_dir",
+              "exists" => true,
+              "status" => "pass",
+              "status_meaning" => "presence_only_not_evidence",
+              "source_refs" => ["mx-a64z"]
+            }
+          ]
+        }
+      }
+    end
+
     def repo_status(_repo_root) do
       %{"sha" => "abc123", "dirty" => false, "warnings" => []}
+    end
+
+    defp historical_runner(id, platform_id) do
+      %{
+        "id" => id,
+        "canonical_platform_id" => platform_id,
+        "provenance_only" => true,
+        "status" => "pass",
+        "status_meaning" => "historical_runner_id_sourced_mapping_not_audited",
+        "source_refs" => ["docs/migration-m2-authority-design.md"]
+      }
     end
   end
 
@@ -88,6 +145,7 @@ defmodule RmxOSOracleUIExportTest do
     end
 
     def canonicalization(_opts), do: FakeModel.canonicalization([])
+    def platforms(_opts), do: FakeModel.platforms([])
 
     def repo_status(_repo_root) do
       %{"sha" => "abc123", "dirty" => false, "warnings" => []}
@@ -106,7 +164,7 @@ defmodule RmxOSOracleUIExportTest do
     report =
       Export.export(
         model: FakeModel,
-        pages: ["overview", "migration", "canonicalization"],
+        pages: ["overview", "migration", "canonicalization", "platforms"],
         snapshot_subdir: subdir,
         generated_at: "2026-06-09T00:00:00Z"
       )
@@ -124,6 +182,11 @@ defmodule RmxOSOracleUIExportTest do
     assert snapshot["schema"] == "rmxos_oracle.ui.canonicalization.v1"
     assert snapshot["repo"]["sha"] == "abc123"
     assert snapshot["ui"]["surface_id"] == "canonicalization"
+
+    snapshot = output_dir |> Path.join("platforms.json") |> File.read!() |> JSON.decode!()
+    assert snapshot["schema"] == "rmxos_oracle.ui.platforms.v1"
+    assert snapshot["repo"]["sha"] == "abc123"
+    assert snapshot["ui"]["surface_id"] == "platforms"
   end
 
   test "rejects a symlinked output path component" do

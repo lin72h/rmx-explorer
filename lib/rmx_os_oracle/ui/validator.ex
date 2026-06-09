@@ -7,13 +7,18 @@ defmodule RmxOSOracle.UI.Validator do
     "rmxos_oracle.ui.migration.v1" =>
       ~w(milestones imported_files manifest_drift dependency_audit fixture_import_status),
     "rmxos_oracle.ui.canonicalization.v1" =>
-      ~w(status_semantics summary actions other_actions blocked_dependency_edges dependency_audit)
+      ~w(status_semantics summary actions other_actions blocked_dependency_edges dependency_audit),
+    "rmxos_oracle.ui.platforms.v1" =>
+      ~w(status_semantics canonical_platforms historical_runner_ids runner_mapping_audit artifact_availability)
   }
   @surface_by_schema %{
     "rmxos_oracle.ui.overview.v1" => "overview",
     "rmxos_oracle.ui.migration.v1" => "migration",
-    "rmxos_oracle.ui.canonicalization.v1" => "canonicalization"
+    "rmxos_oracle.ui.canonicalization.v1" => "canonicalization",
+    "rmxos_oracle.ui.platforms.v1" => "platforms"
   }
+  @canonical_platform_ids ~w(rx-x64 rx-a64 mx-x64 mx-a64 nx-r64)
+  @historical_runner_ids ~w(mx-a64z mx-x64z nx-v64z)
   @canonicalization_actions ~w(
     keep_elixir
     keep_fixture
@@ -507,6 +512,19 @@ defmodule RmxOSOracle.UI.Validator do
     )
   end
 
+  defp data_shape_errors("rmxos_oracle.ui.platforms.v1", data) do
+    []
+    |> type_error(data, "status_semantics", :string, "/data")
+    |> type_error(data, "canonical_platforms", :list, "/data")
+    |> type_error(data, "historical_runner_ids", :list, "/data")
+    |> type_error(data, "runner_mapping_audit", :map, "/data")
+    |> type_error(data, "artifact_availability", :list, "/data")
+    |> Kernel.++(platform_errors(data["canonical_platforms"]))
+    |> Kernel.++(historical_runner_errors(data["historical_runner_ids"]))
+    |> Kernel.++(runner_mapping_audit_errors(data["runner_mapping_audit"]))
+    |> Kernel.++(artifact_availability_errors(data["artifact_availability"]))
+  end
+
   defp data_shape_errors(_schema, _data), do: []
 
   defp common_item_errors(items, path) when is_list(items) do
@@ -619,6 +637,162 @@ defmodule RmxOSOracle.UI.Validator do
         "/data/dependency_audit/blocked_edges"
       )
     )
+  end
+
+  defp platform_errors(platforms) when is_list(platforms) do
+    id_errors =
+      exact_ids_errors(platforms, @canonical_platform_ids, "/data/canonical_platforms") ++
+        historical_id_exclusion_errors(platforms)
+
+    item_errors =
+      platforms
+      |> Enum.with_index()
+      |> Enum.flat_map(fn
+        {%{
+           "id" => id,
+           "label" => label,
+           "arch" => arch,
+           "status" => status,
+           "status_meaning" => status_meaning,
+           "evidence_status" => evidence_status,
+           "evidence_levels" => levels,
+           "runner_ids" => runner_ids,
+           "source_refs" => refs
+         }, index}
+        when is_binary(id) and is_binary(label) and is_binary(arch) and status in @statuses and
+               is_binary(status_meaning) and evidence_status in @statuses and is_list(levels) ->
+          []
+          |> maybe_error(
+            evidence_status == "pass",
+            "/data/canonical_platforms/#{index}/evidence_status must not be pass without an evidence parser"
+          )
+          |> maybe_error(
+            not string_list?(runner_ids),
+            "/data/canonical_platforms/#{index}/runner_ids must be an array of strings"
+          )
+          |> maybe_error(
+            not non_empty_string_list?(refs),
+            "/data/canonical_platforms/#{index}/source_refs must be a non-empty array of strings"
+          )
+
+        {_platform, index} ->
+          ["/data/canonical_platforms/#{index} is not a canonical platform item"]
+      end)
+
+    id_errors ++ item_errors
+  end
+
+  defp platform_errors(_platforms), do: []
+
+  defp historical_runner_errors(runners) when is_list(runners) do
+    id_errors = exact_ids_errors(runners, @historical_runner_ids, "/data/historical_runner_ids")
+
+    item_errors =
+      runners
+      |> Enum.with_index()
+      |> Enum.flat_map(fn
+        {%{
+           "id" => id,
+           "canonical_platform_id" => platform_id,
+           "provenance_only" => true,
+           "status" => status,
+           "status_meaning" => status_meaning,
+           "source_refs" => refs
+         }, index}
+        when is_binary(id) and is_binary(platform_id) and status in @statuses and
+               is_binary(status_meaning) ->
+          []
+          |> maybe_error(
+            platform_id not in @canonical_platform_ids,
+            "/data/historical_runner_ids/#{index}/canonical_platform_id is not canonical"
+          )
+          |> maybe_error(
+            not non_empty_string_list?(refs),
+            "/data/historical_runner_ids/#{index}/source_refs must be a non-empty array of strings"
+          )
+
+        {_runner, index} ->
+          ["/data/historical_runner_ids/#{index} is not a historical runner item"]
+      end)
+
+    id_errors ++ item_errors
+  end
+
+  defp historical_runner_errors(_runners), do: []
+
+  defp runner_mapping_audit_errors(%{
+         "status" => "parser_missing",
+         "status_meaning" => status_meaning,
+         "summary" => summary,
+         "source_refs" => refs
+       })
+       when is_binary(status_meaning) and is_binary(summary) do
+    if non_empty_string_list?(refs),
+      do: [],
+      else: ["/data/runner_mapping_audit/source_refs must be a non-empty array of strings"]
+  end
+
+  defp runner_mapping_audit_errors(%{"status" => _status}) do
+    ["/data/runner_mapping_audit/status must be parser_missing in platforms.v1"]
+  end
+
+  defp runner_mapping_audit_errors(_audit), do: ["/data/runner_mapping_audit is invalid"]
+
+  defp artifact_availability_errors(artifacts) when is_list(artifacts) do
+    artifacts
+    |> Enum.with_index()
+    |> Enum.flat_map(fn
+      {%{
+         "id" => id,
+         "path" => path,
+         "kind" => kind,
+         "exists" => exists,
+         "status" => status,
+         "status_meaning" => status_meaning,
+         "source_refs" => refs
+       }, index}
+      when is_binary(id) and is_binary(path) and is_binary(kind) and is_boolean(exists) and
+             status in @statuses and is_binary(status_meaning) ->
+        if non_empty_string_list?(refs),
+          do: [],
+          else: [
+            "/data/artifact_availability/#{index}/source_refs must be a non-empty array of strings"
+          ]
+
+      {_artifact, index} ->
+        ["/data/artifact_availability/#{index} is not an artifact availability item"]
+    end)
+  end
+
+  defp artifact_availability_errors(_artifacts), do: []
+
+  defp exact_ids_errors(items, expected_ids, path) do
+    ids = Enum.map(items, &item_id/1)
+    id_set = MapSet.new(ids)
+    expected_set = MapSet.new(expected_ids)
+
+    duplicate_errors =
+      if length(ids) == MapSet.size(id_set), do: [], else: ["#{path} contains duplicate ids"]
+
+    missing_errors =
+      expected_ids
+      |> Enum.reject(&MapSet.member?(id_set, &1))
+      |> Enum.map(&"#{path} is missing required id #{&1}")
+
+    unexpected_errors =
+      ids
+      |> Enum.reject(&is_nil/1)
+      |> Enum.reject(&MapSet.member?(expected_set, &1))
+      |> Enum.map(&"#{path} contains unexpected id #{&1}")
+
+    duplicate_errors ++ missing_errors ++ unexpected_errors
+  end
+
+  defp historical_id_exclusion_errors(platforms) do
+    platforms
+    |> Enum.map(&item_id/1)
+    |> Enum.filter(&(&1 in @historical_runner_ids))
+    |> Enum.map(&"/data/canonical_platforms must not contain historical runner id #{&1}")
   end
 
   defp canonicalization_action_errors(actions) when is_map(actions) do
@@ -770,11 +944,16 @@ defmodule RmxOSOracle.UI.Validator do
 
   defp string_list?(value), do: is_list(value) and Enum.all?(value, &is_binary/1)
 
+  defp non_empty_string_list?(value), do: string_list?(value) and value != []
+
   defp missing_keys(map, keys, path) do
     keys
     |> Enum.reject(&Map.has_key?(map, &1))
     |> Enum.map(&"#{path}/#{&1} is required")
   end
+
+  defp item_id(%{"id" => id}) when is_binary(id), do: id
+  defp item_id(_), do: nil
 
   defp component_id(%{"id" => id}) when is_binary(id), do: id
   defp component_id(_), do: nil

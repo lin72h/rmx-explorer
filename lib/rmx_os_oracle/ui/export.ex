@@ -12,7 +12,8 @@ defmodule RmxOSOracle.UI.Export do
   @pages %{
     "overview" => {"overview.json", "rmxos_oracle.ui.overview.v1"},
     "migration" => {"migration.json", "rmxos_oracle.ui.migration.v1"},
-    "canonicalization" => {"canonicalization.json", "rmxos_oracle.ui.canonicalization.v1"}
+    "canonicalization" => {"canonicalization.json", "rmxos_oracle.ui.canonicalization.v1"},
+    "platforms" => {"platforms.json", "rmxos_oracle.ui.platforms.v1"}
   }
 
   def snapshot_dir, do: @snapshot_dir
@@ -60,6 +61,7 @@ defmodule RmxOSOracle.UI.Export do
         "overview" -> model.overview(model_opts)
         "migration" -> model.migration(model_opts)
         "canonicalization" -> model.canonicalization(model_opts)
+        "platforms" -> model.platforms(model_opts)
       end
 
     repo = model.repo_status(repo_root)
@@ -162,6 +164,42 @@ defmodule RmxOSOracle.UI.Export do
         "component" => "DataTable",
         "columns" => ~w(source target reason),
         "bind" => %{"rows" => "/data/blocked_dependency_edges"}
+      }
+    ])
+  end
+
+  defp ui("platforms") do
+    surface("platforms", [
+      %{
+        "id" => "root",
+        "component" => "Page",
+        "children" => [
+          "provenance",
+          "warnings",
+          "canonical_platforms",
+          "historical_runner_ids",
+          "artifact_availability"
+        ]
+      },
+      provenance_component(),
+      warning_component(),
+      %{
+        "id" => "canonical_platforms",
+        "component" => "DataTable",
+        "columns" => ~w(id arch status evidence_status),
+        "bind" => %{"rows" => "/data/canonical_platforms"}
+      },
+      %{
+        "id" => "historical_runner_ids",
+        "component" => "DataTable",
+        "columns" => ~w(id canonical_platform_id status),
+        "bind" => %{"rows" => "/data/historical_runner_ids"}
+      },
+      %{
+        "id" => "artifact_availability",
+        "component" => "DataTable",
+        "columns" => ~w(path kind exists status),
+        "bind" => %{"rows" => "/data/artifact_availability"}
       }
     ])
   end

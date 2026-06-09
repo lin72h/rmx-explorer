@@ -11,6 +11,13 @@ defmodule RmxOSOracle.UI.SourceInventory do
   @manifest_path "priv/manifests/m0_legacy_source_test_manifest.json"
   @dependency_path "priv/dependencies/m0_dependency_edges.json"
   @migration_refs ["docs/migration-m0-inventory.md", "docs/migration-m1-design.md"]
+  @platform_refs [
+    "docs/migration-m2-authority-design.md",
+    "catalog/README.md",
+    "priv/schemas/catalog_feature_v1.schema.json",
+    "priv/schemas/catalog_probe_v1.schema.json",
+    "priv/schemas/mismatch_v1.schema.json"
+  ]
 
   @elixir_imports [
     {"scripts/launchd/phase08_marker_manifest.exs", "lib/phase08/marker_manifest.ex",
@@ -51,12 +58,79 @@ defmodule RmxOSOracle.UI.SourceInventory do
     "zig/probes/libthr"
   ]
 
+  @canonical_platforms [
+    %{"id" => "rx-x64", "label" => "rx-x64", "arch" => "x64", "runner_ids" => []},
+    %{"id" => "rx-a64", "label" => "rx-a64", "arch" => "a64", "runner_ids" => []},
+    %{"id" => "mx-x64", "label" => "mx-x64", "arch" => "x64", "runner_ids" => ["mx-x64z"]},
+    %{"id" => "mx-a64", "label" => "mx-a64", "arch" => "a64", "runner_ids" => ["mx-a64z"]},
+    %{"id" => "nx-r64", "label" => "nx-r64", "arch" => "r64", "runner_ids" => ["nx-v64z"]}
+  ]
+
+  @historical_runner_ids [
+    %{
+      "id" => "mx-a64z",
+      "canonical_platform_id" => "mx-a64",
+      "source_refs" => [
+        "docs/migration-m0-inventory.md",
+        "docs/migration-m2-authority-design.md",
+        "mx-a64z"
+      ]
+    },
+    %{
+      "id" => "mx-x64z",
+      "canonical_platform_id" => "mx-x64",
+      "source_refs" => [
+        "docs/migration-m0-inventory.md",
+        "docs/migration-m2-authority-design.md",
+        "mx-x64z"
+      ]
+    },
+    %{
+      "id" => "nx-v64z",
+      "canonical_platform_id" => "nx-r64",
+      "source_refs" => [
+        "docs/migration-m0-inventory.md",
+        "docs/migration-m2-authority-design.md",
+        "findings/nx-v64z"
+      ]
+    }
+  ]
+
+  @platform_artifact_paths [
+    %{"id" => "mx_a64z_runner_dir", "path" => "mx-a64z", "kind" => "historical_runner_dir"},
+    %{"id" => "mx_x64z_runner_dir", "path" => "mx-x64z", "kind" => "historical_runner_dir"},
+    %{
+      "id" => "nx_v64z_findings_dir",
+      "path" => "findings/nx-v64z",
+      "kind" => "historical_findings_dir"
+    },
+    %{
+      "id" => "mx_a64z_results_dir",
+      "path" => "macos-validation/results/mx-a64z",
+      "kind" => "historical_results_dir"
+    },
+    %{
+      "id" => "mx_x64z_results_dir",
+      "path" => "macos-validation/results/mx-x64z",
+      "kind" => "historical_results_dir"
+    },
+    %{
+      "id" => "nx_v64z_validation_findings_dir",
+      "path" => "macos-validation/findings/nx-v64z",
+      "kind" => "historical_findings_dir"
+    }
+  ]
+
   def accepted_oracle_sha, do: @accepted_oracle_sha
   def source_freeze_sha, do: @source_freeze_sha
   def manifest_path, do: @manifest_path
   def dependency_path, do: @dependency_path
   def migration_refs, do: @migration_refs
+  def platform_refs, do: @platform_refs
   def zig_paths, do: @zig_paths
+  def canonical_platforms, do: @canonical_platforms
+  def historical_runner_ids, do: @historical_runner_ids
+  def platform_artifact_paths, do: @platform_artifact_paths
 
   def inventory do
     %{
@@ -64,7 +138,10 @@ defmodule RmxOSOracle.UI.SourceInventory do
       "historical_baseline" => historical_baseline(),
       "imports" => imports(),
       "producer_scopes" => producer_scopes(),
-      "zig_paths" => @zig_paths
+      "zig_paths" => @zig_paths,
+      "canonical_platforms" => @canonical_platforms,
+      "historical_runner_ids" => @historical_runner_ids,
+      "platform_artifact_paths" => @platform_artifact_paths
     }
   end
 

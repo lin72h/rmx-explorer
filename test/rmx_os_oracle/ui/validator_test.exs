@@ -8,6 +8,7 @@ defmodule RmxOSOracleUIValidatorTest do
     def overview(_opts), do: page_model("checks", [])
     def migration(_opts), do: page_model("imported_files", [])
     def canonicalization(_opts), do: page_model("summary", [])
+    def platforms(_opts), do: %{"source_refs" => [], "warnings" => [], "data" => platforms_data()}
 
     def repo_status(_repo_root) do
       %{"sha" => "abc123", "dirty" => false, "warnings" => []}
@@ -63,6 +64,59 @@ defmodule RmxOSOracleUIValidatorTest do
 
       %{"source_refs" => [], "warnings" => [], "data" => data}
     end
+
+    defp platforms_data do
+      %{
+        "status_semantics" => "platform status semantics",
+        "canonical_platforms" =>
+          Enum.map(~w(rx-x64 rx-a64 mx-x64 mx-a64 nx-r64), fn id ->
+            %{
+              "id" => id,
+              "label" => id,
+              "arch" => String.split(id, "-") |> List.last(),
+              "status" => "pass",
+              "status_meaning" => "static_identity_metadata_only",
+              "evidence_status" => "parser_missing",
+              "evidence_levels" => [],
+              "runner_ids" => [],
+              "source_refs" => ["docs/migration-m2-authority-design.md"]
+            }
+          end),
+        "historical_runner_ids" => [
+          historical_runner("mx-a64z", "mx-a64"),
+          historical_runner("mx-x64z", "mx-x64"),
+          historical_runner("nx-v64z", "nx-r64")
+        ],
+        "runner_mapping_audit" => %{
+          "status" => "parser_missing",
+          "status_meaning" => "historical_runner_mapping_audit_not_implemented",
+          "summary" => "parser missing",
+          "source_refs" => ["docs/migration-m2-authority-design.md"]
+        },
+        "artifact_availability" => [
+          %{
+            "id" => "mx_a64z_runner_dir",
+            "path" => "mx-a64z",
+            "kind" => "historical_runner_dir",
+            "exists" => true,
+            "status" => "pass",
+            "status_meaning" => "presence_only_not_evidence",
+            "source_refs" => ["mx-a64z"]
+          }
+        ]
+      }
+    end
+
+    defp historical_runner(id, platform_id) do
+      %{
+        "id" => id,
+        "canonical_platform_id" => platform_id,
+        "provenance_only" => true,
+        "status" => "pass",
+        "status_meaning" => "historical_runner_id_sourced_mapping_not_audited",
+        "source_refs" => ["docs/migration-m2-authority-design.md"]
+      }
+    end
   end
 
   test "accepts a complete overview snapshot" do
@@ -75,6 +129,13 @@ defmodule RmxOSOracleUIValidatorTest do
   test "accepts a complete canonicalization snapshot" do
     assert :ok =
              "canonicalization"
+             |> snapshot()
+             |> Validator.validate()
+  end
+
+  test "accepts a complete platforms snapshot" do
+    assert :ok =
+             "platforms"
              |> snapshot()
              |> Validator.validate()
   end
@@ -168,6 +229,49 @@ defmodule RmxOSOracleUIValidatorTest do
 
     assert {:error, errors} = Validator.validate(invalid)
     assert Enum.any?(errors, &String.contains?(&1, "/data/dependency_audit/blocked_edges"))
+  end
+
+  test "rejects missing canonical platforms" do
+    invalid =
+      snapshot("platforms")
+      |> update_in(["data", "canonical_platforms"], fn platforms ->
+        Enum.reject(platforms, &(&1["id"] == "rx-a64"))
+      end)
+
+    assert {:error, errors} = Validator.validate(invalid)
+    assert Enum.any?(errors, &String.contains?(&1, "missing required id rx-a64"))
+  end
+
+  test "rejects historical runner ids as canonical platforms" do
+    invalid =
+      snapshot("platforms")
+      |> update_in(["data", "canonical_platforms"], fn [first | rest] ->
+        [Map.put(first, "id", "mx-a64z") | rest]
+      end)
+
+    assert {:error, errors} = Validator.validate(invalid)
+    assert Enum.any?(errors, &String.contains?(&1, "historical runner id mx-a64z"))
+  end
+
+  test "rejects historical runner mappings to unknown canonical platforms" do
+    invalid =
+      snapshot("platforms")
+      |> put_in(
+        ["data", "historical_runner_ids", Access.at(0), "canonical_platform_id"],
+        "mx-r64"
+      )
+
+    assert {:error, errors} = Validator.validate(invalid)
+    assert Enum.any?(errors, &String.contains?(&1, "canonical_platform_id is not canonical"))
+  end
+
+  test "rejects platforms parser audit as passed" do
+    invalid =
+      snapshot("platforms")
+      |> put_in(["data", "runner_mapping_audit", "status"], "pass")
+
+    assert {:error, errors} = Validator.validate(invalid)
+    assert Enum.any?(errors, &String.contains?(&1, "runner_mapping_audit/status"))
   end
 
   defp snapshot(page) do
