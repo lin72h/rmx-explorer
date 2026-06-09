@@ -5,7 +5,7 @@ defmodule RmxOSOracle.MixProject do
     [
       app: :rmxos_oracle,
       version: "0.1.0",
-      elixir: "~> 1.20.0-rc.6",
+      elixir: "~> 1.20.0",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: ["lib"],
       deps: []
