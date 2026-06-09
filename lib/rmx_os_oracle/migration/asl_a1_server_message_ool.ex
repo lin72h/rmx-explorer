@@ -8,7 +8,7 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   @donor_root "/Users/me/wip-mach/nx/NextBSD"
   @donor_commit "8be0f2507b69906d068bed31ffc58cdfafadaef3"
   @source_repo "/Users/me/wip-mach/wip-gpt"
-  @source_authorization_commit "79aa456d4264bd2fe6f0ee007178e699735fae78"
+  @source_authorization_commit "2444504cc7727b1c8e957b4929b7233c9187f1a1"
   @oracle_a0_commit "e80dbb37ebe752353c75438718f5ac3e4d188e9c"
   @oracle_a1_design_commit "a61e50df3819645c56130593afa5c8a69ac57edb"
   @defs_rel "lib/libasl/asl_ipc.defs"
