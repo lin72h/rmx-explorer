@@ -1,0 +1,20 @@
+{
+  "schema": "rmxos_oracle.fixture.provenance.v1",
+  "fixture": "test/fixtures/phase08/launchctl/d21_remove.accepted.serial.log",
+  "sha256": "32b05574e188e140c2b785c10af731ed4c672d90e0b4d2a3da478d1496a57bac",
+  "normalization": "line endings and trailing serial whitespace stripped for committed fixture use",
+  "accepted_raw_sha256": "ed24aaaba097f9ca01d26a4f7fd9f7dc412e208675ef3367c933c08eee42e576",
+  "source": {
+    "original_run_path": "priv/runs/stable15-launchctl-baseline/20260604T150446Z-d21-remove/d21_serial.log",
+    "original_run_sha256": "ed24aaaba097f9ca01d26a4f7fd9f7dc412e208675ef3367c933c08eee42e576",
+    "source_harness_commit_at_guest_run": "089311cff65bf116323a1e2e2d5ccf602432a22c",
+    "accepted_validator_commit": "089311cff65bf116323a1e2e2d5ccf602432a22c",
+    "active_freebsd_source_commit": "f71260cf4c9e",
+    "source_profile": "stable15-active"
+  },
+  "classification": "accepted_preserved_serial_positive_fixture",
+  "notes": [
+    "D21 was accepted as part of the stable15 launchctl D14-D23 baseline.",
+    "This fixture is copied into the Oracle test tree so normal tests do not depend on ignored priv/runs paths."
+  ]
+}

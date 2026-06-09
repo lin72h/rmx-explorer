@@ -1,0 +1,70 @@
+# D20 source: scripts/launchd/build-phase08-d15-launchctl-json-hardfail.sh
+print "\t\tprintf(\"PHASE08_D20_MANAGEMENT_REQUEST_SENT=1\\n\");"
+
+# D20 source: scripts/launchd/link-launchd-harness.sh
+printf("phase08_dispatch_launchctl_successful_exit_start\n");
+printf("PHASE08_D20_CALLER_PID_MATCH=%d\n",
+    pid_match ? 1 : 0);
+printf("PHASE08_D20_DONOR_RUNTIME_DEMUX_CALLED=%d\n",
+    d11_count);
+printf("PHASE08_D20_START_PENDING_SET=1\n");
+printf("PHASE08_D20_JOB_KEEPALIVE_REASON=start_pending\n");
+printf("PHASE08_D20_CYCLE%d_JOB_START_CALLED=1\n",
+    s->job_start_count);
+print "\t\t\tprintf(\"PHASE08_D20_POSIX_SPAWN_SETEXEC_BRIDGE=direct_exec\\n\");"
+printf("PHASE08_D20_CYCLE%d_REAP_PATH=%s\n",
+    cycle, dispatch_reap ? "dispatch_proc_source" : "fallback_waitpid");
+printf("PHASE08_D20_POSTREAP_KEEPALIVE_REASON=successful_exit\n");
+printf("PHASE08_D20_POST_CYCLE1_KEEPALIVE_REASON=%s\n",
+    post1_snapshot.postreap_keepalive_reason_successful_exit ?
+    "successful_exit" : "missing");
+printf("PHASE08_D20_POST_CYCLE2_KEEPALIVE_REASON=%s\n",
+    final_snapshot.postreap_keepalive_reason_successful_exit_mismatch ?
+    "successful_exit_mismatch" : "missing");
+printf("PHASE08_D20_NO_THIRD_START=%d\n",
+    no_third_start ? 1 : 0);
+printf("PHASE08_D20_CONDITIONAL_KEEPALIVE_CONFIRMED=%d\n",
+    confirmed ? 1 : 0);
+
+# D21 source: scripts/launchd/link-launchd-harness.sh
+printf("phase08_dispatch_launchctl_remove_start\n");
+printf("PHASE08_D21_LOAD_CONFIRMED=1\n");
+printf("PHASE08_D21_INERT_LOAD_CONFIRMED=%d\n",
+    inert_confirmed ? 1 : 0);
+printf("PHASE08_D21_REMOVEJOB_SEEN=1\n");
+printf("PHASE08_D21_REMOVE_TARGET_LABEL_MATCH=1\n");
+printf("PHASE08_D21_REMOVE_HANDLER_CALLED=1\n");
+printf("PHASE08_D21_JOB_FOUND_BEFORE_REMOVE=1\n");
+printf("PHASE08_D21_JOB_ACTIVE_AT_REMOVE=%d\n", j->p != 0 ? 1 : 0);
+printf("PHASE08_D21_JOB_PID_AT_REMOVE=%d\n", (int)j->p);
+printf("PHASE08_D21_INERT_REMOVE_BRANCH=1\n");
+printf("PHASE08_D21_JOB_DETACHED_FROM_JOBMGR=1\n");
+printf("PHASE08_D21_JOB_REMOVED_FROM_LABEL_TABLE=1\n");
+printf("PHASE08_D21_LABEL_COUNT_AFTER_DETACH=%d\n",
+    label_count_after_detach);
+printf("PHASE08_D21_MACH_SERVICE_REMOVED_OR_NONE=%d\n",
+    mach_service_removed ? 1 : 0);
+printf("PHASE08_D21_JOB_PROC_SOURCE_TORN_DOWN_OR_NONE=1\n");
+printf("PHASE08_D21_REMOVE_HANDLER_ENTER_COUNT=%d\n",
+    phase08_d21_remove_handler_enter_count);
+printf("PHASE08_D21_JOB_REMOVING_RECORDED=%d\n",
+    phase08_d21_job_removing_recorded);
+printf("PHASE08_D21_JOB_DETACHED_RECORDED=%d\n",
+    phase08_d21_job_detached_recorded);
+printf("PHASE08_D21_JOB_FREEING_RECORDED=%d\n",
+    phase08_d21_job_freeing_recorded);
+printf("PHASE08_D21_JOB_FIND_AFTER_REMOVE=%d\n", job_find_after);
+printf("PHASE08_D21_LABEL_COUNT_AFTER_REMOVE=%d\n",
+    label_count_after_remove);
+printf("PHASE08_D21_DONOR_JOB_TABLE_COUNT_DELTA_OK=%d\n",
+    delta_ok ? 1 : 0);
+printf("PHASE08_D21_JOB_STRUCT_NO_LEAK=%d\n", no_leak ? 1 : 0);
+printf("PHASE08_D21_JOB_REMOVED_FROM_TABLE=%d\n",
+    removed_from_table ? 1 : 0);
+printf("PHASE08_D21_START_COUNT_FINAL=%d\n",
+    final_snapshot.job_start_count);
+printf("PHASE08_D21_PROC_SOURCE_EVENT_COUNT_TOTAL=0\n");
+printf("PHASE08_D21_REAP_COUNT_TOTAL=0\n");
+printf("PHASE08_D21_NO_RESTART_AFTER_REMOVE=1\n");
+printf("PHASE08_D21_INERT_REMOVE_CONFIRMED=%d\n",
+    confirmed ? 1 : 0);

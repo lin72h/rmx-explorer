@@ -16,12 +16,16 @@ defmodule Phase08MarkerManifestTest do
     assert keys == Enum.uniq(keys)
     assert :d22_running_donor_sent_signal in ids
     assert :d19_confirmed in ids
+    assert :d20_confirmed in ids
+    assert :d21_confirmed in ids
     assert :d23_inert_reload_accepted in ids
   end
 
   test "gate and arm filters expose expected marker ids" do
     assert :d22_running_donor_sent_signal in marker_ids(MarkerManifest.for_gate(:d22))
     assert :d19_confirmed in marker_ids(MarkerManifest.for_gate(:d19))
+    assert :d20_confirmed in marker_ids(MarkerManifest.for_gate(:d20))
+    assert :d21_confirmed in marker_ids(MarkerManifest.for_gate(:d21))
     assert :d23_inert_reload_accepted in marker_ids(MarkerManifest.for_gate(:d23))
 
     assert :d22_running_deferred_enter_count in marker_ids(MarkerManifest.for_arm(:d22, :running))
@@ -48,16 +52,69 @@ defmodule Phase08MarkerManifestTest do
     assert manifest_literals == helper_literals
   end
 
-  test "D19 manifest producer attribution is donor or harness only" do
-    d19_specs = MarkerManifest.for_gate(:d19)
+  test "D20 manifest literals match the live launchctl helper order contract" do
+    manifest_literals =
+      [:d20_gate_start | Enum.map(LaunchctlVerifierCommon.d20_order_contract(), & &1.id)]
+      |> Enum.uniq()
+      |> Enum.map(&MarkerManifest.spec!/1)
+      |> Enum.map(&MarkerManifest.marker_literal/1)
 
-    assert Enum.all?(d19_specs, &(&1.producer in [:donor, :harness]))
+    assert manifest_literals == LaunchctlVerifierCommon.d20_order_markers()
+  end
+
+  test "D21 manifest owns the remove markers used by the helper" do
+    assert LaunchctlVerifierCommon.d21_marker_ids() == marker_ids(MarkerManifest.for_gate(:d21))
+
+    helper_literals = LaunchctlVerifierCommon.d21_marker_literals()
+
+    manifest_literals =
+      :d21
+      |> MarkerManifest.for_gate()
+      |> Enum.map(&MarkerManifest.marker_literal/1)
+
+    assert helper_literals == manifest_literals
+  end
+
+  test "D19-D21 manifest producer attribution is donor or harness only" do
+    specs = [:d19, :d20, :d21] |> Enum.flat_map(&MarkerManifest.for_gate/1)
+
+    assert Enum.all?(specs, &(&1.producer in [:donor, :harness]))
     assert MarkerManifest.spec!(:d19_gate_start).producer == :harness
+    assert MarkerManifest.spec!(:d20_gate_start).producer == :harness
+    assert MarkerManifest.spec!(:d21_gate_start).producer == :harness
 
-    behavioral_specs = Enum.reject(d19_specs, &(&1.id == :d19_gate_start))
+    behavioral_specs =
+      Enum.reject(
+        specs,
+        &(&1.id in [
+            :d19_gate_start,
+            :d20_gate_start,
+            :d21_gate_start
+          ])
+      )
+
     assert behavioral_specs != []
     assert Enum.all?(behavioral_specs, &(&1.producer == :donor))
     assert Enum.all?(behavioral_specs, &Map.has_key?(&1, :producer_detail))
+  end
+
+  test "D22/D23 producer attribution is enum-constrained with detail normalization deferred" do
+    specs = [:d22, :d23] |> Enum.flat_map(&MarkerManifest.for_gate/1)
+
+    assert specs != []
+    assert Enum.all?(specs, &(&1.producer in [:donor, :harness]))
+
+    audit = LaunchctlVerifierCommon.d22_d23_reconciliation_audit()
+
+    assert Enum.any?(
+             audit,
+             &match?(%{item: :d22_d23_producer_attribution, status: :pass}, &1)
+           )
+
+    assert Enum.any?(
+             audit,
+             &match?(%{item: :d22_d23_producer_detail_role, status: :deferred}, &1)
+           )
   end
 
   test "D19 manifest validates the accepted preserved serial" do
@@ -66,6 +123,43 @@ defmodule Phase08MarkerManifestTest do
              :d19
            ) ==
              :ok
+  end
+
+  test "D20 and D21 manifests validate accepted preserved serials" do
+    assert MarkerManifest.validate_log!(
+             fixture!("d20_successful_exit.accepted.serial.log"),
+             :d20
+           ) == :ok
+
+    assert MarkerManifest.validate_log!(
+             fixture!("d21_remove.accepted.serial.log"),
+             :d21
+           ) == :ok
+  end
+
+  test "D20 repeated postreap key intentionally uses include policy" do
+    spec = MarkerManifest.spec!(:d20_postreap_keepalive_reason)
+    assert spec.policy == {:must_include, "successful_exit"}
+
+    values =
+      "d20_successful_exit.accepted.serial.log"
+      |> fixture!()
+      |> MarkerManifest.marker_values(spec.key)
+
+    assert "successful_exit" in values
+    assert "successful_exit_mismatch" in values
+
+    serial =
+      "d20_successful_exit.accepted.serial.log"
+      |> fixture!()
+      |> String.replace(
+        "PHASE08_D20_POST_CYCLE2_KEEPALIVE_REASON=successful_exit_mismatch",
+        "PHASE08_D20_POST_CYCLE2_KEEPALIVE_REASON=unexpected"
+      )
+
+    assert {:error, error} = LaunchctlVerifierCommon.validate_d20(serial)
+    assert error.reason == :missing_marker
+    assert error.marker == "PHASE08_D20_POST_CYCLE2_KEEPALIVE_REASON=successful_exit_mismatch"
   end
 
   test "D19 frozen generator anchors match the manifest and have red paths" do
@@ -108,6 +202,11 @@ defmodule Phase08MarkerManifestTest do
              "scripts/launchd/build-phase08-d15-launchctl-json-hardfail.sh",
              "scripts/launchd/link-launchd-harness.sh"
            ]
+
+    provenance = decode_json!("d19_frozen_generator_anchors_089311cff65b.provenance.json")
+
+    assert provenance["fixture_sha256"] ==
+             sha256_fixture!("d19_frozen_generator_anchors_089311cff65b.source.txt")
   end
 
   test "D19 frozen generator dynamic cycle and value anchors are explicit" do
@@ -139,6 +238,73 @@ defmodule Phase08MarkerManifestTest do
     confirmation = find_anchor!(specs, :d19_confirmation)
     assert confirmation.kind == :dynamic_value
     assert confirmation.dynamic.accepted_value == "1"
+  end
+
+  test "D20/D21 frozen generator anchors match the manifest and have red paths" do
+    source = fixture!("d20_d21_frozen_generator_anchors_089311cff65b.source.txt")
+    manifest_literals = d20_d21_manifest_literals()
+
+    anchor_literals =
+      source
+      |> MarkerManifest.d20_d21_frozen_generator_anchors_from_text()
+      |> Enum.map(& &1.literal)
+
+    assert MapSet.new(anchor_literals) == MapSet.new(manifest_literals)
+    assert length(anchor_literals) == length(Enum.uniq(anchor_literals))
+    assert MarkerManifest.validate_d20_d21_frozen_generator_anchor_drift!(source) == :ok
+
+    manifest_drift = List.replace_at(manifest_literals, 0, "PHASE08_D20_DRIFTED=1")
+
+    assert_raise ArgumentError, ~r/D20\/D21 manifest\/frozen generator anchor drift/, fn ->
+      MarkerManifest.validate_d20_d21_frozen_generator_anchor_drift!(source, manifest_drift)
+    end
+
+    source_drift =
+      String.replace(
+        source,
+        "PHASE08_D21_INERT_REMOVE_CONFIRMED=%d",
+        "PHASE08_D21_INERT_REMOVE_MISSING=%d"
+      )
+
+    assert_raise ArgumentError, ~r/D20\/D21 manifest\/frozen generator anchor drift/, fn ->
+      MarkerManifest.validate_d20_d21_frozen_generator_anchor_drift!(source_drift)
+    end
+
+    ref = MarkerManifest.d20_d21_frozen_generator_anchor_source_reference()
+    assert ref.short_commit == "089311cff65b"
+
+    assert ref.fixture ==
+             "test/fixtures/phase08/launchctl/d20_d21_frozen_generator_anchors_089311cff65b.source.txt"
+
+    provenance = decode_json!("d20_d21_frozen_generator_anchors_089311cff65b.provenance.json")
+
+    assert provenance["fixture_sha256"] ==
+             sha256_fixture!("d20_d21_frozen_generator_anchors_089311cff65b.source.txt")
+  end
+
+  test "D20/D21 frozen generator dynamic anchors are explicit" do
+    specs = MarkerManifest.d20_d21_frozen_generator_anchor_specs()
+
+    d20_cycle_start = find_anchor!(specs, :d20_cycle_job_start)
+    assert d20_cycle_start.kind == :dynamic_cycle
+    assert d20_cycle_start.dynamic.cycles == [1, 2]
+
+    assert d20_cycle_start.expands_to == [
+             "PHASE08_D20_CYCLE1_JOB_START_CALLED=1",
+             "PHASE08_D20_CYCLE2_JOB_START_CALLED=1"
+           ]
+
+    d20_cycle_reap = find_anchor!(specs, :d20_cycle_reap_path)
+    assert d20_cycle_reap.kind == :dynamic_cycle_value
+    assert d20_cycle_reap.dynamic.accepted_value == "dispatch_proc_source"
+
+    d21_active = find_anchor!(specs, :d21_job_active_at_remove)
+    assert d21_active.kind == :dynamic_value
+    assert d21_active.dynamic.accepted_value == "0"
+
+    d21_confirmation = find_anchor!(specs, :d21_confirmation)
+    assert d21_confirmation.kind == :dynamic_value
+    assert d21_confirmation.dynamic.accepted_value == "1"
   end
 
   test "lookup and C emission helpers preserve manifest policy" do
@@ -216,9 +382,30 @@ defmodule Phase08MarkerManifestTest do
 
   defp fixture!(name), do: File.read!(Path.join(@fixture_dir, name))
 
+  defp decode_json!(filename) do
+    filename
+    |> then(&Path.join(@fixture_dir, &1))
+    |> File.read!()
+    |> JSON.decode!()
+  end
+
+  defp sha256_fixture!(filename) do
+    @fixture_dir
+    |> Path.join(filename)
+    |> File.read!()
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.encode16(case: :lower)
+  end
+
   defp d19_manifest_literals do
     :d19
     |> MarkerManifest.for_gate()
+    |> Enum.map(&MarkerManifest.marker_literal/1)
+  end
+
+  defp d20_d21_manifest_literals do
+    [:d20, :d21]
+    |> Enum.flat_map(&MarkerManifest.for_gate/1)
     |> Enum.map(&MarkerManifest.marker_literal/1)
   end
 

@@ -1,0 +1,26 @@
+{
+  "schema": "rmxos_oracle.fixture.provenance.v1",
+  "fixture": "test/fixtures/phase08/launchctl/d20_d21_frozen_generator_anchors_089311cff65b.source.txt",
+  "fixture_sha256": "f2a9b95256181b8a2c5c118c70adb437bc351b7cbcd6c2d6ca81ec0faf1372e3",
+  "source": {
+    "source_repo": "/Users/me/wip-mach/wip-gpt",
+    "source_commit": "089311cff65bf116323a1e2e2d5ccf602432a22c",
+    "source_refs": [
+      {
+        "path": "scripts/launchd/build-phase08-d15-launchctl-json-hardfail.sh",
+        "sha256": "b46b055378b85e4e07c6bbda29420100ea8c878d6c1f53943ccab74ce850a356"
+      },
+      {
+        "path": "scripts/launchd/link-launchd-harness.sh",
+        "sha256": "622e039124dcc58d094d8c19b931dd225fe8986960ef4d77d2f3fddd814378f3"
+      }
+    ]
+  },
+  "classification": "frozen_generator_anchor_manifest_drift_guard",
+  "notes": [
+    "This fixture snapshots D20 and D21 marker-generation anchors from the frozen source-side shell/AWK/C generator path.",
+    "Dynamic generator anchors are represented by their source printf format and expanded by Oracle tests into concrete D20/D21 manifest literals.",
+    "Oracle tests compare manifest literals to this checked-in fixture and do not read source-side scripts/launchd as live authority.",
+    "D20 ordering is owned by Phase08.LaunchctlVerifierCommon; D21 remains manifest-backed without a separate order list in this migration chunk."
+  ]
+}
