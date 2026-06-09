@@ -1,0 +1,20 @@
+{
+  "schema": "rmxos_oracle.fixture.provenance.v1",
+  "fixture": "test/fixtures/phase08/launchctl/d20_successful_exit.accepted.serial.log",
+  "sha256": "fec4b97e9158ea296987c81b01fe2f6fd423e789f909cb3bee20da0c7eefa5d7",
+  "normalization": "line endings and trailing serial whitespace stripped for committed fixture use",
+  "accepted_raw_sha256": "57dad95ce1828ae18ff91c93b265d36e22d6f193064b559514eee361fdfec61a",
+  "source": {
+    "original_run_path": "priv/runs/stable15-launchctl-baseline/20260604T145102Z-d20-successful-exit/d20_serial.log",
+    "original_run_sha256": "57dad95ce1828ae18ff91c93b265d36e22d6f193064b559514eee361fdfec61a",
+    "source_harness_commit_at_guest_run": "ee3ba8e1c645",
+    "accepted_validator_commit": "089311cff65bf116323a1e2e2d5ccf602432a22c",
+    "active_freebsd_source_commit": "f71260cf4c9e",
+    "source_profile": "stable15-active"
+  },
+  "classification": "accepted_preserved_serial_positive_fixture",
+  "notes": [
+    "D20 was accepted by preserved-serial validation after the inherited D19 order contract was shared.",
+    "This fixture is copied into the Oracle test tree so normal tests do not depend on ignored priv/runs paths."
+  ]
+}

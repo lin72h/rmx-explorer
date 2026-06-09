@@ -1,0 +1,20 @@
+{
+  "schema": "rmxos_oracle.fixture.provenance.v1",
+  "fixture": "test/fixtures/phase08/launchctl/d19_keepalive_restart.accepted.serial.log",
+  "sha256": "1bc2a037c2c62f4ff8c55333ca10100237fb533e412bf704b2e6ed85b7d8a2a6",
+  "normalization": "line endings and trailing serial whitespace stripped for committed fixture use",
+  "accepted_raw_sha256": "6f790db058cfc68621802484367ffe08bb6905e69c0164768fa3d018f1502b99",
+  "source": {
+    "original_run_path": "priv/runs/stable15-launchctl-baseline/20260604T143805Z-d19-keepalive-restart/d19_serial.log",
+    "original_run_sha256": "6f790db058cfc68621802484367ffe08bb6905e69c0164768fa3d018f1502b99",
+    "source_harness_commit_at_guest_run": "023da141dad0",
+    "accepted_validator_commit": "089311cff65bf116323a1e2e2d5ccf602432a22c",
+    "active_freebsd_source_commit": "f71260cf4c9e",
+    "source_profile": "stable15-active"
+  },
+  "classification": "accepted_preserved_serial_positive_fixture",
+  "notes": [
+    "D19 was accepted by preserved-serial validation after the source-side D19 order contract was shared.",
+    "This fixture is copied into the Oracle test tree so normal tests do not depend on ignored priv/runs paths."
+  ]
+}
