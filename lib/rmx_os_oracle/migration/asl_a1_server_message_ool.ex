@@ -1,14 +1,15 @@
 defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   @moduledoc false
 
+  alias RmxOSOracle.Asl.A1.{ContractCheck, MarkerManifest}
   alias RmxOSOracle.{CanonicalJSON, Env}
 
   @slice_id "asl.a1.server_message_ool"
   @evidence_schema "rmxos_oracle.asl_a1.raw_evidence.v1"
   @donor_root "/Users/me/wip-mach/nx/NextBSD"
-  @donor_commit "8be0f2507b69906d068bed31ffc58cdfafadaef3"
+  @donor_commit MarkerManifest.donor_commit()
   @source_repo "/Users/me/wip-mach/wip-gpt"
-  @source_authorization_commit "2444504cc7727b1c8e957b4929b7233c9187f1a1"
+  @source_authorization_commit MarkerManifest.source_authorization_commit()
   @oracle_a0_commit "e80dbb37ebe752353c75438718f5ac3e4d188e9c"
   @oracle_a1_design_commit "a61e50df3819645c56130593afa5c8a69ac57edb"
   @defs_rel "lib/libasl/asl_ipc.defs"
@@ -42,7 +43,7 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     "include/os",
     "contrib/openbsm/bsm/libbsm.h"
   ]
-  @probe_rel "priv/probes/asl/a1_server_message_ool.c"
+  @probe_rel MarkerManifest.probe_path()
   @stage_tool "scripts/bhyve/stage-guest.sh"
   @run_tool "scripts/bhyve/run-guest.sh"
   @source_tool_files [
@@ -53,122 +54,20 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   @mig_subsystem 114
   @mig_routine_id 118
   @default_kernel_conf "MACHDEBUGDEBUG"
-  @start_marker "=== ASL A1 server-message-ool start ==="
-  @success_marker "=== ASL A1 server-message-ool end rc=0 ==="
-  @expected_ool_byte_count "96"
-  @expected_ool_sha256 "a3ff9feadd6c4954712c16fb362ff5fcee0fa45a9a65d9e569fa7a33f7c7f977"
-
-  @positive_exact [
-    {"ASL_A1_ARM_START", "positive_decode"},
-    {"ASL_A1_EXPECTED_OOL_BYTE_COUNT", @expected_ool_byte_count},
-    {"ASL_A1_CLIENT_SEND_STARTED", "1"},
-    {"ASL_A1_CLIENT_SEND_KR", "0"},
-    {"ASL_A1_SERVER_RECEIVE_KR", "0"},
-    {"ASL_A1_SERVER_REQUESTED_AUDIT_TRAILER", "1"},
-    {"ASL_A1_SERVER_AUDIT_TRAILER_PRESENT", "1"},
-    {"ASL_A1_GENERATED_DEMUX_CALLED", "1"},
-    {"ASL_A1_DONOR_SERVER_MESSAGE_ENTER", "1"},
-    {"ASL_A1_RECEIVED_OOL_BYTE_COUNT", @expected_ool_byte_count},
-    {"ASL_A1_DONOR_OOL_BYTES_INTACT", "1"},
-    {"ASL_A1_DONOR_DECODE_OK", "1"},
-    {"ASL_A1_PROCESS_MESSAGE_STUB_CALLED", "1"},
-    {"ASL_A1_PROCESS_MESSAGE_SOURCE", "5"},
-    {"ASL_A1_PROCESS_MESSAGE_SENDER", "oracle_asl_a1_client"},
-    {"ASL_A1_PROCESS_MESSAGE_FACILITY", "com.rmxos.oracle.asl"},
-    {"ASL_A1_PROCESS_MESSAGE_LEVEL", "5"},
-    {"ASL_A1_PROCESS_MESSAGE_MESSAGE", "oracle_asl_a1"},
-    {"ASL_A1_PROCESS_MESSAGE_PAYLOAD_MATCH", "1"},
-    {"ASL_A1_DONOR_RELEASE_COMPLETED", "1"},
-    {"ASL_A1_GENERATED_DEMUX_HANDLED", "1"},
-    {"ASL_A1_POSITIVE_DECODE_AND_STUB_CONFIRMED", "1"},
-    {"ASL_A1_ARM_END", "positive_decode"}
-  ]
-  @malformed_exact [
-    {"ASL_A1_ARM_START", "malformed_payload"},
-    {"ASL_A1_CLIENT_SEND_STARTED", "1"},
-    {"ASL_A1_CLIENT_SEND_KR", "0"},
-    {"ASL_A1_SERVER_RECEIVE_KR", "0"},
-    {"ASL_A1_GENERATED_DEMUX_CALLED", "1"},
-    {"ASL_A1_DONOR_SERVER_MESSAGE_ENTER", "1"},
-    {"ASL_A1_GENERATED_DEMUX_HANDLED", "1"},
-    {"ASL_A1_NEG_MALFORMED_PAYLOAD_REJECTED", "1"},
-    {"ASL_A1_ARM_END", "malformed_payload"}
-  ]
-  @invalid_ool_exact [
-    {"ASL_A1_ARM_START", "invalid_ool"},
-    {"ASL_A1_NEG_INVALID_OOL_DESCRIPTOR_REJECTED", "1"},
-    {"ASL_A1_ARM_END", "invalid_ool"}
-  ]
-  @global_exact [
-    {"mach_module", "loaded"},
-    {"ASL_A1_PROBE_START", "1"},
-    {"ASL_A1_MIG_SUBSYSTEM", "114"},
-    {"ASL_A1_MIG_ROUTINE_ID", "118"}
-  ]
-  @terminal_exact [
-    {"ASL_A1_DONE", "1"}
-  ]
-  @critical_positive_order [
-    {"ASL_A1_CLIENT_SEND_STARTED", "1"},
-    {"ASL_A1_CLIENT_SEND_KR", "0"},
-    {"ASL_A1_SERVER_RECEIVE_KR", "0"},
-    {"ASL_A1_GENERATED_DEMUX_CALLED", "1"},
-    {"ASL_A1_DONOR_SERVER_MESSAGE_ENTER", "1"},
-    {"ASL_A1_DONOR_DECODE_OK", "1"},
-    {"ASL_A1_PROCESS_MESSAGE_PAYLOAD_MATCH", "1"},
-    {"ASL_A1_DONOR_RELEASE_COMPLETED", "1"},
-    {"ASL_A1_POSITIVE_DECODE_AND_STUB_CONFIRMED", "1"},
-    {"ASL_A1_ARM_END", "positive_decode"}
-  ]
-  @arm_order_contracts %{
-    "positive_decode" => @critical_positive_order,
-    "malformed_payload" => [
-      {"ASL_A1_CLIENT_SEND_STARTED", "1"},
-      {"ASL_A1_CLIENT_SEND_KR", "0"},
-      {"ASL_A1_SERVER_RECEIVE_KR", "0"},
-      {"ASL_A1_GENERATED_DEMUX_CALLED", "1"},
-      {"ASL_A1_DONOR_SERVER_MESSAGE_ENTER", "1"},
-      {"ASL_A1_GENERATED_DEMUX_HANDLED", "1"},
-      {"ASL_A1_NEG_MALFORMED_PAYLOAD_REJECTED", "1"},
-      {"ASL_A1_ARM_END", "malformed_payload"}
-    ],
-    "invalid_ool" => [
-      {"ASL_A1_NEG_INVALID_OOL_DESCRIPTOR_REJECTED", "1"},
-      {"ASL_A1_ARM_END", "invalid_ool"}
-    ]
-  }
-  @arm_contracts %{
-    "positive_decode" => @positive_exact,
-    "malformed_payload" => @malformed_exact,
-    "invalid_ool" => @invalid_ool_exact
-  }
-  @arm_exclusive_keys %{
-    "positive_decode" =>
-      ~w(ASL_A1_EXPECTED_OOL_BYTE_COUNT ASL_A1_EXPECTED_OOL_SHA256 ASL_A1_DONOR_OOL_BYTES_INTACT ASL_A1_DONOR_DECODE_OK ASL_A1_PROCESS_MESSAGE_STUB_CALLED ASL_A1_PROCESS_MESSAGE_PAYLOAD_MATCH ASL_A1_DONOR_RELEASE_COMPLETED ASL_A1_POSITIVE_DECODE_AND_STUB_CONFIRMED),
-    "malformed_payload" => ~w(ASL_A1_NEG_MALFORMED_PAYLOAD_REJECTED),
-    "invalid_ool" => ~w(ASL_A1_NEG_INVALID_OOL_DESCRIPTOR_REJECTED)
-  }
-  @positive_singleton_keys Enum.map(@positive_exact, &elem(&1, 0)) ++
-                             ~w(ASL_A1_EXPECTED_OOL_SHA256 ASL_A1_RECEIVED_OOL_SHA256)
-  @claim_singleton_keys ~w(
-    ASL_A1_AUDIT_CLAIM
-    ASL_A1_AUDIT_MATCH
-    ASL_A1_AUDIT_UID
-    ASL_A1_AUDIT_GID
-    ASL_A1_AUDIT_PID
-    ASL_A1_DONE
-  )
-  @transport_infrastructure_exact [
-    {"mach_module", "loaded"},
-    {"ASL_A1_PROBE_START", "1"},
-    {"ASL_A1_MIG_SUBSYSTEM", "114"},
-    {"ASL_A1_MIG_ROUTINE_ID", "118"},
-    {"ASL_A1_SERVER_RECEIVE_KR", "0"},
-    {"ASL_A1_GENERATED_DEMUX_CALLED", "1"},
-    {"ASL_A1_GENERATED_DEMUX_HANDLED", "1"},
-    {"ASL_A1_NEG_INVALID_OOL_DESCRIPTOR_REJECTED", "1"},
-    {"ASL_A1_DONE", "1"}
-  ]
+  @start_marker MarkerManifest.start_marker()
+  @success_marker MarkerManifest.success_marker()
+  @expected_ool_byte_count MarkerManifest.expected_ool_byte_count()
+  @expected_ool_sha256 MarkerManifest.expected_ool_sha256()
+  @global_exact [{"mach_module", "loaded"}] ++ MarkerManifest.global_markers()
+  @terminal_exact MarkerManifest.terminal_markers()
+  @critical_positive_order MarkerManifest.critical_positive_order()
+  @arm_order_contracts MarkerManifest.arm_order_contracts()
+  @arm_contracts MarkerManifest.arm_contracts()
+  @arm_exclusive_keys MarkerManifest.arm_exclusive_keys()
+  @positive_singleton_keys MarkerManifest.positive_singleton_keys()
+  @claim_singleton_keys MarkerManifest.claim_singleton_keys()
+  @transport_infrastructure_exact [{"mach_module", "loaded"}] ++
+                                    MarkerManifest.transport_infrastructure_markers()
 
   @hard_stop_patterns [
     ~r/panic/i,
@@ -329,40 +228,56 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
 
   def negative_controls(serial) do
     controls = [
-      falsifier(serial, "wrong_required_value", "ASL_A1_DONE=1", "ASL_A1_DONE=10"),
-      falsifier(serial, "missing_terminal", "ASL_A1_DONE=1", "ASL_A1_DONE_REMOVED=1"),
-      falsifier(serial, "duplicated_terminal", "ASL_A1_DONE=1", "ASL_A1_DONE=1\nASL_A1_DONE=1"),
+      falsifier(
+        serial,
+        "wrong_required_value",
+        marker_line(:terminal_done),
+        marker_line(:terminal_done, "10")
+      ),
+      falsifier(
+        serial,
+        "missing_terminal",
+        marker_line(:terminal_done),
+        marker_line(:terminal_done, "REMOVED")
+      ),
+      falsifier(
+        serial,
+        "duplicated_terminal",
+        marker_line(:terminal_done),
+        marker_line(:terminal_done) <> "\n" <> marker_line(:terminal_done)
+      ),
       falsifier(
         serial,
         "duplicated_positive_only_marker",
-        "ASL_A1_DONOR_DECODE_OK=1",
-        "ASL_A1_DONOR_DECODE_OK=1\nASL_A1_DONOR_DECODE_OK=1"
+        marker_line(:positive_donor_decode_ok),
+        marker_line(:positive_donor_decode_ok) <> "\n" <> marker_line(:positive_donor_decode_ok)
       ),
       falsifier(
         serial,
         "contradictory_claim_marker",
-        "ASL_A1_AUDIT_CLAIM=accepted",
-        "ASL_A1_AUDIT_CLAIM=accepted\nASL_A1_AUDIT_CLAIM=deferred"
+        marker_line(:positive_audit_claim),
+        marker_line(:positive_audit_claim) <>
+          "\n" <> marker_line(:positive_audit_claim, "deferred")
       ),
       invalid_order_falsifier(serial),
       terminal_order_falsifier(serial),
       falsifier(
         serial,
         "demux_without_donor_entry",
-        "ASL_A1_DONOR_SERVER_MESSAGE_ENTER=1",
-        "ASL_A1_DONOR_SERVER_MESSAGE_ENTER_REMOVED=1"
+        marker_line(:positive_donor_enter),
+        marker_line(:positive_donor_enter, "REMOVED")
       ),
       falsifier(
         serial,
         "donor_entry_without_decode_ok",
-        "ASL_A1_DONOR_DECODE_OK=1",
-        "ASL_A1_DONOR_DECODE_OK_REMOVED=1"
+        marker_line(:positive_donor_decode_ok),
+        marker_line(:positive_donor_decode_ok, "REMOVED")
       ),
       falsifier(
         serial,
         "toy_receiver_without_donor_decode",
-        "ASL_A1_DONOR_SERVER_MESSAGE_ENTER=1",
-        "ASL_A1_TOY_RECEIVER_ONLY=1"
+        marker_line(:positive_donor_enter),
+        "ASL_" <> "A1_TOY_RECEIVER_ONLY=1"
       ),
       audit_mismatch(serial),
       audit_zeroed(serial),
@@ -392,17 +307,7 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   end
 
   def static_marker_manifest_check(source) do
-    matches =
-      Regex.scan(~r/(ASL_A\d+_|:asl_a\d+|asl_a\d+)/, source)
-      |> Enum.map(&List.first/1)
-      |> Enum.uniq()
-
-    %{
-      "schema" => "rmxos_oracle.asl_a1.static_marker_manifest_check.v1",
-      "passed" => matches == [],
-      "forbidden_matches" => matches,
-      "rule" => "ASL A1 must not add marker manifest entries before accepted evidence review"
-    }
+    ContractCheck.no_copy_check(%{"inline_source.ex" => source})
   end
 
   def static_donor_ownership_check(probe_source) do
@@ -652,17 +557,12 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
       provenance_falsifiers
     )
 
-    static_report =
-      oracle_repo
-      |> Path.join("lib/phase08/marker_manifest.ex")
-      |> File.read!()
-      |> static_marker_manifest_check()
-
+    static_report = ContractCheck.run(oracle_repo)
     donor_ownership_report = static_donor_ownership_check(File.read!(probe_source))
 
     CanonicalJSON.write!(Path.join(evidence_dir, "static_checks.json"), %{
       "schema" => "rmxos_oracle.asl_a1.static_checks.v1",
-      "marker_manifest" => static_report,
+      "marker_authority" => static_report,
       "donor_ownership" => donor_ownership_report
     })
 
@@ -683,7 +583,7 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
       "cryptographic_provenance_falsifiers_passed" => provenance_falsifiers["passed"],
       "donor_extraction_exact" => extraction.exact,
       "donor_release_extraction_exact" => release_extraction.exact,
-      "static_marker_manifest_check_passed" => static_report["passed"],
+      "static_marker_authority_check_passed" => static_report["passed"],
       "static_donor_ownership_check_passed" => donor_ownership_report["passed"],
       "env_check_passed" => env_report["status"] == "pass",
       "env_errors" => env_report["errors"],
@@ -1039,8 +939,8 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   end
 
   defp validate_arm(parsed, arm, required) do
-    start_line = "ASL_A1_ARM_START=#{arm}"
-    end_line = "ASL_A1_ARM_END=#{arm}"
+    start_line = MarkerManifest.arm_start_line(arm)
+    end_line = MarkerManifest.arm_end_line(arm)
     starts = exact_line_indices(parsed, start_line)
     ends = exact_line_indices(parsed, end_line)
 
@@ -1151,12 +1051,12 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
 
     start_count = Enum.count(parsed.lines, &(&1 == @start_marker))
     end_count = Enum.count(parsed.lines, &(&1 == @success_marker))
-    done_index = exact_marker_index(parsed, {"ASL_A1_DONE", "1"})
+    done_index = exact_marker_index(parsed, MarkerManifest.marker!(:terminal_done))
     end_indices = exact_line_indices(parsed, @success_marker)
 
     arm_end_indices =
       Enum.map(~w(positive_decode malformed_payload invalid_ool), fn arm ->
-        exact_line_indices(parsed, "ASL_A1_ARM_END=#{arm}")
+        exact_line_indices(parsed, MarkerManifest.arm_end_line(arm))
       end)
 
     order_errors =
@@ -1168,7 +1068,7 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
 
         _ ->
           [
-            "terminal ASL_A1_DONE=1 must follow all arm endings and precede exactly one #{@success_marker}"
+            "terminal #{marker_line(:terminal_done)} must follow all arm endings and precede exactly one #{@success_marker}"
           ]
       end
 
@@ -1231,11 +1131,11 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
 
   defp validate_ool_integrity(parsed) do
     positive = arm_entries(parsed, "positive_decode")
-    expected_count = unique_value(positive, "ASL_A1_EXPECTED_OOL_BYTE_COUNT")
-    received_count = unique_value(positive, "ASL_A1_RECEIVED_OOL_BYTE_COUNT")
-    expected_hash = unique_value(positive, "ASL_A1_EXPECTED_OOL_SHA256")
-    received_hash = unique_value(positive, "ASL_A1_RECEIVED_OOL_SHA256")
-    intact = unique_value(positive, "ASL_A1_DONOR_OOL_BYTES_INTACT")
+    expected_count = unique_value(positive, marker_key(:expected_ool_count))
+    received_count = unique_value(positive, marker_key(:positive_received_ool_count))
+    expected_hash = unique_value(positive, marker_key(:expected_ool_sha))
+    received_hash = unique_value(positive, marker_key(:positive_received_ool_sha))
+    intact = unique_value(positive, marker_key(:positive_ool_intact))
 
     errors =
       []
@@ -1286,14 +1186,14 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   end
 
   defp audit_result(parsed) do
-    claim = unique_value(parsed.entries, "ASL_A1_AUDIT_CLAIM")
-    match = unique_value(parsed.entries, "ASL_A1_AUDIT_MATCH")
-    uid = unique_value(parsed.entries, "ASL_A1_AUDIT_UID")
-    gid = unique_value(parsed.entries, "ASL_A1_AUDIT_GID")
-    pid = unique_value(parsed.entries, "ASL_A1_AUDIT_PID")
-    client_uid = unique_value(parsed.entries, "ASL_A1_CLIENT_UID")
-    client_gid = unique_value(parsed.entries, "ASL_A1_CLIENT_GID")
-    client_pid = unique_value(parsed.entries, "ASL_A1_CLIENT_PID")
+    claim = unique_value(parsed.entries, marker_key(:positive_audit_claim))
+    match = unique_value(parsed.entries, marker_key(:positive_audit_match))
+    uid = unique_value(parsed.entries, marker_key(:positive_audit_uid))
+    gid = unique_value(parsed.entries, marker_key(:positive_audit_gid))
+    pid = unique_value(parsed.entries, marker_key(:positive_audit_pid))
+    client_uid = unique_value(parsed.entries, marker_key(:client_uid))
+    client_gid = unique_value(parsed.entries, marker_key(:client_gid))
+    client_pid = unique_value(parsed.entries, marker_key(:client_pid))
 
     cond do
       claim == "accepted" and match == "1" and pid not in [nil, "0"] and
@@ -1309,7 +1209,10 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
         %{
           "status" => "deferred",
           "reason" =>
-            unique_value(parsed.entries, "ASL_A1_AUDIT_DEFER_REASON") ||
+            unique_value(
+              parsed.entries,
+              MarkerManifest.nonaccepted_probe_key!(:audit_defer_reason)
+            ) ||
               "audit_identity_not_claimed"
         }
 
@@ -1344,14 +1247,21 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   end
 
   defp audit_mismatch(serial) do
-    if unique_value(parse_serial(serial).entries, "ASL_A1_AUDIT_CLAIM") == "accepted" do
-      mutated = replace_once(serial, "ASL_A1_AUDIT_MATCH=1", "ASL_A1_AUDIT_MATCH=0")
+    if unique_value(parse_serial(serial).entries, marker_key(:positive_audit_claim)) == "accepted" do
+      mutated =
+        replace_once(
+          serial,
+          marker_line(:positive_audit_match),
+          marker_line(:positive_audit_match, "0")
+        )
+
       result = validate_serial(mutated)
 
       %{
         "id" => "audit_identity_mismatch",
         "passed" => not result["passed"],
-        "expected_failure" => "accepted audit claim requires ASL_A1_AUDIT_MATCH=1",
+        "expected_failure" =>
+          "accepted audit claim requires #{marker_line(:positive_audit_match)}",
         "observed_audit_status" => result["audit_result"]["status"]
       }
     else
@@ -1367,12 +1277,15 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   defp audit_zeroed(serial) do
     parsed = parse_serial(serial)
 
-    if unique_value(parsed.entries, "ASL_A1_AUDIT_CLAIM") == "accepted" do
+    if unique_value(parsed.entries, marker_key(:positive_audit_claim)) == "accepted" do
       mutated =
         serial
         |> replace_once(
-          "ASL_A1_AUDIT_PID=#{unique_value(parsed.entries, "ASL_A1_AUDIT_PID")}",
-          "ASL_A1_AUDIT_PID=0"
+          marker_line(
+            :positive_audit_pid,
+            unique_value(parsed.entries, marker_key(:positive_audit_pid))
+          ),
+          marker_line(:positive_audit_pid, "0")
         )
 
       result = validate_serial(mutated)
@@ -1388,8 +1301,8 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   end
 
   defp invalid_order_falsifier(serial) do
-    first = "ASL_A1_GENERATED_DEMUX_CALLED=1"
-    second = "ASL_A1_DONOR_SERVER_MESSAGE_ENTER=1"
+    first = marker_line(:positive_demux_called)
+    second = marker_line(:positive_donor_enter)
     mutated = swap_first(serial, first, second)
     result = validate_serial(mutated)
 
@@ -1401,7 +1314,9 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   end
 
   defp terminal_order_falsifier(serial) do
-    mutated = swap_first(serial, "ASL_A1_ARM_END=invalid_ool", "ASL_A1_DONE=1")
+    mutated =
+      swap_first(serial, MarkerManifest.arm_end_line("invalid_ool"), marker_line(:terminal_done))
+
     result = validate_serial(mutated)
 
     %{
@@ -1415,38 +1330,46 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     falsifier(
       serial,
       "altered_payload_full_equality",
-      "ASL_A1_DONOR_OOL_BYTES_INTACT=1",
-      "ASL_A1_DONOR_OOL_BYTES_INTACT=0"
+      marker_line(:positive_ool_intact),
+      marker_line(:positive_ool_intact, "0")
     )
   end
 
   defp same_length_payload_falsifier(serial) do
     parsed = parse_serial(serial)
-    hash = unique_value(arm_entries(parsed, "positive_decode"), "ASL_A1_RECEIVED_OOL_SHA256")
+
+    hash =
+      unique_value(arm_entries(parsed, "positive_decode"), marker_key(:positive_received_ool_sha))
+
     replacement_hash = if valid_sha256?(hash), do: String.duplicate("0", 64), else: "invalid"
 
     falsifier(
       serial,
       "same_length_payload_hash_mismatch",
-      "ASL_A1_RECEIVED_OOL_SHA256=#{hash}",
-      "ASL_A1_RECEIVED_OOL_SHA256=#{replacement_hash}"
+      marker_line(:positive_received_ool_sha, hash),
+      marker_line(:positive_received_ool_sha, replacement_hash)
     )
   end
 
   defp appended_payload_falsifier(serial) do
     parsed = parse_serial(serial)
-    count = unique_value(arm_entries(parsed, "positive_decode"), "ASL_A1_RECEIVED_OOL_BYTE_COUNT")
+
+    count =
+      unique_value(
+        arm_entries(parsed, "positive_decode"),
+        marker_key(:positive_received_ool_count)
+      )
 
     replacement =
       case Integer.parse(count || "") do
-        {value, ""} -> "ASL_A1_RECEIVED_OOL_BYTE_COUNT=#{value + 1}"
-        _ -> "ASL_A1_RECEIVED_OOL_BYTE_COUNT=appended"
+        {value, ""} -> marker_line(:positive_received_ool_count, value + 1)
+        _ -> marker_line(:positive_received_ool_count, "appended")
       end
 
     falsifier(
       serial,
       "appended_payload_byte_count",
-      "ASL_A1_RECEIVED_OOL_BYTE_COUNT=#{count}",
+      marker_line(:positive_received_ool_count, count),
       replacement
     )
   end
@@ -1457,12 +1380,12 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     mutated =
       serial
       |> String.replace(
-        "ASL_A1_EXPECTED_OOL_SHA256=#{@expected_ool_sha256}",
-        "ASL_A1_EXPECTED_OOL_SHA256=#{fake}"
+        marker_line(:expected_ool_sha),
+        marker_line(:expected_ool_sha, fake)
       )
       |> String.replace(
-        "ASL_A1_RECEIVED_OOL_SHA256=#{@expected_ool_sha256}",
-        "ASL_A1_RECEIVED_OOL_SHA256=#{fake}"
+        marker_line(:positive_received_ool_sha),
+        marker_line(:positive_received_ool_sha, fake)
       )
 
     falsifier_result("equal_fake_ool_hashes", serial, mutated)
@@ -1472,12 +1395,12 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     mutated =
       serial
       |> String.replace(
-        "ASL_A1_EXPECTED_OOL_BYTE_COUNT=#{@expected_ool_byte_count}",
-        "ASL_A1_EXPECTED_OOL_BYTE_COUNT=95"
+        marker_line(:expected_ool_count),
+        marker_line(:expected_ool_count, "95")
       )
       |> String.replace(
-        "ASL_A1_RECEIVED_OOL_BYTE_COUNT=#{@expected_ool_byte_count}",
-        "ASL_A1_RECEIVED_OOL_BYTE_COUNT=95"
+        marker_line(:positive_received_ool_count),
+        marker_line(:positive_received_ool_count, "95")
       )
 
     falsifier_result("equal_wrong_ool_counts", serial, mutated)
@@ -1487,8 +1410,9 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     mutate_in_arm(serial, "malformed_payload", fn arm ->
       String.replace(
         arm,
-        "ASL_A1_SERVER_RECEIVE_KR=0",
-        "ASL_A1_SERVER_RECEIVE_KR=0\nASL_A1_SERVER_RECEIVE_KR=5",
+        marker_line(:malformed_server_receive_kr),
+        marker_line(:malformed_server_receive_kr) <>
+          "\n" <> marker_line(:malformed_server_receive_kr, "5"),
         global: false
       )
     end)
@@ -1499,8 +1423,9 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     mutate_in_arm(serial, "malformed_payload", fn arm ->
       String.replace(
         arm,
-        "ASL_A1_CLIENT_SEND_STARTED=1",
-        "ASL_A1_CLIENT_SEND_STARTED=1\nASL_A1_CLIENT_SEND_STARTED=1",
+        marker_line(:malformed_client_send_started),
+        marker_line(:malformed_client_send_started) <>
+          "\n" <> marker_line(:malformed_client_send_started),
         global: false
       )
     end)
@@ -1511,8 +1436,8 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     mutate_in_arm(serial, "malformed_payload", fn arm ->
       String.replace(
         arm,
-        "ASL_A1_DONOR_SERVER_MESSAGE_ENTER=1",
-        "ASL_A1_DONOR_SERVER_MESSAGE_ENTER_REMOVED=1",
+        marker_line(:malformed_donor_enter),
+        marker_line(:malformed_donor_enter, "REMOVED"),
         global: false
       )
     end)
@@ -1523,8 +1448,8 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     mutate_in_arm(serial, "malformed_payload", fn arm ->
       String.replace(
         arm,
-        "ASL_A1_NEG_MALFORMED_PAYLOAD_REJECTED=1",
-        "ASL_A1_DONOR_DECODE_OK=1\nASL_A1_NEG_MALFORMED_PAYLOAD_REJECTED=1",
+        marker_line(:malformed_rejected),
+        marker_line(:positive_donor_decode_ok) <> "\n" <> marker_line(:malformed_rejected),
         global: false
       )
     end)
@@ -1535,8 +1460,8 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     mutate_in_arm(serial, "invalid_ool", fn arm ->
       String.replace(
         arm,
-        "ASL_A1_NEG_INVALID_OOL_DESCRIPTOR_REJECTED=1",
-        "ASL_A1_NEG_INVALID_OOL_DESCRIPTOR_REJECTED=0\nASL_A1_NEG_INVALID_OOL_DESCRIPTOR_REJECTED=1",
+        marker_line(:invalid_ool_rejected),
+        marker_line(:invalid_ool_rejected, "0") <> "\n" <> marker_line(:invalid_ool_rejected),
         global: false
       )
     end)
@@ -1547,8 +1472,8 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     mutate_in_arm(serial, "invalid_ool", fn arm ->
       String.replace(
         arm,
-        "ASL_A1_NEG_INVALID_OOL_DESCRIPTOR_REJECTED=1",
-        "ASL_A1_NEG_INVALID_OOL_DESCRIPTOR_REJECTED=1\nASL_A1_NEG_INVALID_OOL_DESCRIPTOR_REJECTED=1",
+        marker_line(:invalid_ool_rejected),
+        marker_line(:invalid_ool_rejected) <> "\n" <> marker_line(:invalid_ool_rejected),
         global: false
       )
     end)
@@ -1559,8 +1484,9 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     mutate_in_arm(serial, "invalid_ool", fn arm ->
       String.replace(
         arm,
-        "ASL_A1_ARM_END=invalid_ool",
-        "ASL_A1_DONOR_DECODE_OK=1\nASL_A1_ARM_END=invalid_ool",
+        MarkerManifest.arm_end_line("invalid_ool"),
+        marker_line(:positive_donor_decode_ok) <>
+          "\n" <> MarkerManifest.arm_end_line("invalid_ool"),
         global: false
       )
     end)
@@ -1571,8 +1497,9 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     mutated =
       String.replace(
         serial,
-        "ASL_A1_ARM_START=malformed_payload",
-        "ASL_A1_ARM_START=malformed_payload\nASL_A1_ARM_START=invalid_ool",
+        MarkerManifest.arm_start_line("malformed_payload"),
+        MarkerManifest.arm_start_line("malformed_payload") <>
+          "\n" <> MarkerManifest.arm_start_line("invalid_ool"),
         global: false
       )
 
@@ -1580,8 +1507,8 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   end
 
   defp mutate_in_arm(serial, arm, fun) do
-    start_marker = "ASL_A1_ARM_START=#{arm}"
-    end_marker = "ASL_A1_ARM_END=#{arm}"
+    start_marker = MarkerManifest.arm_start_line(arm)
+    end_marker = MarkerManifest.arm_end_line(arm)
 
     case String.split(serial, start_marker, parts: 2) do
       [before, tail] ->
@@ -1609,8 +1536,8 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   end
 
   defp arm_entries(parsed, arm) do
-    starts = exact_line_indices(parsed, "ASL_A1_ARM_START=#{arm}")
-    ends = exact_line_indices(parsed, "ASL_A1_ARM_END=#{arm}")
+    starts = exact_line_indices(parsed, MarkerManifest.arm_start_line(arm))
+    ends = exact_line_indices(parsed, MarkerManifest.arm_end_line(arm))
 
     case {starts, ends} do
       {[start_index], [end_index]} when start_index < end_index ->
@@ -1642,6 +1569,10 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
     end
   end
 
+  defp marker_key(id), do: MarkerManifest.key!(id)
+  defp marker_line(id), do: MarkerManifest.line!(id)
+  defp marker_line(id, value), do: MarkerManifest.line_with_value!(id, value)
+
   defp format_marker({key, value}), do: "#{key}=#{value}"
   defp count_error(actual, expected, _label) when actual == expected, do: []
 
@@ -1657,7 +1588,7 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOol do
   end
 
   defp swap_first(serial, first, second) do
-    token = "__ASL_A1_SWAP_TOKEN__"
+    token = "__A1_SWAP_TOKEN__"
 
     serial
     |> replace_once(first, token)

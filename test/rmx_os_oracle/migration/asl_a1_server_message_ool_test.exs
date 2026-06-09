@@ -1,10 +1,12 @@
 defmodule RmxOSOracle.Migration.AslA1ServerMessageOolTest do
   use ExUnit.Case, async: true
 
+  alias RmxOSOracle.Asl.A1.{ContractCheck, MarkerManifest}
   alias RmxOSOracle.CanonicalJSON
   alias RmxOSOracle.Migration.AslA1ServerMessageOol
 
   @payload_sha "a3ff9feadd6c4954712c16fb362ff5fcee0fa45a9a65d9e569fa7a33f7c7f977"
+  @malformed_payload_sha "bd153d0688b6c4c77e8587258a87b887f15de6c7b63c36d7ad3790ba820f6f49"
 
   @valid_serial """
   === ASL A1 server-message-ool start ===
@@ -12,7 +14,7 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOolTest do
   ASL_A1_PROBE_START=1
   ASL_A1_MIG_SUBSYSTEM=114
   ASL_A1_MIG_ROUTINE_ID=118
-  ASL_A1_CLIENT_PID=123
+  ASL_A1_CLIENT_PID=1056
   ASL_A1_CLIENT_UID=0
   ASL_A1_CLIENT_GID=0
   ASL_A1_ARM_START=positive_decode
@@ -29,6 +31,7 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOolTest do
   ASL_A1_RECEIVED_OOL_BYTE_COUNT=96
   ASL_A1_RECEIVED_OOL_SHA256=#{@payload_sha}
   ASL_A1_DONOR_OOL_BYTES_INTACT=1
+  ASL_A1_TASK_NAME_FOR_PID=fenced_deferred
   ASL_A1_DONOR_DECODE_OK=1
   ASL_A1_PROCESS_MESSAGE_STUB_CALLED=1
   ASL_A1_PROCESS_MESSAGE_SOURCE=5
@@ -38,10 +41,10 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOolTest do
   ASL_A1_PROCESS_MESSAGE_MESSAGE=oracle_asl_a1
   ASL_A1_PROCESS_MESSAGE_UID=0
   ASL_A1_PROCESS_MESSAGE_GID=0
-  ASL_A1_PROCESS_MESSAGE_PID=123
+  ASL_A1_PROCESS_MESSAGE_PID=1056
   ASL_A1_AUDIT_UID=0
   ASL_A1_AUDIT_GID=0
-  ASL_A1_AUDIT_PID=123
+  ASL_A1_AUDIT_PID=1056
   ASL_A1_AUDIT_MATCH=1
   ASL_A1_AUDIT_CLAIM=accepted
   ASL_A1_PROCESS_MESSAGE_PAYLOAD_MATCH=1
@@ -59,7 +62,7 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOolTest do
   ASL_A1_GENERATED_DEMUX_CALLED=1
   ASL_A1_DONOR_SERVER_MESSAGE_ENTER=1
   ASL_A1_RECEIVED_OOL_BYTE_COUNT=28
-  ASL_A1_RECEIVED_OOL_SHA256=03a1bc4f95a8e9a6baafb960a79ff36b42f823ee19b7ff46b196cfe788bb9e05
+  ASL_A1_RECEIVED_OOL_SHA256=#{@malformed_payload_sha}
   ASL_A1_GENERATED_DEMUX_HANDLED=1
   ASL_A1_NEG_MALFORMED_PAYLOAD_REJECTED=1
   ASL_A1_ARM_END=malformed_payload
@@ -77,6 +80,141 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOolTest do
     assert result["errors"] == []
     assert result["audit_result"]["status"] == "accepted"
     assert result["ool_integrity"]["passed"]
+  end
+
+  test "ASL A1 marker authority records accepted closeout and producer model" do
+    closeout = MarkerManifest.closeout()
+
+    assert closeout.accepted_claim == "ool_transport_decode_plus_audit_identity"
+    assert closeout.accepted_serial_sha256 == MarkerManifest.accepted_serial_sha256()
+    assert closeout.authoritative_revalidation == "post_run_revalidation.json"
+    assert "parity.json" in closeout.historical_failed_in_run_outputs
+    assert MarkerManifest.replacement_runtime_evidence_count() == 1
+
+    producers =
+      MarkerManifest.specs()
+      |> Enum.map(& &1.producer)
+      |> Enum.uniq()
+      |> Enum.sort()
+
+    assert producers == [:donor, :harness, :kernel]
+
+    roles =
+      MarkerManifest.specs()
+      |> Enum.map(& &1.role)
+      |> Enum.uniq()
+
+    for role <- roles do
+      assert role in MarkerManifest.roles()
+    end
+
+    assert MarkerManifest.category_breakdown()[:positive_claim] == 3
+
+    assert MarkerManifest.invariants().summary_marker_not_primary_proof ==
+             "ASL_A1_POSITIVE_DECODE_AND_STUB_CONFIRMED"
+  end
+
+  test "ASL A1 authority separates demux process-stub audit and donor proof" do
+    donor_keys =
+      MarkerManifest.specs()
+      |> Enum.filter(&(&1.producer == :donor))
+      |> Enum.map(& &1.key)
+
+    refute "ASL_A1_GENERATED_DEMUX_CALLED" in donor_keys
+    refute "ASL_A1_PROCESS_MESSAGE_STUB_CALLED" in donor_keys
+    assert "ASL_A1_DONOR_SERVER_MESSAGE_ENTER" in donor_keys
+    assert "ASL_A1_DONOR_DECODE_OK" in donor_keys
+    assert "ASL_A1_DONOR_RELEASE_COMPLETED" in donor_keys
+
+    audit_keys =
+      MarkerManifest.specs()
+      |> Enum.filter(&(&1.role == :audit_identity))
+      |> Enum.map(& &1.key)
+
+    assert "ASL_A1_AUDIT_PID" in audit_keys
+    refute "ASL_A1_PROCESS_MESSAGE_PID" in audit_keys
+  end
+
+  test "ASL A1 no-copy check and cross-series isolation pass and catch seeded copies" do
+    report = ContractCheck.run(File.cwd!())
+
+    assert report["passed"]
+    assert report["no_copy"]["passed"]
+    assert report["cross_series"]["passed"]
+
+    seeded =
+      ContractCheck.no_copy_check(%{
+        "lib/rmx_os_oracle/migration/seeded_copy.ex" =>
+          ~s|def copied, do: "ASL_A1_DONOR_DECODE_OK=1"|
+      })
+
+    refute seeded["passed"]
+
+    assert [%{"literal" => "ASL_A1_DONOR_DECODE_OK=1"}] =
+             Enum.filter(seeded["matches"], &(&1["type"] == "literal"))
+  end
+
+  test "ASL A1 frozen generator guard binds authority entries to probe anchors" do
+    probe = File.read!(Path.join(File.cwd!(), MarkerManifest.probe_path()))
+    report = ContractCheck.generator_guard(probe)
+
+    assert report["passed"]
+    assert report["missing_anchors"] == []
+
+    missing_anchor =
+      probe
+      |> String.replace("ASL_A1_DONOR_DECODE_OK", "ASL_A1_DONOR_DCODE_OK")
+      |> ContractCheck.generator_guard()
+
+    refute missing_anchor["passed"]
+
+    assert Enum.any?(missing_anchor["missing_anchors"], fn anchor ->
+             anchor.key == "ASL_A1_DONOR_DECODE_OK"
+           end)
+
+    mig_value_drift =
+      probe
+      |> String.replace(
+        ~s|emit_kv("ASL_A1_MIG_SUBSYSTEM", "114")|,
+        ~s|emit_kv("ASL_A1_MIG_SUBSYSTEM", "115")|
+      )
+      |> ContractCheck.generator_guard()
+
+    refute mig_value_drift["passed"]
+    assert missing_emission_anchor?(mig_value_drift, "ASL_A1_MIG_SUBSYSTEM")
+
+    terminal_value_drift =
+      probe
+      |> String.replace(
+        ~s|emit_kv("ASL_A1_DONE", rc == 0 ? "1" : "0")|,
+        ~s|emit_kv("ASL_A1_DONE", rc == 0 ? "10" : "0")|
+      )
+      |> ContractCheck.generator_guard()
+
+    refute terminal_value_drift["passed"]
+    assert missing_emission_anchor?(terminal_value_drift, "ASL_A1_DONE")
+
+    audit_claim_drift =
+      probe
+      |> String.replace(
+        ~s|emit_kv("ASL_A1_AUDIT_CLAIM", "accepted")|,
+        ~s|emit_kv("ASL_A1_AUDIT_CLAIM", "deferred")|
+      )
+      |> ContractCheck.generator_guard()
+
+    refute audit_claim_drift["passed"]
+    assert missing_emission_anchor?(audit_claim_drift, "ASL_A1_AUDIT_CLAIM")
+
+    ool_expression_drift =
+      probe
+      |> String.replace(
+        ~s|emit_u32("ASL_A1_EXPECTED_OOL_BYTE_COUNT", sizeof(ASL_A1_POSITIVE_PAYLOAD))|,
+        ~s|emit_u32("ASL_A1_EXPECTED_OOL_BYTE_COUNT", strlen(ASL_A1_POSITIVE_PAYLOAD))|
+      )
+      |> ContractCheck.generator_guard()
+
+    refute ool_expression_drift["passed"]
+    assert missing_emission_anchor?(ool_expression_drift, "ASL_A1_EXPECTED_OOL_BYTE_COUNT")
   end
 
   test "allows normal WITNESS banner and rejects real diagnostics" do
@@ -343,7 +481,7 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOolTest do
 
     zeroed =
       @valid_serial
-      |> String.replace("ASL_A1_AUDIT_PID=123", "ASL_A1_AUDIT_PID=0")
+      |> String.replace("ASL_A1_AUDIT_PID=1056", "ASL_A1_AUDIT_PID=0")
       |> AslA1ServerMessageOol.validate_serial()
 
     refute mismatch["passed"]
@@ -447,6 +585,10 @@ defmodule RmxOSOracle.Migration.AslA1ServerMessageOolTest do
     controls["controls"]
     |> Enum.find(&(&1["id"] == id))
     |> Map.fetch!("observed_errors")
+  end
+
+  defp missing_emission_anchor?(report, key) do
+    Enum.any?(report["missing_emission_anchors"], &(&1.key == key))
   end
 
   defp boot_identity_fixture(marker_value) do
