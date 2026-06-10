@@ -1,6 +1,7 @@
 defmodule RmxOSOracle.Migration.AslA2LaunchdHandoffTest do
   use ExUnit.Case, async: true
 
+  alias RmxOSOracle.Asl.A2.{ContractCheck, MarkerManifest}
   alias RmxOSOracle.Migration.AslA2LaunchdHandoff
 
   @payload_sha "fab284180de734bdd4374aea271ca34a96c759f3053ccb14a22945a1f50c373b"
@@ -94,12 +95,167 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoffTest do
     assert result["checks"]["forbidden_product_keys"] == []
   end
 
-  test "A2 has no marker manifest authority before accepted evidence" do
-    result = AslA2LaunchdHandoff.static_no_marker_manifest_entries(File.cwd!())
+  test "ASL A2 marker authority records accepted closeout and producer model" do
+    closeout = MarkerManifest.closeout()
 
-    assert result["passed"]
-    refute result["a2_authority_module_dir_exists"]
-    assert result["asl_a2_marker_matches_outside_runner"] == []
+    assert closeout.accepted_claim == "launchd_handoff_plus_donor_lookup_nonce_identity"
+    assert closeout.accepted_evidence_path == MarkerManifest.accepted_evidence_dir()
+
+    assert closeout.accepted_evidence_tree_digest ==
+             MarkerManifest.accepted_evidence_tree_digest()
+
+    assert closeout.source_authorization_commit == MarkerManifest.source_authorization_commit()
+    assert closeout.ool_integrity.expected_byte_count == "104"
+    assert closeout.ool_integrity.expected_sha256 == @payload_sha
+
+    producers =
+      MarkerManifest.specs()
+      |> Enum.map(& &1.producer)
+      |> Enum.uniq()
+      |> Enum.sort()
+
+    assert producers == [:donor, :harness, :kernel, :launchd]
+
+    for spec <- MarkerManifest.specs() do
+      assert spec.role in MarkerManifest.roles()
+      assert spec.producer in MarkerManifest.producers()
+    end
+
+    assert MarkerManifest.category_breakdown()[:port_identity] == 3
+    assert MarkerManifest.producer_breakdown()[:launchd] >= 5
+  end
+
+  test "ASL A2 authority separates launchd donor kernel and harness proof" do
+    launchd_keys =
+      MarkerManifest.specs()
+      |> Enum.filter(&(&1.producer == :launchd))
+      |> Enum.map(& &1.key)
+
+    donor_keys =
+      MarkerManifest.specs()
+      |> Enum.filter(&(&1.producer == :donor))
+      |> Enum.map(& &1.key)
+
+    kernel_keys =
+      MarkerManifest.specs()
+      |> Enum.filter(&(&1.producer == :kernel))
+      |> Enum.map(& &1.key)
+
+    assert "ASL_A2_LAUNCH_CHECKIN_REPLY_PRESENT" in launchd_keys
+    assert "ASL_A2_SERVER_RECEIVE_RIGHT_USABLE" in launchd_keys
+    assert "ASL_A2_DONOR_LOOKUP_FUNCTION" in donor_keys
+    assert "ASL_A2_CLIENT_LOOKUP_SUCCESS" in donor_keys
+    assert "ASL_A2_SERVER_AUDIT_TRAILER_PRESENT" in kernel_keys
+    refute "ASL_A2_PORT_IDENTITY_NONCE_RECEIVED" in donor_keys
+    refute "ASL_A2_DONOR_LOOKUP_CALLED" in launchd_keys
+  end
+
+  test "ASL A2 no-copy check cross-series isolation and accepted coverage pass" do
+    report = AslA2LaunchdHandoff.static_authority_contract_checks(File.cwd!())
+
+    assert report["passed"]
+    assert report["no_copy"]["passed"]
+    assert report["cross_series"]["passed"]
+
+    seeded =
+      ContractCheck.no_copy_check(%{
+        "lib/rmx_os_oracle/migration/seeded_copy.ex" =>
+          ~s|def copied, do: "ASL_A2_PORT_IDENTITY_NONCE_RECEIVED=1"|
+      })
+
+    refute seeded["passed"]
+
+    assert [%{"literal" => "ASL_A2_PORT_IDENTITY_NONCE_RECEIVED=1"}] =
+             Enum.filter(seeded["matches"], &(&1["type"] == "literal"))
+
+    coverage = ContractCheck.accepted_serial_coverage(@valid_serial)
+
+    assert coverage["passed"]
+    assert coverage["unmapped_serial_keys"] == []
+    assert coverage["authority_keys_missing_from_serial"] == []
+  end
+
+  test "ASL A2 generator guard binds value and expression emission anchors" do
+    probe = File.read!(Path.join(File.cwd!(), MarkerManifest.probe_path()))
+    report = ContractCheck.generator_guard(probe)
+
+    assert report["passed"]
+    assert report["missing_anchors"] == []
+
+    service_value_drift =
+      probe
+      |> String.replace(
+        ~s|#define ASL_A2_SERVICE_NAME "com.apple.system.logger"|,
+        ~s|#define ASL_A2_SERVICE_NAME "com.example.logger"|
+      )
+      |> ContractCheck.generator_guard()
+
+    refute service_value_drift["passed"]
+    assert missing_emission_anchor?(service_value_drift, "ASL_A2_SERVICE_NAME")
+
+    terminal_value_drift =
+      probe
+      |> String.replace(
+        ~s|emit_kv("ASL_A2_DONE", rc == 0 ? "1" : "0")|,
+        ~s|emit_kv("ASL_A2_DONE", rc == 0 ? "10" : "0")|
+      )
+      |> ContractCheck.generator_guard()
+
+    refute terminal_value_drift["passed"]
+    assert missing_emission_anchor?(terminal_value_drift, "ASL_A2_DONE")
+
+    nonce_value_drift =
+      probe
+      |> String.replace(
+        ~s|#define ASL_A2_NONCE "rmxos-asl-a2-nonce-v1"|,
+        ~s|#define ASL_A2_NONCE "wrong-nonce"|
+      )
+      |> ContractCheck.generator_guard()
+
+    refute nonce_value_drift["passed"]
+    assert missing_emission_anchor?(nonce_value_drift, "ASL_A2_NONCE")
+
+    ool_expression_drift =
+      probe
+      |> String.replace(
+        ~s|ool_len = (mach_msg_type_number_t)sizeof(ASL_A2_PAYLOAD);|,
+        ~s|ool_len = (mach_msg_type_number_t)strlen(ASL_A2_PAYLOAD);|
+      )
+      |> ContractCheck.generator_guard()
+
+    refute ool_expression_drift["passed"]
+    assert missing_emission_anchor?(ool_expression_drift, "ASL_A2_EXPECTED_OOL_BYTE_COUNT")
+  end
+
+  test "A2 validation requires authority OOL constants and dynamic port policies" do
+    wrong_hash =
+      @valid_serial
+      |> String.replace(@payload_sha, String.duplicate("0", 64))
+      |> AslA2LaunchdHandoff.validate_serial()
+
+    wrong_count =
+      @valid_serial
+      |> String.replace(
+        "ASL_A2_EXPECTED_OOL_BYTE_COUNT=104",
+        "ASL_A2_EXPECTED_OOL_BYTE_COUNT=105"
+      )
+      |> String.replace(
+        "ASL_A2_RECEIVED_OOL_BYTE_COUNT=104",
+        "ASL_A2_RECEIVED_OOL_BYTE_COUNT=105"
+      )
+      |> AslA2LaunchdHandoff.validate_serial()
+
+    invalid_port =
+      @valid_serial
+      |> String.replace(
+        "ASL_A2_SERVER_CHECKIN_RECEIVE_PORT=112",
+        "ASL_A2_SERVER_CHECKIN_RECEIVE_PORT=0"
+      )
+      |> AslA2LaunchdHandoff.validate_serial()
+
+    refute wrong_hash["passed"]
+    refute wrong_count["passed"]
+    refute invalid_port["passed"]
   end
 
   test "source staging capability fails when donor-bootstrap fixture staging is absent" do
@@ -195,5 +351,9 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoffTest do
     File.rm_rf!(dir)
     File.mkdir_p!(dir)
     dir
+  end
+
+  defp missing_emission_anchor?(report, key) do
+    Enum.any?(report["missing_emission_anchors"], &(&1.key == key))
   end
 end

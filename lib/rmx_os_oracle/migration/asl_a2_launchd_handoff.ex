@@ -1,6 +1,7 @@
 defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
   @moduledoc false
 
+  alias RmxOSOracle.Asl.A2.{ContractCheck, MarkerManifest}
   alias RmxOSOracle.{CanonicalJSON, Env}
 
   @slice_id "asl.a2.launchd_handoff"
@@ -11,11 +12,6 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
   @source_authorization_commit "cc2d081ab028c6bef902d1d1b0af9cdd91790334"
   @oracle_a2_design_commit "ee6c680abbf9365d06e8a7ff2e991583d724382b"
   @a1_authority_commit "ab92a5b9dfd2d9ecbd54002bae72db08a4a9c201"
-  @service_name "com.apple.system.logger"
-  @nonce "rmxos-asl-a2-nonce-v1"
-  @payload "[Sender oracle_asl_a2_client] [Facility com.rmxos.oracle.asl] [Level 5] [Message #{@nonce}]"
-  @payload_sha256 "fab284180de734bdd4374aea271ca34a96c759f3053ccb14a22945a1f50c373b"
-  @payload_size "#{byte_size(@payload) + 1}"
   @defs_rel "lib/libasl/asl_ipc.defs"
   @donor_asl_core_rel "lib/libasl/asl_core.c"
   @donor_asl_core_h_rel "lib/libasl/asl_core.h"
@@ -28,7 +24,6 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
   @build_minibootstrap_tool "scripts/bhyve/build-phase1-minibootstrap.sh"
   @build_donor_tests_tool "scripts/launchd/build-bootstrap-donor-tests.sh"
   @kernel_conf_default "MACHDEBUGDEBUG"
-  @success_marker "ASL_A2_DONE=1"
 
   @donor_paths [
     @defs_rel,
@@ -53,53 +48,6 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
     ~r/nosys [0-9]+/i,
     ~r/Enter full pathname of shell/i,
     ~r/Consoles:\s+Dual \(Video primary\)/i
-  ]
-
-  @required_exact [
-    {"mach_module", "loaded"},
-    {"ASL_A2_SERVICE_NAME", @service_name},
-    {"ASL_A2_LAUNCH_CHECKIN_CALLED", "1"},
-    {"ASL_A2_LAUNCH_CHECKIN_KEY", "CheckIn"},
-    {"ASL_A2_LAUNCH_CHECKIN_REPLY_PRESENT", "1"},
-    {"ASL_A2_MACHSERVICES_DICT_PRESENT", "1"},
-    {"ASL_A2_SERVICE_ENTRY_PRESENT", "1"},
-    {"ASL_A2_SERVER_RECEIVE_RIGHT_USABLE", "1"},
-    {"ASL_A2_SUBCLAIM_A_PASSED", "1"},
-    {"ASL_A2_CLIENT_LOOKUP_SUCCESS", "1"},
-    {"ASL_A2_DONOR_LOOKUP_FUNCTION", "asl_core_get_service_port"},
-    {"ASL_A2_DONOR_LOOKUP_CALLED", "1"},
-    {"ASL_A2_EXPECTED_OOL_BYTE_COUNT", @payload_size},
-    {"ASL_A2_EXPECTED_OOL_SHA256", @payload_sha256},
-    {"ASL_A2_NONCE", @nonce},
-    {"ASL_A2_CLIENT_SEND_STARTED", "1"},
-    {"ASL_A2_CLIENT_SEND_KR", "0"},
-    {"ASL_A2_SUBCLAIM_B_CLIENT_SEND", "1"},
-    {"ASL_A2_SERVER_RECEIVE_KR", "0"},
-    {"ASL_A2_SERVER_RECEIVED_MSG_ID", "118"},
-    {"ASL_A2_SERVER_RECEIVED_COMPLEX", "1"},
-    {"ASL_A2_SERVER_DESCRIPTOR_COUNT", "1"},
-    {"ASL_A2_RECEIVED_OOL_BYTE_COUNT", @payload_size},
-    {"ASL_A2_RECEIVED_OOL_SHA256", @payload_sha256},
-    {"ASL_A2_NONCE_MATCH", "1"},
-    {"ASL_A2_PORT_IDENTITY_NONCE_RECEIVED", "1"},
-    {"ASL_A2_SUBCLAIM_B_SERVER_RECEIPT", "1"},
-    {"ASL_A2_DONE", "1"}
-  ]
-
-  @required_order [
-    {"ASL_A2_LAUNCH_CHECKIN_CALLED", "1"},
-    {"ASL_A2_LAUNCH_CHECKIN_REPLY_PRESENT", "1"},
-    {"ASL_A2_MACHSERVICES_DICT_PRESENT", "1"},
-    {"ASL_A2_SERVICE_ENTRY_PRESENT", "1"},
-    {"ASL_A2_SERVER_RECEIVE_RIGHT_USABLE", "1"},
-    {"ASL_A2_SUBCLAIM_A_PASSED", "1"},
-    {"ASL_A2_DONOR_LOOKUP_CALLED", "1"},
-    {"ASL_A2_CLIENT_LOOKUP_SUCCESS", "1"},
-    {"ASL_A2_CLIENT_SEND_STARTED", "1"},
-    {"ASL_A2_CLIENT_SEND_KR", "0"},
-    {"ASL_A2_SERVER_RECEIVE_KR", "0"},
-    {"ASL_A2_PORT_IDENTITY_NONCE_RECEIVED", "1"},
-    {"ASL_A2_DONE", "1"}
   ]
 
   def run(opts) do
@@ -132,14 +80,16 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
   def validate_serial(serial) when is_binary(serial) do
     parsed = parse_serial(serial)
     hard_stops = hard_stop_matches(serial)
-    exact = exact_errors(parsed, @required_exact)
-    order = order_errors(parsed, @required_order)
+    exact = exact_errors(parsed, MarkerManifest.required_exact())
+    policies = policy_errors(parsed, MarkerManifest.policy_specs())
+    order = order_errors(parsed, MarkerManifest.required_order())
     duplicates = duplicate_errors(parsed)
     terminal = terminal_errors(parsed)
     subclaims = subclaim_report(parsed)
 
     errors =
       exact ++
+        policies ++
         order ++
         duplicates ++
         terminal ++
@@ -154,7 +104,10 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
       "subclaim_b_passed" => subclaims["subclaim_b_passed"],
       "port_identity_passed" => subclaims["port_identity_passed"],
       "hard_stop_matches" => hard_stops,
-      "expected_payload" => %{"byte_count" => @payload_size, "sha256" => @payload_sha256}
+      "expected_payload" => %{
+        "byte_count" => MarkerManifest.payload_byte_count(),
+        "sha256" => MarkerManifest.payload_sha256()
+      }
     }
   end
 
@@ -169,47 +122,39 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
     }
   end
 
+  def revalidate_evidence(evidence_dir) when is_binary(evidence_dir) do
+    serial_path = Path.join(evidence_dir, "asl_a2_serial.log")
+    serial = File.read!(serial_path)
+    boot_identity = read_json_if_present(Path.join(evidence_dir, "boot_identity.json"))
+    validation = validate_serial(serial)
+    hard_stop_scan = hard_stop_scan(serial)
+    negatives = negative_controls(serial)
+
+    passed =
+      boot_identity["passed"] == true and validation["passed"] and hard_stop_scan["passed"] and
+        negatives["passed"] and validation["subclaim_a_passed"] and
+        validation["subclaim_b_passed"] and validation["port_identity_passed"]
+
+    %{
+      "schema" => "rmxos_oracle.asl_a2.authority_revalidation.v1",
+      "passed" => passed,
+      "accepted_claim" => if(passed, do: MarkerManifest.accepted_claim(), else: "not_accepted"),
+      "accepted_evidence_path" => MarkerManifest.accepted_evidence_dir(),
+      "accepted_evidence_tree_digest" => MarkerManifest.accepted_evidence_tree_digest(),
+      "serial_sha256" => sha256(serial),
+      "raw_evidence_mutated" => false,
+      "boot_identity_passed" => boot_identity["passed"] == true,
+      "marker_validation_passed" => validation["passed"],
+      "hard_stop_scan_passed" => hard_stop_scan["passed"],
+      "negative_controls_passed" => negatives["passed"],
+      "subclaim_a_passed" => validation["subclaim_a_passed"],
+      "subclaim_b_passed" => validation["subclaim_b_passed"],
+      "port_identity_passed" => validation["port_identity_passed"]
+    }
+  end
+
   def negative_controls(serial) do
-    controls = [
-      falsifier(serial, "missing_machservices_key", "ASL_A2_MACHSERVICES_DICT_PRESENT=1", ""),
-      falsifier(
-        serial,
-        "wrong_service_name",
-        "ASL_A2_SERVICE_NAME=#{@service_name}",
-        "ASL_A2_SERVICE_NAME=com.example.wrong",
-        global: true
-      ),
-      falsifier(
-        serial,
-        "checkin_without_usable_port",
-        "ASL_A2_SERVER_RECEIVE_RIGHT_USABLE=1",
-        "ASL_A2_SERVER_RECEIVE_RIGHT_USABLE=0"
-      ),
-      falsifier(
-        serial,
-        "lookup_before_checkin",
-        "ASL_A2_DONOR_LOOKUP_CALLED=1",
-        "ASL_A2_DONOR_LOOKUP_CALLED=1\nASL_A2_LAUNCH_CHECKIN_CALLED=1"
-      ),
-      falsifier(
-        serial,
-        "wrong_receive_right",
-        "ASL_A2_PORT_IDENTITY_NONCE_RECEIVED=1",
-        "ASL_A2_PORT_IDENTITY_NONCE_RECEIVED=0"
-      ),
-      falsifier(
-        serial,
-        "harness_injected_port",
-        "ASL_A2_DONOR_LOOKUP_FUNCTION=asl_core_get_service_port",
-        "ASL_A2_DONOR_LOOKUP_FUNCTION=harness_injected"
-      ),
-      falsifier(serial, "handoff_without_receipt", "ASL_A2_SUBCLAIM_B_SERVER_RECEIPT=1", ""),
-      falsifier(serial, "receipt_without_handoff", "ASL_A2_SUBCLAIM_A_PASSED=1", ""),
-      falsifier(serial, "missing_terminal", "ASL_A2_DONE=1", ""),
-      falsifier(serial, "duplicate_terminal", "ASL_A2_DONE=1", "ASL_A2_DONE=1\nASL_A2_DONE=1"),
-      falsifier(serial, "wrong_value", "ASL_A2_DONE=1", "ASL_A2_DONE=10"),
-      falsifier(serial, "truncated_serial", "ASL_A2_DONE=1", "ASL_A2_TRUNCATED=1")
-    ]
+    controls = Enum.map(MarkerManifest.negative_control_contracts(), &falsifier(serial, &1))
 
     %{
       "schema" => "rmxos_oracle.asl_a2.negative_controls.v1",
@@ -222,28 +167,8 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
     }
   end
 
-  def static_no_marker_manifest_entries(repo_root \\ File.cwd!()) do
-    a2_authority =
-      repo_root
-      |> Path.join("lib/rmx_os_oracle/asl/a2")
-      |> File.exists?()
-
-    marker_manifest_matches =
-      repo_root
-      |> Path.join("lib/**/*.ex")
-      |> Path.wildcard()
-      |> Enum.reject(&String.ends_with?(&1, "asl_a2_launchd_handoff.ex"))
-      |> Enum.filter(fn path ->
-        path |> File.read!() |> String.contains?("ASL_A2_")
-      end)
-      |> Enum.map(&Path.relative_to(&1, repo_root))
-
-    %{
-      "schema" => "rmxos_oracle.asl_a2.static_marker_manifest_absence.v1",
-      "passed" => not a2_authority and marker_manifest_matches == [],
-      "a2_authority_module_dir_exists" => a2_authority,
-      "asl_a2_marker_matches_outside_runner" => marker_manifest_matches
-    }
+  def static_authority_contract_checks(repo_root \\ File.cwd!()) do
+    ContractCheck.run(repo_root)
   end
 
   def fixture_shape(path) do
@@ -259,7 +184,7 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
 
     checks = %{
       "has_machservices" => String.contains?(text, "<key>MachServices</key>"),
-      "has_service_name" => String.contains?(text, "<key>#{@service_name}</key>"),
+      "has_service_name" => String.contains?(text, "<key>#{MarkerManifest.service_name()}</key>"),
       "has_project_label" => String.contains?(text, "org.rmxos.asl.a2.system-logger"),
       "forbidden_product_keys" => forbidden
     }
@@ -433,9 +358,8 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
 
     static_checks = %{
       "schema" => "rmxos_oracle.asl_a2.static_checks.v1",
-      "marker_manifest_absence" => static_no_marker_manifest_entries(oracle_repo),
+      "authority_contract" => static_authority_contract_checks(oracle_repo),
       "fixture_shape" => fixture,
-      "probe_anchors" => probe_anchor_check(File.read!(probe_source)),
       "source_staging_capability" =>
         staging_capability(File.read!(Map.fetch!(source_tools(), @stage_tool))),
       "source_status_before" => git_status(@source_repo),
@@ -475,8 +399,8 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
       "schema" => "rmxos_oracle.asl_a2.host_checks.v1",
       "status" =>
         if(
-          env_report["status"] == "pass" and static_checks["marker_manifest_absence"]["passed"] and
-            static_checks["fixture_shape"]["passed"] and static_checks["probe_anchors"]["passed"] and
+          env_report["status"] == "pass" and static_checks["authority_contract"]["passed"] and
+            static_checks["fixture_shape"]["passed"] and
             static_checks["source_staging_capability"]["passed"] and
             build["passed"],
           do: "pass",
@@ -489,8 +413,7 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
       "donor_lookup_extraction_exact" => extraction.exact,
       "fixture_shape_passed" => fixture["passed"],
       "source_staging_capability_passed" => static_checks["source_staging_capability"]["passed"],
-      "static_marker_manifest_absence_passed" =>
-        static_checks["marker_manifest_absence"]["passed"],
+      "authority_contract_passed" => static_checks["authority_contract"]["passed"],
       "build_passed" => build["passed"],
       "runtime_fixture_consumed_by_existing_harness" =>
         static_checks["source_staging_capability"]["passed"],
@@ -616,8 +539,7 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
       "subclaim_a_passed" => validation["subclaim_a_passed"],
       "subclaim_b_passed" => validation["subclaim_b_passed"],
       "port_identity_passed" => validation["port_identity_passed"],
-      "claim" =>
-        if(passed, do: "launchd_handoff_plus_donor_lookup_nonce_identity", else: "not_accepted"),
+      "claim" => if(passed, do: MarkerManifest.accepted_claim(), else: "not_accepted"),
       "serial_log" => "asl_a2_serial.log",
       "limitations" => [
         "no certification claim",
@@ -649,8 +571,8 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
       "donor_asl_source" => %{"path" => @donor_root, "commit" => @donor_commit},
       "legacy_commit" => @donor_commit,
       "legacy_test_commit" => nil,
-      "service_name" => @service_name,
-      "nonce" => @nonce,
+      "service_name" => MarkerManifest.service_name(),
+      "nonce" => MarkerManifest.nonce(),
       "host_checks_ref" => "host_checks.json",
       "donor_hashes_ref" => "donor_hashes.json",
       "donor_lookup_build_provenance_ref" => "donor_lookup_build_provenance.json",
@@ -1029,7 +951,7 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
         System.get_env("NXPLATFORM_GUEST_ROOT") ||
           Path.join(workspace_root, "vm/runs/#{vm_name}.root"),
       "NXPLATFORM_SERIAL_LOG" => Path.join(ctx.evidence_dir, "asl_a2_serial.raw.log"),
-      "NXPLATFORM_GUEST_SUCCESS_MARKER" => @success_marker,
+      "NXPLATFORM_GUEST_SUCCESS_MARKER" => MarkerManifest.success_marker(),
       "NXPLATFORM_EXPECT_KERNEL" => kernel_conf
     }
   end
@@ -1073,7 +995,7 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
       "passed" => validation["passed"],
       "accepted_claim" =>
         if(validation["passed"],
-          do: "launchd_handoff_plus_donor_lookup_nonce_identity",
+          do: MarkerManifest.accepted_claim(),
           else: "not_accepted"
         ),
       "raw_evidence_mutated" => false,
@@ -1115,8 +1037,27 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
     end)
   end
 
-  defp required_marker_count("ASL_A2_SERVICE_NAME", @service_name), do: 2
-  defp required_marker_count(_key, _value), do: 1
+  defp required_marker_count(key, value), do: MarkerManifest.required_marker_count(key, value)
+
+  defp policy_errors(parsed, specs) do
+    Enum.flat_map(specs, fn spec ->
+      entries = Enum.filter(parsed.entries, &(&1.key == spec.key))
+
+      case {spec.value_policy, entries} do
+        {:must_be_positive_integer, [entry]} ->
+          case Integer.parse(entry.value) do
+            {value, ""} when value > 0 -> []
+            _ -> ["marker #{spec.key} must be a positive integer, got #{inspect(entry.value)}"]
+          end
+
+        {:must_be_positive_integer, []} ->
+          ["missing policy marker #{spec.key}=<positive_integer>"]
+
+        {:must_be_positive_integer, entries} ->
+          ["marker #{spec.key} must occur 1 time(s), got #{length(entries)}"]
+      end
+    end)
+  end
 
   defp order_errors(parsed, required) do
     {_last, errors} =
@@ -1137,14 +1078,8 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
   end
 
   defp duplicate_errors(parsed) do
-    singleton_keys =
-      @required_exact
-      |> Enum.map(&elem(&1, 0))
-      |> Enum.reject(&(&1 == "ASL_A2_SERVICE_NAME"))
-      |> Enum.uniq()
-
     parsed.entries
-    |> Enum.filter(&(&1.key in singleton_keys))
+    |> Enum.filter(&(&1.key in MarkerManifest.singleton_keys()))
     |> Enum.group_by(& &1.key)
     |> Enum.flat_map(fn {key, entries} ->
       if length(entries) > 1, do: ["duplicate singleton marker #{key}"], else: []
@@ -1152,29 +1087,22 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
   end
 
   defp terminal_errors(parsed) do
-    case Enum.count(parsed.entries, &(&1.key == "ASL_A2_DONE" and &1.value == "1")) do
+    {key, value} = MarkerManifest.terminal_marker()
+
+    case Enum.count(parsed.entries, &(&1.key == key and &1.value == value)) do
       1 -> []
-      count -> ["terminal requires exactly one ASL_A2_DONE=1, got #{count}"]
+      count -> ["terminal requires exactly one #{key}=#{value}, got #{count}"]
     end
   end
 
   defp subclaim_report(parsed) do
     has? = fn key, value -> Enum.any?(parsed.entries, &(&1.key == key and &1.value == value)) end
 
-    a? =
-      has?.("ASL_A2_SUBCLAIM_A_PASSED", "1") and
-        has?.("ASL_A2_LAUNCH_CHECKIN_REPLY_PRESENT", "1") and
-        has?.("ASL_A2_SERVER_RECEIVE_RIGHT_USABLE", "1")
-
-    b? =
-      has?.("ASL_A2_CLIENT_LOOKUP_SUCCESS", "1") and
-        has?.("ASL_A2_SUBCLAIM_B_CLIENT_SEND", "1") and
-        has?.("ASL_A2_SUBCLAIM_B_SERVER_RECEIPT", "1")
+    a? = Enum.all?(MarkerManifest.subclaim_a_markers(), fn {key, value} -> has?.(key, value) end)
+    b? = Enum.all?(MarkerManifest.subclaim_b_markers(), fn {key, value} -> has?.(key, value) end)
 
     port? =
-      has?.("ASL_A2_PORT_IDENTITY_NONCE_RECEIVED", "1") and
-        has?.("ASL_A2_NONCE_MATCH", "1") and
-        has?.("ASL_A2_RECEIVED_OOL_SHA256", @payload_sha256)
+      Enum.all?(MarkerManifest.port_identity_markers(), fn {key, value} -> has?.(key, value) end)
 
     errors =
       []
@@ -1200,12 +1128,16 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
     end)
   end
 
-  defp falsifier(serial, id, from, to, opts \\ []) do
-    mutated = String.replace(serial, from, to, global: Keyword.get(opts, :global, false))
+  defp falsifier(serial, contract) do
+    mutated =
+      String.replace(serial, contract.from, contract.to,
+        global: Map.get(contract, :global, false)
+      )
+
     result = validate_serial(mutated)
 
     %{
-      "id" => id,
+      "id" => contract.id,
       "passed" => result["passed"] == false,
       "validator_passed" => result["passed"],
       "observed_errors" => result["errors"]
@@ -1228,7 +1160,7 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
     #include <stdlib.h>
     #include <string.h>
     #include <stdint.h>
-    #define ASL_SERVICE_NAME "#{@service_name}"
+    #define ASL_SERVICE_NAME "#{MarkerManifest.service_name()}"
     #define OSAtomicCompareAndSwap32Barrier(old_value, new_value, ptr) __sync_bool_compare_and_swap((ptr), (old_value), (new_value))
 
     #{body}
@@ -1314,20 +1246,6 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
     }
   end
 
-  defp probe_anchor_check(source) do
-    anchors = [
-      ~s|launch_msg(request)|,
-      ~s|LAUNCH_JOBKEY_MACHSERVICES|,
-      ~s|launch_data_get_machport(service)|,
-      ~s|asl_core_get_service_port(1)|,
-      ~s|_asl_server_message(service_port|,
-      ~s|ASL_A2_PORT_IDENTITY_NONCE_RECEIVED|
-    ]
-
-    missing = Enum.reject(anchors, &String.contains?(source, &1))
-    %{"passed" => missing == [], "missing_anchors" => missing}
-  end
-
   defp source_tools do
     [
       @build_minibootstrap_tool,
@@ -1402,10 +1320,16 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
     end
   end
 
+  defp read_json_if_present(path) do
+    if File.regular?(path), do: CanonicalJSON.decode!(path), else: %{}
+  end
+
   defp present_hash?(%{"sha256" => sha}) when is_binary(sha) and sha != "", do: true
   defp present_hash?(_), do: false
 
-  defp a2_runtime_markers?(serial), do: String.contains?(serial, "ASL_A2_")
+  defp a2_runtime_markers?(serial) do
+    Enum.any?(MarkerManifest.marker_keys(), &String.contains?(serial, &1))
+  end
 
   defp sha256_file(path), do: path |> File.read!() |> sha256()
   defp sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
