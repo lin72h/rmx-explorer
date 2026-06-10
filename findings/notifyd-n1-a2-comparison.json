@@ -1,0 +1,23 @@
+{
+  "authority": "non_authoritative_data_only",
+  "conclusion": "N1 and A2 share candidate handoff vocabulary, but N1 authority is notify-specific and indirect for launchd handoff.",
+  "gaps": [
+    "N1 has no direct notifyd launchd check-in dictionary marker",
+    "N1 has no direct notifyd launchd receive-right marker",
+    "N1 has no kernel audit fact"
+  ],
+  "notifyd_n1": {
+    "accepted_claim": "notifyd_n1_notification_center_lookup_post_observe",
+    "accepted_evidence_path": "priv/runs/notifyd-n1/20260610T072550Z-notification-center-second-replacement",
+    "shared_candidates": [
+      "donor-bootstrap fixture witness",
+      "service-name lookup",
+      "donor client lookup success"
+    ]
+  },
+  "asl_a2": {
+    "note": "A2 direct launchd and kernel facts are not promoted into N1",
+    "relation": "prior accepted ASL handoff evidence"
+  },
+  "schema": "rmxos_oracle.finding.notifyd_n1_asl_a2_comparison.v1"
+}
