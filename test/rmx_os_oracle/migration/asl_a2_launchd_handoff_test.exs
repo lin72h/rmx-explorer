@@ -102,16 +102,33 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoffTest do
     assert result["asl_a2_marker_matches_outside_runner"] == []
   end
 
-  test "source staging capability fails for current donor-bootstrap fixture gap" do
-    source =
-      File.read!("/Users/me/wip-mach/wip-gpt/scripts/bhyve/stage-phase1-launchd-harness-guest.sh")
-
-    result = AslA2LaunchdHandoff.staging_capability(source)
+  test "source staging capability fails when donor-bootstrap fixture staging is absent" do
+    result =
+      AslA2LaunchdHandoff.staging_capability("""
+      fixture=${NXPLATFORM_PHASE1_LAUNCHD_HARNESS_FIXTURE:-$default_fixture}
+      if [ "$mode" = import ] || [ "$mode" = bootstrap ]; then
+        doas install -m 644 "$fixture" "$guest_root${payload_path}"
+      fi
+      """)
 
     refute result["passed"]
     assert result["fixture_variable_present"]
     refute result["donor_bootstrap_installs_fixture"]
     assert String.contains?(result["reason"], "cannot prove the MachServices fixture is consumed")
+  end
+
+  test "source staging capability recognizes committed donor-bootstrap fixture support" do
+    result =
+      AslA2LaunchdHandoff.staging_capability("""
+      fixture=${NXPLATFORM_PHASE1_LAUNCHD_HARNESS_FIXTURE:-$default_fixture}
+      if [ "$mode" = donor-bootstrap ] && [ "$donor_bootstrap_fixture" = 1 ]; then
+        doas install -m 644 "$fixture" "$guest_root${payload_path}"
+      fi
+      """)
+
+    assert result["passed"]
+    assert result["fixture_variable_present"]
+    assert result["donor_bootstrap_installs_fixture"]
   end
 
   test "staged root guard catches stale ASL A1 rc state" do

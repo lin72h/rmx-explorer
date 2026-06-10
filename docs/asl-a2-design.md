@@ -27,6 +27,33 @@ A2 is one design with two subclaims:
 A2 is accepted only if Subclaim A and Subclaim B pass in one accepted run.
 Subclaim A alone is useful transitional evidence, but it is not accepted A2.
 
+## Source Responsibility Boundary
+
+A2 authorizes Oracle-side testing, exploration, contracts, validators,
+falsifiers, probes, fixtures, and evidence only. Oracle has read-only access to
+`/Users/me/wip-mach/wip-gpt` and may validate only explicit committed source
+pins.
+
+If A2 exposes missing product/runtime, build, staging, source-test, or
+source-documentation behavior, Oracle must stop and report the smallest
+falsifiable source requirement. The source implementation agent implements and
+commits that requirement. Oracle must not patch source-side staging or use an
+Oracle probe, fixture, stub, or validator as substitute rmxOS product
+implementation.
+
+The first A2 `source_staging_capability_missing` result was governed by this
+rule. The source implementation agent added donor-bootstrap fixture staging in
+committed source pin `01a8811` (`launchd: stage ASL A2 donor-bootstrap
+fixture`). Oracle did not implement that source behavior.
+
+Oracle must validate the committed source pin and update its explicit A2 source
+authorization/pin in a separate A2 task before another A2 guest attempt. This
+governance update does not authorize a guest run or change the Oracle A2
+runner.
+
+See
+[`source-oracle-responsibility-boundary.md`](source-oracle-responsibility-boundary.md).
+
 ## 1. Exact Runtime Claim
 
 Falsifiable A2 runtime claim:
@@ -369,7 +396,8 @@ An A2 implementation must stop and return for review if it needs:
 - XPC/aslmanager;
 - launchctl lifecycle semantics;
 - D22/D23 marker/order authority;
-- source-side edits beyond the authorized scope.
+- any missing source-side behavior, which must be reported as the smallest
+  falsifiable source requirement for the source implementation agent.
 
 ## Explicit Non-Scope
 

@@ -50,11 +50,15 @@ Path A freeze status: selected and complete. Import-relevant Phase 0.8 test/fram
 
 Canonical import provenance rule:
 
-- Canonical imports must come from a committed source SHA, or from exact uncommitted bytes explicitly approved by parent using the M0 manifest SHA.
+- Canonical imports must come from a committed source SHA.
 - Untracked files marked `canonical: yes` must not silently become canonical.
 - Path A is selected for this refresh: import-relevant test/framework bytes come from committed source SHA `a30ef3f`.
 - Current manifest hashes committed tree `a30ef3f`, not dirty working-tree bytes.
 - If source cleanup or commits change those bytes, the M0 manifest must be regenerated before M1.
+
+Historical note: M0 originally described a parent-approved uncommitted-byte
+exception. Source responsibility policy commit `e6dfa40` supersedes that
+exception. Oracle may validate only committed source pins.
 
 Raw source dirty status at M0 refresh:
 

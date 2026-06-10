@@ -4,6 +4,20 @@ STATUS: Current launchctl test-authority migration checkpoint
 
 This tracker records the post-D20/D21 Oracle authority checkpoint for Phase 0.8 launchctl tests. It is a routing document for future ASL, D24+, and launchctl work: it names what is Oracle-owned, what remains deferred, and what must be checked before new launchctl consumers are authored.
 
+## Source Responsibility Boundary
+
+Oracle owns launchctl gate contracts, validators, falsifiers, preserved serial
+fixtures, evidence, and marker authority inside Oracle. Source-side launchctl
+runtime, build, staging, tests, scripts, fixtures, and documentation remain
+owned by the source implementation agent.
+
+Oracle has read-only access to `/Users/me/wip-mach/wip-gpt`, validates only
+committed source pins, and must report the smallest falsifiable source
+requirement instead of editing source-side transitional references. Oracle
+test assets must never substitute for launchd product behavior. The normative
+policy is
+[`source-oracle-responsibility-boundary.md`](source-oracle-responsibility-boundary.md).
+
 ## Current Closed State
 
 Source durable policy:

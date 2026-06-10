@@ -13,6 +13,23 @@ M1 remains design-only until this document is accepted. This document does not a
 
 M1 is the first implementation step for making the oracle repository the canonical Elixir + Zig test home.
 
+### Source Responsibility Boundary
+
+Oracle is the test, exploration, gate-contract, validator, falsifier, evidence,
+and marker-authority repository. It has read-only access to
+`/Users/me/wip-mach/wip-gpt` and may validate only committed source pins.
+Oracle must never create, modify, delete, move, stage, or commit source-repo
+files.
+
+Missing product/runtime, build, staging, source-test, or source-documentation
+behavior is a source requirement, not an Oracle implementation task. Oracle
+must stop and report the smallest falsifiable source requirement for the source
+implementation agent. Oracle probes, fixtures, stubs, and validators must
+never substitute for rmxOS product implementation.
+
+The normative policy is
+[`source-oracle-responsibility-boundary.md`](source-oracle-responsibility-boundary.md).
+
 M1 must not:
 
 - copy `scripts/` wholesale
@@ -29,7 +46,12 @@ M1 must not:
 M1 must support either provenance path:
 
 - Path A, preferred: commit pending `pending_fix` test/framework changes in `wip-gpt`, refresh M0 against the committed SHA, then implement M1.
-- Path B, exception: explicitly approve exact uncommitted working-tree bytes by the accepted M0 manifest SHA, then implement M1.
+- Path B, historical exception: explicitly approve exact uncommitted working-tree bytes by the accepted M0 manifest SHA, then implement M1.
+
+Path A was selected and completed for M1. Source responsibility policy commit
+`e6dfa40` now supersedes Path B: Oracle may validate only committed source
+pins, and `manifest-approved` dirty source bytes are no longer an available
+provenance path.
 
 Current M0 manifest SHA:
 
@@ -310,8 +332,9 @@ Design behavior:
 Mode enforcement:
 
 - `--mode committed` implements Path A. It requires `source_sha` in the manifest to match `git -C <source> rev-parse --short HEAD`, and every imported/canonical file must match committed source bytes or explicitly approved generated output. Relevant copy-set drift must fail before import.
-- `--mode manifest-approved` implements Path B. It requires an explicit parent approval record naming the exact manifest SHA. It accepts dirty working-tree bytes only if the recomputed digest matches the approved SHA and drift policy passes.
-- M1 must not silently choose either mode. Parent must select Path A or Path B before implementation proceeds.
+- `--mode manifest-approved` documents the superseded Path B design only. It
+  must not be used after source responsibility policy commit `e6dfa40`.
+- Oracle import and validation use `--mode committed` only.
 
 Required manifest JSON fields per file:
 
@@ -372,7 +395,7 @@ Drift policy implemented by M1:
 | `keep_fixture` | blocks M1 unless reclassified and approved |
 | `keep_elixir` | blocks M1 unless reclassified and approved |
 | `keep_donor_payload_reference` | blocks M1 unless reclassified and approved |
-| `pending_fix` | allowed only if committed in Path A or explicitly approved by manifest in Path B |
+| `pending_fix` | allowed only after it is committed and the manifest is refreshed |
 | `docs_only` | does not block M1 |
 | `transient` | does not block M1, but must not be imported |
 | `unknown` | blocks M1 |
@@ -632,7 +655,7 @@ Fixture import rules:
 
 - no generated/runtime artifacts
 - no binaries in M1
-- untracked fixture imports require Path A commit or Path B parent approval by manifest SHA
+- untracked fixture imports are blocked until committed and included in a refreshed manifest
 - fixture validators belong in Elixir
 
 ## 6. Elixir Canonical Import Scope
@@ -949,10 +972,11 @@ M1 does not require:
 
 ## Blockers And Ambiguities
 
-Open provenance decision blocks M1 implementation:
+Historical provenance decision, resolved by selecting Path A:
 
 - Path A: commit pending `pending_fix` test/framework changes in `wip-gpt`, then refresh M0.
-- Path B: explicitly approve M0 working-tree bytes by manifest SHA.
+- Path B: superseded by source responsibility policy commit `e6dfa40`; Oracle
+  validates only committed source pins.
 
 Accepted design decisions recorded here:
 
@@ -978,4 +1002,6 @@ Known risks:
 
 ## Review State
 
-This is a draft awaiting parent review. Acceptance of this document permits M1 implementation planning to move into implementation, but does not itself select provenance Path A or Path B.
+Historical review note: M1 selected Path A and was implemented from committed
+source pin `a30ef3f`. Path B is no longer available under the source
+responsibility boundary.

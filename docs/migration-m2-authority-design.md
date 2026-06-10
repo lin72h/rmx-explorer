@@ -21,6 +21,14 @@ rx-vs-mx behavior deltas, and future UI JSON view models.
 M2 design does not implement runtime behavior. It does not create the authority
 directories yet.
 
+M2 authority remains entirely inside Oracle. Oracle has read-only access to
+`/Users/me/wip-mach/wip-gpt`, validates only committed source pins, and reports
+the smallest falsifiable source requirement when product/runtime, build,
+staging, source-test, or source-documentation behavior is missing. Oracle
+catalog, mismatch, probe, fixture, validator, and evidence assets must never
+substitute for rmxOS product implementation. See
+[`source-oracle-responsibility-boundary.md`](source-oracle-responsibility-boundary.md).
+
 M2 must not:
 
 - run guest gates
