@@ -8,7 +8,7 @@ defmodule RmxOSOracle.Migration.AslA2LaunchdHandoff do
   @donor_root "/Users/me/wip-mach/nx/NextBSD"
   @donor_commit "8be0f2507b69906d068bed31ffc58cdfafadaef3"
   @source_repo "/Users/me/wip-mach/wip-gpt"
-  @source_authorization_commit "63c18fca67f00e8323451ea295f22d29ce0f9c9e"
+  @source_authorization_commit "e6dfa40c1823adc73b5962e6503a904472a85f52"
   @oracle_a2_design_commit "ee6c680abbf9365d06e8a7ff2e991583d724382b"
   @a1_authority_commit "ab92a5b9dfd2d9ecbd54002bae72db08a4a9c201"
   @service_name "com.apple.system.logger"
