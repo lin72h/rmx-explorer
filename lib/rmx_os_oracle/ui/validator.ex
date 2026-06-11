@@ -9,16 +9,20 @@ defmodule RmxOSOracle.UI.Validator do
     "rmxos_oracle.ui.canonicalization.v1" =>
       ~w(status_semantics summary actions other_actions blocked_dependency_edges dependency_audit),
     "rmxos_oracle.ui.platforms.v1" =>
-      ~w(status_semantics canonical_platforms historical_runner_ids runner_mapping_audit artifact_availability)
+      ~w(status_semantics canonical_platforms historical_runner_ids runner_mapping_audit artifact_availability),
+    "rmxos_oracle.ui.evidence_ladder.v1" =>
+      ~w(status_semantics classifier_status levels harness_note)
   }
   @surface_by_schema %{
     "rmxos_oracle.ui.overview.v1" => "overview",
     "rmxos_oracle.ui.migration.v1" => "migration",
     "rmxos_oracle.ui.canonicalization.v1" => "canonicalization",
-    "rmxos_oracle.ui.platforms.v1" => "platforms"
+    "rmxos_oracle.ui.platforms.v1" => "platforms",
+    "rmxos_oracle.ui.evidence_ladder.v1" => "evidence_ladder"
   }
   @canonical_platform_ids ~w(rx-x64 rx-a64 mx-x64 mx-a64 nx-r64)
   @historical_runner_ids ~w(mx-a64z mx-x64z nx-v64z)
+  @evidence_level_ids ~w(L0 L1 L2 L3 L4)
   @canonicalization_actions ~w(
     keep_elixir
     keep_fixture
@@ -525,6 +529,17 @@ defmodule RmxOSOracle.UI.Validator do
     |> Kernel.++(artifact_availability_errors(data["artifact_availability"]))
   end
 
+  defp data_shape_errors("rmxos_oracle.ui.evidence_ladder.v1", data) do
+    []
+    |> type_error(data, "status_semantics", :string, "/data")
+    |> type_error(data, "classifier_status", :map, "/data")
+    |> type_error(data, "levels", :list, "/data")
+    |> type_error(data, "harness_note", :map, "/data")
+    |> Kernel.++(evidence_classifier_status_errors(data["classifier_status"]))
+    |> Kernel.++(evidence_level_errors(data["levels"]))
+    |> Kernel.++(harness_note_errors(data["harness_note"]))
+  end
+
   defp data_shape_errors(_schema, _data), do: []
 
   defp common_item_errors(items, path) when is_list(items) do
@@ -794,6 +809,86 @@ defmodule RmxOSOracle.UI.Validator do
     |> Enum.filter(&(&1 in @historical_runner_ids))
     |> Enum.map(&"/data/canonical_platforms must not contain historical runner id #{&1}")
   end
+
+  defp evidence_classifier_status_errors(%{
+         "status" => "parser_missing",
+         "status_meaning" => status_meaning,
+         "source_refs" => refs
+       })
+       when is_binary(status_meaning) do
+    if non_empty_string_list?(refs),
+      do: [],
+      else: ["/data/classifier_status/source_refs must be a non-empty array of strings"]
+  end
+
+  defp evidence_classifier_status_errors(%{"status" => _status}) do
+    ["/data/classifier_status/status must be parser_missing in evidence_ladder.v1"]
+  end
+
+  defp evidence_classifier_status_errors(_status), do: ["/data/classifier_status is invalid"]
+
+  defp evidence_level_errors(levels) when is_list(levels) do
+    id_errors = exact_ids_errors(levels, @evidence_level_ids, "/data/levels")
+
+    item_errors =
+      levels
+      |> Enum.with_index()
+      |> Enum.flat_map(fn
+        {%{
+           "id" => id,
+           "label" => label,
+           "layer" => layer,
+           "status" => "parser_missing",
+           "status_meaning" => status_meaning,
+           "scaffold_status" => scaffold_status,
+           "artifact_refs" => artifact_refs,
+           "source_refs" => refs
+         } = level, index}
+        when is_binary(id) and is_binary(label) and is_binary(layer) and
+               is_binary(status_meaning) and scaffold_status in @statuses ->
+          []
+          |> maybe_error(
+            not string_list?(artifact_refs),
+            "/data/levels/#{index}/artifact_refs must be an array of strings"
+          )
+          |> maybe_error(
+            not non_empty_string_list?(refs),
+            "/data/levels/#{index}/source_refs must be a non-empty array of strings"
+          )
+          |> Kernel.++(evidence_l3_mismatch_errors(level, index))
+
+        {%{"status" => _status}, index} ->
+          ["/data/levels/#{index}/status must be parser_missing in evidence_ladder.v1"]
+
+        {_level, index} ->
+          ["/data/levels/#{index} is not an evidence ladder level"]
+      end)
+
+    id_errors ++ item_errors
+  end
+
+  defp evidence_level_errors(_levels), do: []
+
+  defp evidence_l3_mismatch_errors(%{"id" => "L3", "mismatch_categories" => categories}, index) do
+    if is_list(categories),
+      do: [],
+      else: ["/data/levels/#{index}/mismatch_categories must be an array"]
+  end
+
+  defp evidence_l3_mismatch_errors(%{"id" => "L3"}, index) do
+    ["/data/levels/#{index}/mismatch_categories is required for L3"]
+  end
+
+  defp evidence_l3_mismatch_errors(_level, _index), do: []
+
+  defp harness_note_errors(%{"severity" => severity, "text" => text, "source_refs" => refs})
+       when severity in @severities and is_binary(text) do
+    if non_empty_string_list?(refs),
+      do: [],
+      else: ["/data/harness_note/source_refs must be a non-empty array of strings"]
+  end
+
+  defp harness_note_errors(_note), do: ["/data/harness_note is invalid"]
 
   defp canonicalization_action_errors(actions) when is_map(actions) do
     missing =

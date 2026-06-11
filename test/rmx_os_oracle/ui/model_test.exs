@@ -110,4 +110,22 @@ defmodule RmxOSOracleUIModelTest do
                warning["severity"] == "warning"
            end)
   end
+
+  test "evidence ladder reports scaffold only and does not claim platform evidence" do
+    result = Model.evidence_ladder()
+    data = result["data"]
+    levels = Map.new(data["levels"], &{&1["id"], &1})
+
+    assert Map.keys(levels) |> Enum.sort() == ~w(L0 L1 L2 L3 L4)
+    assert data["classifier_status"]["status"] == "parser_missing"
+    assert Enum.all?(levels, fn {_id, level} -> level["status"] == "parser_missing" end)
+    assert levels["L3"]["mismatch_categories"] == []
+    assert data["harness_note"]["severity"] == "warning"
+    assert data["harness_note"]["text"] =~ "ExUnit green is harness evidence only"
+
+    assert Enum.any?(result["warnings"], fn warning ->
+             warning["id"] == "evidence_ladder.classifier_missing" and
+               warning["severity"] == "warning"
+           end)
+  end
 end

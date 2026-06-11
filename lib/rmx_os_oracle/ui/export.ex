@@ -13,7 +13,8 @@ defmodule RmxOSOracle.UI.Export do
     "overview" => {"overview.json", "rmxos_oracle.ui.overview.v1"},
     "migration" => {"migration.json", "rmxos_oracle.ui.migration.v1"},
     "canonicalization" => {"canonicalization.json", "rmxos_oracle.ui.canonicalization.v1"},
-    "platforms" => {"platforms.json", "rmxos_oracle.ui.platforms.v1"}
+    "platforms" => {"platforms.json", "rmxos_oracle.ui.platforms.v1"},
+    "evidence_ladder" => {"evidence_ladder.json", "rmxos_oracle.ui.evidence_ladder.v1"}
   }
 
   def snapshot_dir, do: @snapshot_dir
@@ -62,6 +63,7 @@ defmodule RmxOSOracle.UI.Export do
         "migration" -> model.migration(model_opts)
         "canonicalization" -> model.canonicalization(model_opts)
         "platforms" -> model.platforms(model_opts)
+        "evidence_ladder" -> model.evidence_ladder(model_opts)
       end
 
     repo = model.repo_status(repo_root)
@@ -200,6 +202,28 @@ defmodule RmxOSOracle.UI.Export do
         "component" => "DataTable",
         "columns" => ~w(path kind exists status),
         "bind" => %{"rows" => "/data/artifact_availability"}
+      }
+    ])
+  end
+
+  defp ui("evidence_ladder") do
+    surface("evidence_ladder", [
+      %{
+        "id" => "root",
+        "component" => "Page",
+        "children" => ["provenance", "warnings", "levels", "harness_note"]
+      },
+      provenance_component(),
+      warning_component(),
+      %{
+        "id" => "levels",
+        "component" => "EvidenceLadder",
+        "bind" => %{"levels" => "/data/levels"}
+      },
+      %{
+        "id" => "harness_note",
+        "component" => "TextBlock",
+        "bind" => %{"text" => "/data/harness_note/text"}
       }
     ])
   end

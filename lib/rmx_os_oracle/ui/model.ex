@@ -353,6 +353,50 @@ defmodule RmxOSOracle.UI.Model do
     }
   end
 
+  def evidence_ladder(opts \\ []) do
+    repo_root = Keyword.get(opts, :repo_root, File.cwd!())
+    levels = Enum.map(evidence_level_specs(), &evidence_level(repo_root, &1))
+    missing_refs = levels |> Enum.flat_map(& &1["missing_source_refs"]) |> Enum.uniq()
+
+    %{
+      "source_refs" =>
+        Enum.uniq(
+          SourceInventory.evidence_refs() ++
+            SourceInventory.zig_paths() ++ ["findings/nx-v64z"]
+        ),
+      "warnings" =>
+        [
+          warning(
+            "evidence_ladder.classifier_missing",
+            "warning",
+            "No artifact-to-evidence-layer classifier exists yet; all evidence level statuses remain parser_missing.",
+            SourceInventory.evidence_refs()
+          ),
+          warning(
+            "evidence_ladder.exunit_harness_only",
+            "warning",
+            "ExUnit green is harness evidence only, not platform evidence.",
+            SourceInventory.evidence_refs()
+          )
+        ] ++ missing_source_ref_warnings(missing_refs),
+      "data" => %{
+        "status_semantics" =>
+          "Level status reports evidence classifier availability only; scaffold_status reports whether declared scaffold/source refs are present. ExUnit green is harness evidence only, not platform evidence.",
+        "classifier_status" => %{
+          "status" => "parser_missing",
+          "status_meaning" => "artifact_to_evidence_layer_classifier_not_implemented",
+          "source_refs" => SourceInventory.evidence_refs()
+        },
+        "levels" => Enum.map(levels, &Map.drop(&1, ["missing_source_refs"])),
+        "harness_note" => %{
+          "severity" => "warning",
+          "text" => "ExUnit green is harness evidence only, not platform evidence.",
+          "source_refs" => SourceInventory.evidence_refs()
+        }
+      }
+    }
+  end
+
   def repo_status(repo_root \\ File.cwd!()) do
     sha = git(repo_root, ["rev-parse", "HEAD"])
     status = git(repo_root, ["status", "--short", "--untracked-files=all"])
@@ -648,6 +692,82 @@ defmodule RmxOSOracle.UI.Model do
     |> Map.put("status_meaning", "presence_only_not_evidence")
     |> Map.put("source_refs", [artifact["path"] | SourceInventory.platform_refs()])
   end
+
+  defp evidence_level_specs do
+    layer_names = Evidence.layers()
+
+    [
+      %{
+        "id" => "L0",
+        "label" => "ABI/layout",
+        "layer" => layer_names["L0"],
+        "source_refs" => ["lib/rmx_os_oracle/evidence.ex"]
+      },
+      %{
+        "id" => "L1",
+        "label" => "Host semantic probes",
+        "layer" => layer_names["L1"],
+        "source_refs" => ["lib/rmx_os_oracle/evidence.ex" | SourceInventory.zig_paths()]
+      },
+      %{
+        "id" => "L2",
+        "label" => "Guest integration",
+        "layer" => layer_names["L2"],
+        "source_refs" => ["lib/rmx_os_oracle/evidence.ex", "docs/migration-m1-design.md"]
+      },
+      %{
+        "id" => "L3",
+        "label" => "macOS oracle",
+        "layer" => layer_names["L3"],
+        "source_refs" => [
+          "lib/rmx_os_oracle/evidence.ex",
+          "docs/migration-m2-authority-design.md",
+          "findings/nx-v64z"
+        ],
+        "mismatch_categories" => []
+      },
+      %{
+        "id" => "L4",
+        "label" => "Fuzz/property/soak",
+        "layer" => layer_names["L4"],
+        "source_refs" => ["lib/rmx_os_oracle/evidence.ex"]
+      }
+    ]
+  end
+
+  defp evidence_level(repo_root, spec) do
+    source_refs = spec["source_refs"]
+    missing = Enum.reject(source_refs, &File.exists?(Path.join(repo_root, &1)))
+
+    %{
+      "id" => spec["id"],
+      "label" => spec["label"],
+      "layer" => spec["layer"],
+      "status" => "parser_missing",
+      "status_meaning" => "evidence_classifier_missing",
+      "scaffold_status" => if(missing == [], do: "pass", else: "unknown"),
+      "artifact_refs" => [],
+      "source_refs" => source_refs,
+      "missing_source_refs" => missing
+    }
+    |> maybe_put_map("mismatch_categories", spec["mismatch_categories"])
+  end
+
+  defp missing_source_ref_warnings([]), do: []
+
+  defp missing_source_ref_warnings(refs) do
+    [
+      warning(
+        "evidence_ladder.scaffold_refs_missing",
+        "warning",
+        "Some declared evidence scaffold/source refs are absent: #{Enum.join(refs, ", ")}",
+        refs
+      )
+    ]
+  end
+
+  defp maybe_put_map(map, _key, nil), do: map
+  defp maybe_put_map(map, key, value), do: Map.put(map, key, value)
 
   defp zig_scaffold(repo_root) do
     refs = SourceInventory.zig_paths()

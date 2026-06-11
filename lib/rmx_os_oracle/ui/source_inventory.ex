@@ -18,6 +18,11 @@ defmodule RmxOSOracle.UI.SourceInventory do
     "priv/schemas/catalog_probe_v1.schema.json",
     "priv/schemas/mismatch_v1.schema.json"
   ]
+  @evidence_refs [
+    "lib/rmx_os_oracle/evidence.ex",
+    "docs/migration-m1-design.md",
+    "docs/migration-m2-authority-design.md"
+  ]
 
   @elixir_imports [
     {"scripts/launchd/phase08_marker_manifest.exs", "lib/phase08/marker_manifest.ex",
@@ -127,6 +132,7 @@ defmodule RmxOSOracle.UI.SourceInventory do
   def dependency_path, do: @dependency_path
   def migration_refs, do: @migration_refs
   def platform_refs, do: @platform_refs
+  def evidence_refs, do: @evidence_refs
   def zig_paths, do: @zig_paths
   def canonical_platforms, do: @canonical_platforms
   def historical_runner_ids, do: @historical_runner_ids

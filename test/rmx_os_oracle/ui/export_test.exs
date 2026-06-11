@@ -109,6 +109,41 @@ defmodule RmxOSOracleUIExportTest do
       }
     end
 
+    def evidence_ladder(_opts) do
+      %{
+        "source_refs" => [],
+        "warnings" => [],
+        "data" => %{
+          "status_semantics" => "evidence status semantics",
+          "classifier_status" => %{
+            "status" => "parser_missing",
+            "status_meaning" => "artifact_to_evidence_layer_classifier_not_implemented",
+            "source_refs" => ["lib/rmx_os_oracle/evidence.ex"]
+          },
+          "levels" =>
+            Enum.map(~w(L0 L1 L2 L3 L4), fn id ->
+              level = %{
+                "id" => id,
+                "label" => id,
+                "layer" => "layer_#{id}",
+                "status" => "parser_missing",
+                "status_meaning" => "evidence_classifier_missing",
+                "scaffold_status" => "pass",
+                "artifact_refs" => [],
+                "source_refs" => ["lib/rmx_os_oracle/evidence.ex"]
+              }
+
+              if id == "L3", do: Map.put(level, "mismatch_categories", []), else: level
+            end),
+          "harness_note" => %{
+            "severity" => "warning",
+            "text" => "ExUnit green is harness evidence only, not platform evidence.",
+            "source_refs" => ["lib/rmx_os_oracle/evidence.ex"]
+          }
+        }
+      }
+    end
+
     def repo_status(_repo_root) do
       %{"sha" => "abc123", "dirty" => false, "warnings" => []}
     end
@@ -146,6 +181,7 @@ defmodule RmxOSOracleUIExportTest do
 
     def canonicalization(_opts), do: FakeModel.canonicalization([])
     def platforms(_opts), do: FakeModel.platforms([])
+    def evidence_ladder(_opts), do: FakeModel.evidence_ladder([])
 
     def repo_status(_repo_root) do
       %{"sha" => "abc123", "dirty" => false, "warnings" => []}
@@ -164,7 +200,7 @@ defmodule RmxOSOracleUIExportTest do
     report =
       Export.export(
         model: FakeModel,
-        pages: ["overview", "migration", "canonicalization", "platforms"],
+        pages: ["overview", "migration", "canonicalization", "platforms", "evidence_ladder"],
         snapshot_subdir: subdir,
         generated_at: "2026-06-09T00:00:00Z"
       )
@@ -187,6 +223,11 @@ defmodule RmxOSOracleUIExportTest do
     assert snapshot["schema"] == "rmxos_oracle.ui.platforms.v1"
     assert snapshot["repo"]["sha"] == "abc123"
     assert snapshot["ui"]["surface_id"] == "platforms"
+
+    snapshot = output_dir |> Path.join("evidence_ladder.json") |> File.read!() |> JSON.decode!()
+    assert snapshot["schema"] == "rmxos_oracle.ui.evidence_ladder.v1"
+    assert snapshot["repo"]["sha"] == "abc123"
+    assert snapshot["ui"]["surface_id"] == "evidence_ladder"
   end
 
   test "rejects a symlinked output path component" do

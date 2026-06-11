@@ -10,6 +10,9 @@ defmodule RmxOSOracleUIValidatorTest do
     def canonicalization(_opts), do: page_model("summary", [])
     def platforms(_opts), do: %{"source_refs" => [], "warnings" => [], "data" => platforms_data()}
 
+    def evidence_ladder(_opts),
+      do: %{"source_refs" => [], "warnings" => [], "data" => evidence_ladder_data()}
+
     def repo_status(_repo_root) do
       %{"sha" => "abc123", "dirty" => false, "warnings" => []}
     end
@@ -117,6 +120,37 @@ defmodule RmxOSOracleUIValidatorTest do
         "source_refs" => ["docs/migration-m2-authority-design.md"]
       }
     end
+
+    defp evidence_ladder_data do
+      %{
+        "status_semantics" => "evidence status semantics",
+        "classifier_status" => %{
+          "status" => "parser_missing",
+          "status_meaning" => "artifact_to_evidence_layer_classifier_not_implemented",
+          "source_refs" => ["lib/rmx_os_oracle/evidence.ex"]
+        },
+        "levels" =>
+          Enum.map(~w(L0 L1 L2 L3 L4), fn id ->
+            level = %{
+              "id" => id,
+              "label" => id,
+              "layer" => "layer_#{id}",
+              "status" => "parser_missing",
+              "status_meaning" => "evidence_classifier_missing",
+              "scaffold_status" => "pass",
+              "artifact_refs" => [],
+              "source_refs" => ["lib/rmx_os_oracle/evidence.ex"]
+            }
+
+            if id == "L3", do: Map.put(level, "mismatch_categories", []), else: level
+          end),
+        "harness_note" => %{
+          "severity" => "warning",
+          "text" => "ExUnit green is harness evidence only, not platform evidence.",
+          "source_refs" => ["lib/rmx_os_oracle/evidence.ex"]
+        }
+      }
+    end
   end
 
   test "accepts a complete overview snapshot" do
@@ -136,6 +170,13 @@ defmodule RmxOSOracleUIValidatorTest do
   test "accepts a complete platforms snapshot" do
     assert :ok =
              "platforms"
+             |> snapshot()
+             |> Validator.validate()
+  end
+
+  test "accepts a complete evidence ladder snapshot" do
+    assert :ok =
+             "evidence_ladder"
              |> snapshot()
              |> Validator.validate()
   end
@@ -272,6 +313,35 @@ defmodule RmxOSOracleUIValidatorTest do
 
     assert {:error, errors} = Validator.validate(invalid)
     assert Enum.any?(errors, &String.contains?(&1, "runner_mapping_audit/status"))
+  end
+
+  test "rejects missing evidence ladder levels" do
+    invalid =
+      snapshot("evidence_ladder")
+      |> update_in(["data", "levels"], fn levels ->
+        Enum.reject(levels, &(&1["id"] == "L4"))
+      end)
+
+    assert {:error, errors} = Validator.validate(invalid)
+    assert Enum.any?(errors, &String.contains?(&1, "missing required id L4"))
+  end
+
+  test "rejects evidence ladder classifier as passed" do
+    invalid =
+      snapshot("evidence_ladder")
+      |> put_in(["data", "classifier_status", "status"], "pass")
+
+    assert {:error, errors} = Validator.validate(invalid)
+    assert Enum.any?(errors, &String.contains?(&1, "classifier_status/status"))
+  end
+
+  test "rejects evidence ladder platform-evidence-looking level status" do
+    invalid =
+      snapshot("evidence_ladder")
+      |> put_in(["data", "levels", Access.at(0), "status"], "pass")
+
+    assert {:error, errors} = Validator.validate(invalid)
+    assert Enum.any?(errors, &String.contains?(&1, "/data/levels/0/status"))
   end
 
   defp snapshot(page) do
