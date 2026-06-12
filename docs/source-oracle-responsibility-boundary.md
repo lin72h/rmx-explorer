@@ -1,64 +1,149 @@
-# Source And Oracle Responsibility Boundary
+# Implementer And Oracle Responsibility Boundary
 
 Status: normative Oracle architecture and governance policy.
 
 Source policy authority:
 
 - repository: `/Users/me/wip-mach/wip-gpt`
-- commit: `e6dfa40c1823adc73b5962e6503a904472a85f52`
-- source document: `docs/source-oracle-responsibility-boundary.md`
+- commit: `6ace1e51f76bf32156f7d39e57b4c41b404fc8c9`
+- source documents:
+  - `docs/role-governance.md`
+  - `docs/source-oracle-responsibility-boundary.md`
+  - `AGENTS.md`
 
-This Oracle policy adopts the source-side responsibility boundary. If an
-Oracle document or task conflicts with this boundary, this boundary wins and
-the conflicting work stops for review.
+This Oracle policy adopts the source-side role governance and responsibility
+boundary. Canonical role names and escalation rules are defined by source
+`docs/role-governance.md` at the commit above. If an Oracle document or task
+conflicts with this boundary, this boundary and the source role-governance
+authority win and the conflicting work stops for review.
 
-## Repository Boundary
+## Core Boundary
 
-Oracle has read-only access to `/Users/me/wip-mach/wip-gpt`.
+The rmxOS source repository is owned by the Implementer.
 
-Oracle must never create, modify, delete, move, stage, or commit files in the
-rmxOS source repository. This remains true when Oracle can identify the exact
-source patch or when an Oracle gate is blocked on missing source behavior.
+Oracle has read-only access to `/Users/me/wip-mach/wip-gpt`. Oracle must never create, modify, delete, move, stage, or commit files in the rmxOS source repository.
 
-The source implementation agent owns and commits all rmxOS source-repository
-changes, including:
+All rmxOS source-repository writes are performed by the Implementer, including:
 
-- product, kernel, runtime, library, daemon, and command implementation;
-- build, link, staging, and integration behavior;
-- source-side tests, probes, fixtures, scripts, and documentation;
-- donor import or adaptation performed inside the source repository.
+- kernel, runtime, userland, library, daemon, and command implementation;
+- build-system, source-transform, harness-link, guest-staging, and integration
+  changes;
+- source-side probes, fixtures, scripts, tests, and documentation;
+- donor import, extraction, adaptation, and source-side provenance records;
+- source-side authorization and architecture decisions.
+
+This remains true when Oracle identifies the required change, supplies a
+reproducer, or proposes an exact patch. Oracle reports the requirement; the
+Implementer reviews and implements it.
 
 Oracle may validate only committed source pins. Uncommitted source bytes must
 not be used as accepted runtime, parity, or gate evidence.
 
 ## Oracle Ownership
 
-Inside the Oracle repository, Oracle owns:
+Oracle owns testing, feature exploration, and gate authority inside the Oracle
+repository. Oracle Explorer mode owns read-only exploration and host readiness.
+Oracle Gatekeeper mode owns guest attempts, evidence dispositions, marker
+authority, preserved evidence, and closeouts.
 
-- testing and feature exploration;
-- gate contracts, validators, falsifiers, and marker authority;
-- Oracle-owned probes, fixtures, stubs, and test orchestration;
-- evidence collection, preservation, revalidation, and disposition;
-- source-readiness checks that fail closed on missing source capability.
+Oracle may create and modify, inside the Oracle repository:
+
+- gate designs and dependency classifications;
+- host-side test probes, fixtures, validation modules, and falsifiers;
+- marker manifests, ordering contracts, producer attribution, and no-copy
+  checks;
+- guest-run orchestration and evidence collection;
+- preserved evidence, revalidation logic, disposition records, and closeout
+  records;
+- source-readiness checks that fail closed when rmxOS implementation or staging
+  support is missing.
+
+Oracle may read rmxOS and donor source, build committed rmxOS source, run
+committed source-side tools, and report precise source blockers. These actions
+do not grant Oracle authority to modify the rmxOS repository.
 
 Oracle test probes, fixtures, stubs, and validators must never substitute for
-rmxOS product implementation. Harness behavior can prove harness behavior; it
-cannot satisfy a product/runtime claim.
+rmxOS product implementation. This sentence uses `validators` as a mechanism
+term for validation modules and evidence checkers, not as the Validator role.
+Harness behavior may prove orchestration, but it must not satisfy a
+product/runtime claim.
 
-## Source Requirement Escalation
+## Escalation Rule
 
-When Oracle finds missing product/runtime, build, staging, source-test, or
-source-documentation behavior:
+When Oracle finds missing or incorrect product/runtime behavior:
 
-1. Stop before modifying the source repository.
-2. Preserve the relevant Oracle evidence.
+1. Oracle stops before modifying rmxOS source.
+2. Oracle preserves evidence.
 3. Report the smallest falsifiable source requirement.
-4. Wait for the source implementation agent to implement and commit the source
-   change.
-5. Update the Oracle source pin and validate only the committed source change.
+4. The Implementer makes and commits the rmxOS change.
+5. Oracle updates its explicit source pin and validates the committed change.
 
 An Oracle authorization to test, build, stage, or run a committed source pin
 does not authorize source-repository writes.
+
+## Repository Write And Access Policy
+
+| Role | rmxOS source repository | Oracle repository | Evidence authority |
+| --- | --- | --- | --- |
+| Maestro | parent-access exception authority; doctrine and scope decisions | parent-access exception authority | may require supersession, not silent rewrite |
+| Conductor | no standing write authority | no standing write authority | none |
+| Implementer | read/write; sole product implementation authority | narrow host-only direct-fix exception when recorded | none |
+| Oracle Explorer | read-only | read/write for host review and readiness work | no guest attempts or dispositions |
+| Oracle Gatekeeper | read-only | read/write for guest evidence, marker authority, and closeouts | sole pass/fail disposition authority |
+| Validator | no write authority | no write authority | none |
+| Arbiter | no write authority | no write authority | cannot alter dispositions in either direction |
+
+An explicit task authorization may permit Oracle to run a source-side command
+or consume a committed source artifact. It does not permit Oracle to write to
+the rmxOS source repository. Any exception to this boundary requires a separate
+architecture decision that names the exact paths, duration, and reason.
+
+Donor and reference repositories are read-only for all roles unless a separate
+explicit decision authorizes maintenance.
+
+Parent-access exceptions are governed by source `docs/role-governance.md`'s
+one-way-door access rule. The one-way-window is read-only visibility; tree
+position grants no repository writes by itself. Writable direct access requires
+a recorded one-way-door exception.
+
+The Implementer-to-Oracle host-only direct-fix exception in `AGENTS.md` is a
+narrow standing one-way-door delegation for tooling, pin, formatting, and
+documentation fixes. Pin fixes are limited to making a pin match an
+already-committed record, such as typo or path-class corrections. Repointing
+any evidence, authority, or authorization pin to a different commit is excluded
+and goes through the normal Oracle pin-update flow. The direct-fix exception
+also excludes marker manifests, contract checks, falsifiers, and
+evidence-validation modules.
+
+## Oracle Modes
+
+Every Oracle output declares `mode: explorer` or `mode: gatekeeper`.
+
+Explorer mode is read-only toward runtime evidence. Explorer outputs use this
+vocabulary for gate and evidence-state assertions:
+
+- ready;
+- not ready;
+- smallest source requirement;
+- host readiness;
+- suspected layer.
+
+Explorer mode may inspect source, donor, build products, host preflight, and
+preserved evidence. Explorer mode never runs a guest, never consumes attempts,
+and never issues evidence dispositions.
+
+Gatekeeper mode owns guest attempts, evidence, pass/fail dispositions, marker
+authority, preserved evidence, and closeouts. Gatekeeper outputs use this
+vocabulary for gate and evidence-state assertions:
+
+- accepted;
+- not accepted;
+- consumed;
+- disposition;
+- marker authority;
+- closeout.
+
+Only Gatekeeper mode may consume or account guest attempts.
 
 ## Static Check
 
@@ -71,7 +156,7 @@ mix oracle.source.boundary.check
 The check:
 
 - resolves an explicit source ref to a committed source commit;
-- verifies source policy commit `e6dfa40c1823adc73b5962e6503a904472a85f52`
+- verifies source policy commit `6ace1e51f76bf32156f7d39e57b4c41b404fc8c9`
   remains in the current source history;
 - validates required boundary wording in Oracle governance documents;
 - emits a read-only source-worktree fingerprint for before/after comparison.
@@ -82,10 +167,18 @@ unexpected difference.
 
 ## Review Guardrails
 
-Every Oracle implementation or guest-run task must confirm:
+Every Oracle task must confirm:
 
-- the source repository was not modified, deleted from, staged, or committed;
-- every source input was identified by an explicit committed pin;
-- missing source capability was reported rather than repaired by Oracle;
-- Oracle scaffolds were not represented as rmxOS product implementation;
-- no source deletion or parity-tag movement occurred.
+- no rmxOS source-repository files were modified, deleted, staged, or
+  committed;
+- any source blocker is reported rather than repaired in Oracle;
+- test scaffolds remain in Oracle and are not represented as rmxOS product
+  implementation;
+- source commit pins identify the exact rmxOS implementation under test.
+
+Every Implementer task responding to Oracle must confirm:
+
+- the source change is independently reviewed as rmxOS implementation;
+- the change does not weaken Oracle pass/fail authority;
+- Oracle can validate the committed source change without writing to the source
+  repository.
