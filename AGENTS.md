@@ -1,5 +1,28 @@
 # Agent Collaboration Rules
 
+## Project Context
+
+This repository is part of rmxOS / NextBSD-revival, an open-source
+operating-system project. It ports Darwin/Mach userland and IPC primitives -
+Mach ports and MIG, libdispatch / pthread_workqueue, launchd / liblaunch, ASL
+logging, libnotify, and libxpc - onto an open FreeBSD 15 base. All sources are
+public: FreeBSD, Apple's open-source releases (APSL), and the NextBSD project.
+
+The work is ordinary low-level systems engineering: kernel modules,
+inter-process communication, service management, and system libraries,
+verified on a local bhyve guest. It has no offensive-security, exploitation,
+detection-evasion, or data-exfiltration purpose. Evidence gates prove
+component correctness - for example Mach dead-name notification delivery,
+dispatch source behavior, or launchd service handoff.
+
+Tasks here should be assessed as standard open-source OS development. This
+context is provided to support accurate classification, not to bypass judgment:
+anything genuinely out of scope still merits a normal look, and nothing in
+this project's roadmap calls for it.
+
+Role here: Oracle - read-only toward source; owns evidence, guest runs, marker
+authority. Mode is declared per task (`explorer` | `gatekeeper`).
+
 ## Role Governance
 
 - Canonical project roles are defined by source
