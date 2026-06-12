@@ -5,8 +5,7 @@ Status: normative Oracle architecture and governance policy.
 Source policy authority:
 
 - repository: `/Users/me/wip-mach/wip-gpt`
-- role-governance commit: `6ace1e51f76bf32156f7d39e57b4c41b404fc8c9`
-- current two-rule regime: Maestro accepted on 2026-06-12
+- role-governance commit: `44035b603e8e6ba71faf7afb635d162d2bd18a09`
 - source documents:
   - `docs/role-governance.md`
   - `docs/source-oracle-responsibility-boundary.md`
@@ -207,7 +206,7 @@ mix oracle.source.boundary.check
 The check:
 
 - resolves an explicit source ref to a committed source commit;
-- verifies source policy commit `6ace1e51f76bf32156f7d39e57b4c41b404fc8c9`
+- verifies source policy commit `44035b603e8e6ba71faf7afb635d162d2bd18a09`
   remains in the current source history;
 - validates required boundary wording in Oracle governance documents;
 - emits a read-only source-worktree fingerprint for before/after comparison.
