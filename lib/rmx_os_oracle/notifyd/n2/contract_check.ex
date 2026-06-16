@@ -9,6 +9,7 @@ defmodule RmxOSOracle.Notifyd.N2.ContractCheck do
   """
 
   alias RmxOSOracle.Notifyd.N2.MarkerManifest
+  alias RmxOSOracle.Phase085.LaunchdHandoff.ContractCheck, as: Phase085HandoffCheck
 
   @authority_path "lib/rmx_os_oracle/notifyd/n2/marker_manifest.ex"
   @phase08_glob "lib/phase08/**/*.ex"
@@ -21,12 +22,16 @@ defmodule RmxOSOracle.Notifyd.N2.ContractCheck do
     no_copy = no_copy_check(sources)
     cross_series = cross_series_check(repo_root)
     whitelist = phase07_exit_whitelist_check()
+    phase085 = Phase085HandoffCheck.binding_check(MarkerManifest.launchd_handoff_binding())
 
     %{
-      "passed" => no_copy["passed"] and cross_series["passed"] and whitelist["passed"],
+      "passed" =>
+        no_copy["passed"] and cross_series["passed"] and whitelist["passed"] and
+          phase085["passed"],
       "no_copy" => no_copy,
       "cross_series" => cross_series,
       "phase07_exit_whitelist" => whitelist,
+      "phase085_launchd_handoff" => phase085,
       "series_prefix_registry" => series_prefix_registry()
     }
   end

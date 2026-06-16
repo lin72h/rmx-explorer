@@ -8,6 +8,7 @@ defmodule RmxOSOracle.Asl.A2.ContractCheck do
   """
 
   alias RmxOSOracle.Asl.A2.MarkerManifest
+  alias RmxOSOracle.Phase085.LaunchdHandoff.ContractCheck, as: Phase085HandoffCheck
 
   @authority_path "lib/rmx_os_oracle/asl/a2/marker_manifest.ex"
   @probe_path MarkerManifest.probe_path()
@@ -27,12 +28,16 @@ defmodule RmxOSOracle.Asl.A2.ContractCheck do
     no_copy = no_copy_check(sources)
     cross_series = cross_series_check(repo_root)
     generator_guard = generator_guard(read_repo_file(repo_root, @probe_path))
+    phase085 = Phase085HandoffCheck.binding_check(MarkerManifest.launchd_handoff_binding())
 
     %{
-      "passed" => no_copy["passed"] and cross_series["passed"] and generator_guard["passed"],
+      "passed" =>
+        no_copy["passed"] and cross_series["passed"] and generator_guard["passed"] and
+          phase085["passed"],
       "no_copy" => no_copy,
       "cross_series" => cross_series,
-      "generator_guard" => generator_guard
+      "generator_guard" => generator_guard,
+      "phase085_launchd_handoff" => phase085
     }
   end
 

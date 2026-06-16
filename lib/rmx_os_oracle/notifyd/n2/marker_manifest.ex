@@ -23,6 +23,8 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
   this module instead of maintaining independent marker literals.
   """
 
+  alias RmxOSOracle.Phase085.LaunchdHandoff.MarkerManifest, as: Phase085Handoff
+
   @accepted_claim "dispatch_mach_send_dead_name_same_task"
   @narrowed_concurrency_claim "n2c_1_launchd_checkin_n2c_2a_kernel_receive_mach_send_source_create_n2c_3_unidirectional_concurrency"
   @governing_record "docs/phase-0.95a-notifyd-n2-dispatch-dead-name-decode-fix-activation-record.md"
@@ -165,6 +167,7 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
         mach_ko_sha256: @mach_ko_sha256
       },
       accepted_evidence: @evidence,
+      phase085_launchd_handoff_binding: launchd_handoff_binding(),
       non_claims: [
         "no_notifyd_client_death_cleanup",
         "no_n2c_2b_cross_process_client_death_observation",
@@ -194,11 +197,64 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
     }
   end
 
-  def specs do
+  def specs, do: local_specs() ++ imported_generic_specs()
+
+  def local_specs do
     mach_send_specs() ++
       mach_raw_specs() ++
       mach_direct_specs() ++
       notify_trace_timeout_specs() ++ concurrency_specs()
+  end
+
+  def imported_generic_specs, do: launchd_handoff_specs()
+
+  def launchd_handoff_binding do
+    %{
+      consumer: :notifyd_n2,
+      generic_source: Phase085Handoff.authority_id(),
+      service_name: "com.apple.system.notification_center",
+      fixture_form: :boolean,
+      identity_instrument: :notify_native_register_post_check,
+      facts: %{
+        checkin_response_materialized: %{
+          markers: [
+            generic_marker(
+              :concurrency_launchd_checkin_request,
+              %{checkin_response_present: true, successful_checkin: true}
+            )
+          ]
+        },
+        machservices_dictionary_present: %{
+          markers: [
+            generic_marker(
+              :concurrency_launchd_mach_services_dict,
+              %{machservices_dictionary_present: true}
+            )
+          ]
+        },
+        selected_service_entry_present: %{
+          service_name: "com.apple.system.notification_center",
+          markers: [
+            generic_marker(:concurrency_launchd_service_entry, %{
+              selected_service_entry_present: true,
+              service_name: :parameterized
+            })
+          ]
+        },
+        receive_right_materialized: %{
+          service_name: "com.apple.system.notification_center",
+          markers: [
+            generic_marker(:concurrency_launchd_receive_right, %{
+              receive_right_materialized: true,
+              receive_port: :positive_integer_or_equivalent_right_handle,
+              service_name: :parameterized
+            })
+          ]
+        }
+      },
+      local_specs: local_specs(),
+      imported_specs: imported_generic_specs()
+    }
   end
 
   def specs(family), do: Enum.filter(specs(), &(&1.family == family))
@@ -895,54 +951,6 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
   defp concurrency_specs do
     [
       spec(
-        :concurrency_launchd_checkin_request,
-        :concurrency,
-        "NOTIFYD_N2_LAUNCHD_CHECKIN_REQUEST",
-        %{kr: eq("0"), result: eq("dict")},
-        :launchd_direct,
-        :launchd,
-        :launch_msg_checkin,
-        1
-      ),
-      spec(
-        :concurrency_launchd_mach_services_dict,
-        :concurrency,
-        "NOTIFYD_N2_LAUNCHD_MACH_SERVICES_DICT",
-        %{present: eq("1"), type: eq("dict")},
-        :launchd_direct,
-        :launchd,
-        :mach_services_dictionary,
-        2
-      ),
-      spec(
-        :concurrency_launchd_service_entry,
-        :concurrency,
-        "NOTIFYD_N2_LAUNCHD_SERVICE_ENTRY",
-        %{
-          service: eq("com.apple.system.notification_center"),
-          present: eq("1"),
-          type: eq("machport")
-        },
-        :launchd_direct,
-        :launchd,
-        :mach_services_entry,
-        3
-      ),
-      spec(
-        :concurrency_launchd_receive_right,
-        :concurrency,
-        "NOTIFYD_N2_LAUNCHD_RECEIVE_RIGHT",
-        %{
-          service: eq("com.apple.system.notification_center"),
-          port: positive_integer(),
-          right: eq("receive")
-        },
-        :launchd_direct,
-        :launchd,
-        :receive_right,
-        4
-      ),
-      spec(
         :concurrency_launchd_terminal,
         :concurrency,
         "NOTIFYD_N2_LAUNCHD_CHECKIN_TERMINAL",
@@ -1250,6 +1258,65 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
     ]
   end
 
+  defp launchd_handoff_specs do
+    [
+      imported_spec(
+        :concurrency_launchd_checkin_request,
+        :checkin_response_materialized,
+        :concurrency,
+        "NOTIFYD_N2_LAUNCHD_CHECKIN_REQUEST",
+        %{kr: eq("0"), result: eq("dict")},
+        :launch_msg_checkin,
+        %{checkin_response_present: true, successful_checkin: true},
+        1
+      ),
+      imported_spec(
+        :concurrency_launchd_mach_services_dict,
+        :machservices_dictionary_present,
+        :concurrency,
+        "NOTIFYD_N2_LAUNCHD_MACH_SERVICES_DICT",
+        %{present: eq("1"), type: eq("dict")},
+        :mach_services_dictionary,
+        %{machservices_dictionary_present: true},
+        2
+      ),
+      imported_spec(
+        :concurrency_launchd_service_entry,
+        :selected_service_entry_present,
+        :concurrency,
+        "NOTIFYD_N2_LAUNCHD_SERVICE_ENTRY",
+        %{
+          service: eq("com.apple.system.notification_center"),
+          present: eq("1"),
+          type: eq("machport")
+        },
+        :mach_services_entry,
+        %{selected_service_entry_present: true, service_name: :parameterized},
+        3,
+        service_name: "com.apple.system.notification_center"
+      ),
+      imported_spec(
+        :concurrency_launchd_receive_right,
+        :receive_right_materialized,
+        :concurrency,
+        "NOTIFYD_N2_LAUNCHD_RECEIVE_RIGHT",
+        %{
+          service: eq("com.apple.system.notification_center"),
+          port: positive_integer(),
+          right: eq("receive")
+        },
+        :receive_right,
+        %{
+          receive_right_materialized: true,
+          receive_port: :positive_integer_or_equivalent_right_handle,
+          service_name: :parameterized
+        },
+        4,
+        service_name: "com.apple.system.notification_center"
+      )
+    ]
+  end
+
   defp exact_lines do
     [
       line(:mach_send_mach_module, :mach_send, "mach_module=loaded", 0),
@@ -1284,6 +1351,50 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
         30
       )
     ]
+  end
+
+  defp generic_marker(spec_id, generic_policy) do
+    spec = spec!(spec_id)
+
+    %{
+      id: spec.id,
+      key: spec.key,
+      producer: spec.producer,
+      producer_detail: spec.producer_detail,
+      generic_source: spec.generic_source,
+      generic_fact_id: spec.generic_fact_id,
+      generic_policy: generic_policy
+    }
+  end
+
+  defp imported_spec(
+         id,
+         generic_fact_id,
+         family,
+         key,
+         fields,
+         producer_detail,
+         generic_policy,
+         order,
+         opts \\ []
+       ) do
+    spec(
+      id,
+      family,
+      key,
+      fields,
+      :launchd_direct,
+      :launchd,
+      producer_detail,
+      order,
+      opts
+    )
+    |> Map.merge(%{
+      generic_source: Phase085Handoff.authority_id(),
+      generic_fact_id: generic_fact_id,
+      generic_policy: generic_policy,
+      service_name: Keyword.get(opts, :service_name)
+    })
   end
 
   defp spec(id, family, key, fields, role, producer, detail, order, opts \\ []) do

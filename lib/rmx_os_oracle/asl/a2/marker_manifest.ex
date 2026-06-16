@@ -22,6 +22,8 @@ defmodule RmxOSOracle.Asl.A2.MarkerManifest do
   instead of maintaining independent marker literals.
   """
 
+  alias RmxOSOracle.Phase085.LaunchdHandoff.MarkerManifest, as: Phase085Handoff
+
   @accepted_claim "launchd_handoff_plus_donor_lookup_nonce_identity"
   @accepted_evidence_dir "priv/runs/asl-a2/20260610T0407195Z-system-logger-handoff"
   @accepted_evidence_tree_digest "0442e4be9ce977d8992b5bbe97a2e654b3d54309cc19b805d8ad43ad721e0dad"
@@ -96,14 +98,68 @@ defmodule RmxOSOracle.Asl.A2.MarkerManifest do
         path: @bootstrap_harness_path,
         sha256: @bootstrap_harness_sha256
       },
+      phase085_launchd_handoff_binding: launchd_handoff_binding(),
       ool_integrity: ool_policy(),
       raw_evidence_mutated: false,
       runtime_evidence_count: 1
     }
   end
 
-  def specs do
-    subclaim_a_specs() ++ subclaim_b_specs() ++ terminal_specs()
+  def specs, do: local_specs() ++ imported_generic_specs()
+
+  def local_specs, do: subclaim_a_specs() ++ subclaim_b_specs() ++ terminal_specs()
+
+  def imported_generic_specs, do: launchd_handoff_specs()
+
+  def launchd_handoff_binding do
+    %{
+      consumer: :asl_a2,
+      generic_source: Phase085Handoff.authority_id(),
+      service_name: @service_name,
+      fixture_form: :boolean,
+      identity_instrument: :asl_nonce_ool_message,
+      facts: %{
+        checkin_response_materialized: %{
+          markers: [
+            generic_marker(
+              :launch_checkin_reply_present,
+              %{checkin_response_present: true, successful_checkin: true}
+            )
+          ]
+        },
+        machservices_dictionary_present: %{
+          markers: [
+            generic_marker(:machservices_dict_present, %{machservices_dictionary_present: true})
+          ]
+        },
+        selected_service_entry_present: %{
+          service_name: @service_name,
+          markers: [
+            generic_marker(:service_entry_present, %{
+              selected_service_entry_present: true,
+              service_name: :parameterized
+            })
+          ]
+        },
+        receive_right_materialized: %{
+          service_name: @service_name,
+          markers: [
+            generic_marker(:server_checkin_receive_port, %{
+              receive_right_materialized: true,
+              receive_port: :positive_integer_or_equivalent_right_handle,
+              service_name: :parameterized
+            }),
+            generic_marker(:server_receive_right_usable, %{
+              receive_right_materialized: true,
+              receive_port: :positive_integer_or_equivalent_right_handle,
+              service_name: :parameterized
+            })
+          ]
+        }
+      },
+      local_specs: local_specs(),
+      imported_specs: imported_generic_specs()
+    }
   end
 
   def marker_keys do
@@ -331,52 +387,6 @@ defmodule RmxOSOracle.Asl.A2.MarkerManifest do
         :launchd_checkin_request
       ),
       spec(
-        :launch_checkin_reply_present,
-        "ASL_A2_LAUNCH_CHECKIN_REPLY_PRESENT",
-        "1",
-        :launchd_handoff,
-        :subclaim_a,
-        :launchd,
-        :checkin_reply
-      ),
-      spec(
-        :machservices_dict_present,
-        "ASL_A2_MACHSERVICES_DICT_PRESENT",
-        "1",
-        :launchd_handoff,
-        :subclaim_a,
-        :launchd,
-        :machservices_dictionary
-      ),
-      spec(
-        :service_entry_present,
-        "ASL_A2_SERVICE_ENTRY_PRESENT",
-        "1",
-        :launchd_handoff,
-        :subclaim_a,
-        :launchd,
-        :machservice_entry
-      ),
-      spec(
-        :server_checkin_receive_port,
-        "ASL_A2_SERVER_CHECKIN_RECEIVE_PORT",
-        nil,
-        :launchd_handoff,
-        :subclaim_a,
-        :launchd,
-        :machservice_receive_right,
-        value_policy: :must_be_positive_integer
-      ),
-      spec(
-        :server_receive_right_usable,
-        "ASL_A2_SERVER_RECEIVE_RIGHT_USABLE",
-        "1",
-        :launchd_handoff,
-        :subclaim_a,
-        :launchd,
-        :machservice_receive_right
-      ),
-      spec(
         :subclaim_a_passed,
         "ASL_A2_SUBCLAIM_A_PASSED",
         "1",
@@ -384,6 +394,63 @@ defmodule RmxOSOracle.Asl.A2.MarkerManifest do
         :subclaim_a,
         :harness,
         :orchestration
+      )
+    ]
+  end
+
+  defp launchd_handoff_specs do
+    [
+      imported_spec(
+        :launch_checkin_reply_present,
+        :checkin_response_materialized,
+        "ASL_A2_LAUNCH_CHECKIN_REPLY_PRESENT",
+        "1",
+        :checkin_reply,
+        %{checkin_response_present: true, successful_checkin: true}
+      ),
+      imported_spec(
+        :machservices_dict_present,
+        :machservices_dictionary_present,
+        "ASL_A2_MACHSERVICES_DICT_PRESENT",
+        "1",
+        :machservices_dictionary,
+        %{machservices_dictionary_present: true}
+      ),
+      imported_spec(
+        :service_entry_present,
+        :selected_service_entry_present,
+        "ASL_A2_SERVICE_ENTRY_PRESENT",
+        "1",
+        :machservice_entry,
+        %{selected_service_entry_present: true, service_name: :parameterized},
+        service_name: @service_name
+      ),
+      imported_spec(
+        :server_checkin_receive_port,
+        :receive_right_materialized,
+        "ASL_A2_SERVER_CHECKIN_RECEIVE_PORT",
+        nil,
+        :machservice_receive_right,
+        %{
+          receive_right_materialized: true,
+          receive_port: :positive_integer_or_equivalent_right_handle,
+          service_name: :parameterized
+        },
+        value_policy: :must_be_positive_integer,
+        service_name: @service_name
+      ),
+      imported_spec(
+        :server_receive_right_usable,
+        :receive_right_materialized,
+        "ASL_A2_SERVER_RECEIVE_RIGHT_USABLE",
+        "1",
+        :machservice_receive_right,
+        %{
+          receive_right_materialized: true,
+          receive_port: :positive_integer_or_equivalent_right_handle,
+          service_name: :parameterized
+        },
+        service_name: @service_name
       )
     ]
   end
@@ -614,6 +681,39 @@ defmodule RmxOSOracle.Asl.A2.MarkerManifest do
     [
       spec(:done, "ASL_A2_DONE", "1", :terminal, :terminal, :harness, :orchestration)
     ]
+  end
+
+  defp generic_marker(spec_id, generic_policy) do
+    spec = spec!(spec_id)
+
+    %{
+      id: spec.id,
+      key: spec.key,
+      producer: spec.producer,
+      producer_detail: spec.producer_detail,
+      generic_source: spec.generic_source,
+      generic_fact_id: spec.generic_fact_id,
+      generic_policy: generic_policy
+    }
+  end
+
+  defp imported_spec(id, generic_fact_id, key, value, producer_detail, generic_policy, opts \\ []) do
+    spec(
+      id,
+      key,
+      value,
+      :launchd_handoff,
+      :subclaim_a,
+      :launchd,
+      producer_detail,
+      opts
+    )
+    |> Map.merge(%{
+      generic_source: Phase085Handoff.authority_id(),
+      generic_fact_id: generic_fact_id,
+      generic_policy: generic_policy,
+      service_name: Keyword.get(opts, :service_name)
+    })
   end
 
   defp spec(id, key, value, role, arm, producer, producer_detail, opts \\ []) do
