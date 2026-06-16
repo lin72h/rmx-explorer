@@ -1,0 +1,253 @@
+{
+  "schema": "rmxos_oracle.finding.phase085_handoff_a2_n2_comparison.v1",
+  "authority": "non_authoritative_data_only",
+  "mode": "gatekeeper",
+  "governing_design": {
+    "path": "docs/phase-0.85-handoff-design.md",
+    "commit": "64421b565aea5e21cd294abd5b6a4a7a328edd52",
+    "constraint": "data-only comparison; no generic Phase 0.85 marker authority authored"
+  },
+  "inputs": {
+    "asl_a2": {
+      "accepted_claim": "launchd_handoff_plus_donor_lookup_nonce_identity",
+      "accepted_evidence_path": "priv/runs/asl-a2/20260610T0407195Z-system-logger-handoff",
+      "closeout_path": "/Users/me/wip-mach/wip-gpt/docs/asl-a2-closeout.md",
+      "serial_sha256": "dd8763f70b6d0db4758a8867b9b9bd8ab7c699cdc8d5679ab30d9343e883fc93",
+      "evidence_tree_digest": "0442e4be9ce977d8992b5bbe97a2e654b3d54309cc19b805d8ad43ad721e0dad",
+      "authority_commit": "f58534c4354edcc72d93537dc73a8e2cdee9baa4",
+      "service_name": "com.apple.system.logger"
+    },
+    "notifyd_n2": {
+      "accepted_claim": "n2c_1_launchd_checkin_n2c_2a_kernel_receive_mach_send_source_create_n2c_3_unidirectional_concurrency",
+      "accepted_evidence_path": "priv/runs/notifyd-n2-concurrency/20260616T090236Z-token0-fixed-attempt-a",
+      "serial_sha256": "af1a56ee8d9b81def49babf3b6c211700416658253a83152b253f94146711500",
+      "raw_tree_digest_pre_curation": "1a9f90557fd016d1863901e78b41b69360e08c36a2b4335b62439bacb85c19a6",
+      "oracle_authority_commit": "8c4d564d47e85e7973f1b2a4980b50bdce1d5db8",
+      "service_name": "com.apple.system.notification_center"
+    },
+    "continuity_prior_a2_n1": {
+      "path": "findings/notifyd-n1-a2-comparison.json",
+      "classification": "corroborating_indirect_notifyd_handoff_only",
+      "use_in_this_comparison": "historical gap continuity; not a direct launchd check-in data point"
+    }
+  },
+  "shared_facts": [
+    {
+      "id": "checkin_response_materialized",
+      "classification": "genuinely_shared",
+      "generic_candidate": true,
+      "producer": "launchd",
+      "reason": "Both accepted records contain launchd-produced evidence that check-in returned a materialized response.",
+      "asl_a2": {
+        "marker": "ASL_A2_LAUNCH_CHECKIN_REPLY_PRESENT=1",
+        "producer": "launchd",
+        "field_policy": {
+          "reply_present": "1"
+        }
+      },
+      "notifyd_n2": {
+        "marker": "NOTIFYD_N2_LAUNCHD_CHECKIN_REQUEST kr=0 result=dict",
+        "producer": "launchd",
+        "field_policy": {
+          "kr": "0",
+          "result": "dict"
+        }
+      },
+      "generic_common_policy": {
+        "checkin_response_present": true,
+        "successful_checkin": true
+      },
+      "strictness_note": "N2 records result=dict; A2 records reply presence but not the response type, so result=dict is not promoted from n=2 by this comparison."
+    },
+    {
+      "id": "machservices_dictionary_present",
+      "classification": "genuinely_shared",
+      "generic_candidate": true,
+      "producer": "launchd",
+      "reason": "Both accepted records contain launchd-produced evidence that the check-in reply exposed a MachServices dictionary.",
+      "asl_a2": {
+        "marker": "ASL_A2_MACHSERVICES_DICT_PRESENT=1",
+        "producer": "launchd",
+        "field_policy": {
+          "present": "1"
+        }
+      },
+      "notifyd_n2": {
+        "marker": "NOTIFYD_N2_LAUNCHD_MACH_SERVICES_DICT present=1 type=dict",
+        "producer": "launchd",
+        "field_policy": {
+          "present": "1",
+          "type": "dict"
+        }
+      },
+      "generic_common_policy": {
+        "machservices_dictionary_present": true
+      },
+      "strictness_note": "N2 records type=dict; A2 records dictionary presence only, so type=dict remains a richer N2 field until extraction can bind both consumers to it."
+    },
+    {
+      "id": "selected_service_entry_present",
+      "classification": "genuinely_shared",
+      "generic_candidate": true,
+      "producer": "launchd",
+      "reason": "Both accepted records contain launchd-produced evidence that the selected service had a MachServices entry.",
+      "asl_a2": {
+        "marker": "ASL_A2_SERVICE_ENTRY_PRESENT=1",
+        "producer": "launchd",
+        "service_name": "com.apple.system.logger",
+        "field_policy": {
+          "present": "1"
+        }
+      },
+      "notifyd_n2": {
+        "marker": "NOTIFYD_N2_LAUNCHD_SERVICE_ENTRY service=com.apple.system.notification_center present=1 type=machport",
+        "producer": "launchd",
+        "service_name": "com.apple.system.notification_center",
+        "field_policy": {
+          "service": "com.apple.system.notification_center",
+          "present": "1",
+          "type": "machport"
+        }
+      },
+      "generic_common_policy": {
+        "selected_service_entry_present": true,
+        "service_name": "parameterized"
+      },
+      "strictness_note": "The selected service name is an extraction parameter. N2 records service/type in the launchd marker; A2 binds service name through the accepted A2 service context rather than the service-entry marker itself."
+    },
+    {
+      "id": "receive_right_materialized",
+      "classification": "genuinely_shared",
+      "generic_candidate": true,
+      "producer": "launchd",
+      "reason": "Both accepted records contain launchd-produced evidence that the selected MachServices entry yielded a usable receive right.",
+      "asl_a2": {
+        "markers": [
+          "ASL_A2_SERVER_CHECKIN_RECEIVE_PORT=<positive integer>",
+          "ASL_A2_SERVER_RECEIVE_RIGHT_USABLE=1"
+        ],
+        "producer": "launchd",
+        "field_policy": {
+          "receive_port": "positive_integer",
+          "usable": "1"
+        }
+      },
+      "notifyd_n2": {
+        "marker": "NOTIFYD_N2_LAUNCHD_RECEIVE_RIGHT service=com.apple.system.notification_center port=21 right=receive",
+        "producer": "launchd",
+        "field_policy": {
+          "service": "com.apple.system.notification_center",
+          "port": "positive_integer",
+          "right": "receive"
+        }
+      },
+      "generic_common_policy": {
+        "receive_right_materialized": true,
+        "receive_port": "positive_integer_or_equivalent_right_handle",
+        "service_name": "parameterized"
+      },
+      "strictness_note": "N2 records right=receive in the marker; A2 records positive receive port plus usability. Generic extraction should preserve the common receive-right materialization fact and separately decide whether all consumers must emit a right kind field."
+    }
+  ],
+  "consumer_specific_facts": [
+    {
+      "id": "launch_checkin_call_shape",
+      "consumer": "asl_a2",
+      "classification": "consumer_specific",
+      "reason": "A2 launch check-in call/key markers are harness-produced and cannot satisfy a generic launchd-produced fact.",
+      "markers": [
+        "ASL_A2_LAUNCH_CHECKIN_CALLED=1",
+        "ASL_A2_LAUNCH_CHECKIN_KEY=CheckIn"
+      ],
+      "producer": "harness"
+    },
+    {
+      "id": "launchd_checkin_terminal",
+      "consumer": "notifyd_n2",
+      "classification": "consumer_specific",
+      "reason": "N2 has a launchd-produced check-in terminal marker. A2 has a harness subclaim summary instead, so this is not shared at n=2.",
+      "marker": "NOTIFYD_N2_LAUNCHD_CHECKIN_TERMINAL status=0",
+      "producer": "launchd"
+    },
+    {
+      "id": "subclaim_a_summary",
+      "consumer": "asl_a2",
+      "classification": "consumer_specific",
+      "reason": "A2 subclaim summary is harness orchestration, not a launchd-produced terminal fact.",
+      "marker": "ASL_A2_SUBCLAIM_A_PASSED=1",
+      "producer": "harness"
+    },
+    {
+      "id": "asl_port_identity_instrument",
+      "consumer": "asl_a2",
+      "classification": "consumer_specific",
+      "reason": "A2 proves port identity with an ASL nonce-bearing OOL _asl_server_message payload.",
+      "markers": [
+        "ASL_A2_NONCE_MATCH=1",
+        "ASL_A2_PORT_IDENTITY_NONCE_RECEIVED=1",
+        "ASL_A2_RECEIVED_OOL_SHA256=fab284180de734bdd4374aea271ca34a96c759f3053ccb14a22945a1f50c373b"
+      ],
+      "producer": "harness"
+    },
+    {
+      "id": "notifyd_identity_instrument",
+      "consumer": "notifyd_n2",
+      "classification": "consumer_specific",
+      "reason": "N2 proves notifyd behavior through notify-native register/post/check/TWQ observations and selected kernel receive facts.",
+      "markers": [
+        "NOTIFYD_N2_KERNEL_MACH_MSG_RECEIVE",
+        "NOTIFYD_N2_KERNEL_AUDIT_TRAILER",
+        "NOTIFYD_N2_CONCURRENCY_REGISTER",
+        "NOTIFYD_N2_CONCURRENCY_POST",
+        "NOTIFYD_N2_CONCURRENCY_CHECK",
+        "NOTIFYD_N2_TWQ_PROGRESS"
+      ],
+      "producer": "mixed"
+    },
+    {
+      "id": "n2c_2b_deferred",
+      "consumer": "notifyd_n2",
+      "classification": "consumer_specific_deferred",
+      "reason": "Cross-process client-death observation is outside the accepted narrowed N2C-1/N2C-2a/N2C-3 claim and is not a launchd-handoff fact.",
+      "deferred_markers": [
+        "NOTIFYD_N2_MACH_SEND_DEAD_EVENT",
+        "NOTIFYD_N2_PROC_SOURCE_EVENT",
+        "SOURCE_CREATE registered_name to DEAD_EVENT registered_name correlation"
+      ]
+    }
+  ],
+  "parameterization_axes": {
+    "service_name": {
+      "asl_a2": "com.apple.system.logger",
+      "notifyd_n2": "com.apple.system.notification_center",
+      "generic_requirement": "service name is a parameter, not a shared literal"
+    },
+    "fixture_form": {
+      "asl_a2": "reduced ASL A2 MachServices fixture",
+      "notifyd_n2": "reduced notifyd N2 MachServices fixture",
+      "generic_requirement": "Phase 0.85 extraction must identify boolean vs dictionary MachServices forms explicitly before claiming both"
+    },
+    "identity_instrument": {
+      "asl_a2": "nonce-bearing ASL OOL _asl_server_message receipt",
+      "notifyd_n2": "notify-native register/post/check observation plus kernel receive facts",
+      "generic_requirement": "port identity proof is consumer-selected; generic handoff may require an abstract identity-proof slot"
+    }
+  },
+  "residual_gaps": [
+    "No generic Phase 0.85 marker authority exists yet.",
+    "N2C-2b cross-process client-death observation remains deferred and is not a launchd-handoff fact.",
+    "N2 records richer response/type/right fields than A2 for some launchd facts; extraction must decide whether to add or require equivalent A2 fields before promoting those richer policies.",
+    "The n=2 set does not prove launchd cleanup, remove/reload, stale service-port invalidation, ResetAtClose behavior, or broad launchd resource parity.",
+    "The n=2 set does not prove PID 1 launchd behavior or D22/D23 launchctl lifecycle authority.",
+    "Harness-produced fixture/service-name/orchestration markers remain supporting provenance only and cannot become generic :launchd producer facts."
+  ],
+  "summary": {
+    "shared_count": 4,
+    "consumer_specific_count": 6,
+    "generic_authority_authored": false,
+    "consumer_authority_changed": false,
+    "guest_run_performed": false,
+    "attempt_consumed": false,
+    "n1_role": "corroborating_indirect_continuity_only"
+  }
+}
