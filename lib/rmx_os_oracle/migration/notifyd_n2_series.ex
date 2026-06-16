@@ -6,7 +6,13 @@ defmodule RmxOSOracle.Migration.NotifydN2Series do
   @schema_prefix "rmxos_oracle.notifyd_n2_series"
 
   def validate_serial(family, serial, opts \\ [])
-      when family in [:mach_send, :mach_raw, :mach_direct, :dispatch_notify_trace_timeout] and
+      when family in [
+             :mach_send,
+             :mach_raw,
+             :mach_direct,
+             :dispatch_notify_trace_timeout,
+             :concurrency
+           ] and
              is_binary(serial) do
     run_guest_rc = Keyword.get(opts, :run_guest_rc)
     parsed = parse_serial(serial)
@@ -116,11 +122,7 @@ defmodule RmxOSOracle.Migration.NotifydN2Series do
       "passed" =>
         serial_sha == evidence.serial_sha256 and validation["passed"] and hard_stop["passed"] and
           coverage["passed"] and negatives["passed"],
-      "accepted_claim" =>
-        if(family == :mach_send,
-          do: MarkerManifest.accepted_claim(),
-          else: "supporting_split_evidence"
-        ),
+      "accepted_claim" => accepted_claim(family),
       "serial_sha256" => serial_sha,
       "expected_serial_sha256" => evidence.serial_sha256,
       "marker_validation_passed" => validation["passed"],
@@ -152,13 +154,21 @@ defmodule RmxOSOracle.Migration.NotifydN2Series do
     |> MarkerManifest.specs()
     |> Enum.flat_map(fn spec ->
       matching = Enum.filter(parsed, &matches_spec?(&1, spec))
+      expected_count = Map.get(spec, :count, 1)
+      count_policy = Map.get(spec, :count_policy, :exact)
 
       cond do
-        length(matching) == 1 ->
+        count_policy == :exact and length(matching) == expected_count ->
           []
 
-        length(matching) > 1 ->
+        count_policy == :minimum and length(matching) >= expected_count ->
+          []
+
+        count_policy == :exact and length(matching) > expected_count ->
           ["duplicate field record #{spec.id}"]
+
+        length(matching) > 0 and length(matching) < expected_count ->
+          ["missing field record #{spec.id}"]
 
         true ->
           same_key = Enum.find(parsed, &(&1.key == spec.key))
@@ -319,16 +329,19 @@ defmodule RmxOSOracle.Migration.NotifydN2Series do
   defp terminal_id(:mach_raw), do: :mach_raw_terminal
   defp terminal_id(:mach_direct), do: :mach_direct_terminal
   defp terminal_id(:dispatch_notify_trace_timeout), do: :trace_terminal
+  defp terminal_id(:concurrency), do: :concurrency_terminal
 
   defp receipt_id(:mach_send), do: :mach_send_dead_event
   defp receipt_id(:mach_raw), do: :mach_raw_notification_receive
   defp receipt_id(:mach_direct), do: :mach_direct_kevent_receive
   defp receipt_id(:dispatch_notify_trace_timeout), do: :trace_private_merge_find_zero
+  defp receipt_id(:concurrency), do: :concurrency_mach_send_source_create
 
   defp start_id(:mach_send), do: :mach_send_start
   defp start_id(:mach_raw), do: :mach_raw_start
   defp start_id(:mach_direct), do: :mach_direct_start
   defp start_id(:dispatch_notify_trace_timeout), do: :trace_start
+  defp start_id(:concurrency), do: :concurrency_start
 
   defp remove_first_matching_line(serial, spec_id) do
     {_removed?, lines} =
@@ -429,6 +442,7 @@ defmodule RmxOSOracle.Migration.NotifydN2Series do
 
   defp policy_matches?(nil, _policy), do: false
   defp policy_matches?(actual, {:eq, expected}), do: actual == expected
+  defp policy_matches?(actual, {:one_of, values}), do: actual in values
   defp policy_matches?(actual, :positive_integer), do: integer_policy?(actual, &(&1 > 0))
   defp policy_matches?(actual, :nonnegative_integer), do: integer_policy?(actual, &(&1 >= 0))
   defp policy_matches?(actual, :integer), do: integer_policy?(actual, fn _ -> true end)
@@ -441,6 +455,7 @@ defmodule RmxOSOracle.Migration.NotifydN2Series do
   end
 
   defp format_policy({:eq, expected}), do: expected
+  defp format_policy({:one_of, values}), do: Enum.join(values, " | ")
   defp format_policy(:positive_integer), do: "positive integer"
   defp format_policy(:nonnegative_integer), do: "nonnegative integer"
   defp format_policy(:integer), do: "integer"
@@ -491,6 +506,10 @@ defmodule RmxOSOracle.Migration.NotifydN2Series do
 
   defp append_if(errors, true, error), do: errors ++ [error]
   defp append_if(errors, false, _error), do: errors
+
+  defp accepted_claim(:mach_send), do: MarkerManifest.accepted_claim()
+  defp accepted_claim(:concurrency), do: MarkerManifest.narrowed_concurrency_claim()
+  defp accepted_claim(_family), do: "supporting_split_evidence"
 
   defp sha256(data), do: :crypto.hash(:sha256, data) |> Base.encode16(case: :lower)
 end

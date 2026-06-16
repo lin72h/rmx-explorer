@@ -82,6 +82,49 @@ defmodule RmxOSOracle.Migration.NotifydN2SeriesTest do
   phase07_dispatch_notify_trace_exit=0
   """
 
+  @concurrency_serial """
+  WARNING: WITNESS option enabled, expect reduced performance.
+  KDB: debugger backends: ddb
+  KDB: current backend: ddb
+  NOTIFYD_N2_LAUNCHD_CHECKIN_REQUEST kr=0 result=dict
+  NOTIFYD_N2_LAUNCHD_MACH_SERVICES_DICT present=1 type=dict
+  NOTIFYD_N2_LAUNCHD_SERVICE_ENTRY service=com.apple.system.notification_center present=1 type=machport
+  NOTIFYD_N2_LAUNCHD_RECEIVE_RIGHT service=com.apple.system.notification_center port=21 right=receive
+  NOTIFYD_N2_LAUNCHD_CHECKIN_TERMINAL status=0
+  NOTIFYD_N2_CONCURRENCY_START status=0 clients=2
+  NOTIFYD_N2_TWQ_COUNTERS_BEFORE workers=4 source=kern.smp.cpus
+  NOTIFYD_N2_KERNEL_MACH_MSG_RECEIVE msgid=78945669 local_port=21 size=56 trailer_type=0
+  NOTIFYD_N2_KERNEL_AUDIT_TRAILER msgid=78945669 client_pid=1056 auid=0 euid=0 egid=0 trailer_size=52
+  NOTIFYD_N2_PROC_SOURCE_CREATE pid=1056 source_created=1
+  NOTIFYD_N2_CONCURRENCY_REGISTER client=1 name=org.rmxos.notifyd.n2.concurrency.client_a token=0 status=0
+  NOTIFYD_N2_CONCURRENCY_REGISTER client=2 name=org.rmxos.notifyd.n2.concurrency.client_b token=1 status=0
+  NOTIFYD_N2_CONCURRENCY_CHECK client=1 token=0 phase=baseline expected=1 observed=1 status=0 attempts=1
+  NOTIFYD_N2_CONCURRENCY_CHECK client=2 token=1 phase=baseline expected=1 observed=1 status=0 attempts=1
+  NOTIFYD_N2_TWQ_PROGRESS point=registered status=0
+  NOTIFYD_N2_CONCURRENCY_CLIENT_SPAWN client=dead pid=1057 status=0
+  NOTIFYD_N2_CONCURRENCY_DEAD_CLIENT_PORT kr=0 port=20
+  NOTIFYD_N2_CONCURRENCY_DEAD_CLIENT_MAKE_SEND kr=0
+  NOTIFYD_N2_CONCURRENCY_REGISTER client=dead name=org.rmxos.notifyd.n2.concurrency.dead_client token=0 status=0
+  NOTIFYD_N2_MACH_SEND_SOURCE_CREATE notify_port=21 registered_name=26 source_created=1
+  NOTIFYD_N2_CONCURRENCY_POST client=2 name=org.rmxos.notifyd.n2.concurrency.client_a status=0
+  NOTIFYD_N2_CONCURRENCY_CHECK client=1 token=0 phase=target expected=1 observed=1 status=0 attempts=2
+  NOTIFYD_N2_CONCURRENCY_CHECK_SAMPLE client=2 token=1 reason=nontarget observed=0 status=0 allowed_false_positive=1
+  NOTIFYD_N2_CONCURRENCY_POST client=2 name=org.rmxos.notifyd.n2.concurrency.client_b status=0
+  NOTIFYD_N2_CONCURRENCY_CHECK client=2 token=1 phase=target expected=1 observed=1 status=0 attempts=2
+  NOTIFYD_N2_CONCURRENCY_CHECK_SAMPLE client=1 token=0 reason=nontarget observed=1 status=0 allowed_false_positive=1
+  NOTIFYD_N2_CONCURRENCY_POST client=1 name=org.rmxos.notifyd.n2.concurrency.client_a status=0
+  NOTIFYD_N2_CONCURRENCY_CHECK client=1 token=0 phase=target expected=1 observed=1 status=0 attempts=2
+  NOTIFYD_N2_CONCURRENCY_CHECK_SAMPLE client=2 token=1 reason=nontarget observed=0 status=0 allowed_false_positive=1
+  NOTIFYD_N2_CONCURRENCY_CANCEL client=1 token=0 status=0
+  NOTIFYD_N2_CONCURRENCY_CLIENT_EXIT client=dead pid=1057 status=0
+  NOTIFYD_N2_TWQ_COUNTERS_AFTER workers=4 source=kern.smp.cpus
+  NOTIFYD_N2_TWQ_PROGRESS point=final status=0
+  NOTIFYD_N2_CONCURRENCY_FINAL_COUNTS clients=2 posts=3 baseline_checks=2 target_checks=3 samples=3 checks=8 cancels=1 dead_clients=1 status=0
+  NOTIFYD_N2_CONCURRENCY_TERMINAL status=0
+  phase095a_notifyd_n2_concurrency_exit=0
+  === phase095a notifyd n2 concurrency end rc=0 ===
+  """
+
   test "validates accepted MACH_SEND contract with corrected rc normalization" do
     serial = String.replace(@mach_send_serial, "\n", "\r\n")
     result = NotifydN2Series.validate_serial(:mach_send, serial, run_guest_rc: "1")
@@ -104,30 +147,52 @@ defmodule RmxOSOracle.Migration.NotifydN2SeriesTest do
     end
   end
 
+  test "validates accepted narrowed N2 concurrency contract" do
+    result = NotifydN2Series.validate_serial(:concurrency, @concurrency_serial, run_guest_rc: "1")
+
+    assert result["passed"]
+    assert result["terminal_contract"]["run_guest_rc_accepted"]
+    assert NotifydN2Series.marker_coverage(:concurrency, @concurrency_serial)["passed"]
+    assert NotifydN2Series.negative_controls(:concurrency, @concurrency_serial, "1")["passed"]
+  end
+
   test "authority records validate-only reclassification and open N2 obligations" do
     closeout = MarkerManifest.closeout()
 
     assert closeout.accepted_claim == MarkerManifest.accepted_claim()
+    assert closeout.accepted_claims.concurrency == MarkerManifest.narrowed_concurrency_claim()
     assert closeout.governing_record_commit == MarkerManifest.governing_record_commit()
+
+    assert closeout.concurrency_governing_record_commit ==
+             MarkerManifest.concurrency_governing_record_commit()
+
     assert closeout.source_pins.validator_correction == MarkerManifest.validator_correction_pin()
+
+    assert closeout.source_pins.concurrency_validator ==
+             MarkerManifest.concurrency_validator_pin()
+
     assert closeout.source_pins.donor_decode_fix == MarkerManifest.donor_decode_fix_pin()
-    assert closeout.maestro_acceptance =~ "validate-only reclassification"
-    assert "direct_launchd_notifyd_facts" in closeout.open_obligations
-    assert "direct_kernel_notifyd_facts" in closeout.open_obligations
+    assert closeout.coordinator_acceptance =~ "narrowed N2C-1/N2C-2a/N2C-3"
+    assert "direct_launchd_notifyd_facts_for_n2c_1" in closeout.satisfied_obligations
+    assert "direct_kernel_receive_facts_for_n2c_2a" in closeout.satisfied_obligations
+    assert "n2c_2b_cross_process_client_death_observation" in closeout.open_obligations
+    assert "NOTIFYD_N2_MACH_SEND_DEAD_EVENT" in closeout.deferred_marker_families.n2c_2b
+    assert "NOTIFYD_N2_PROC_SOURCE_EVENT" in closeout.deferred_marker_families.n2c_2b
     assert closeout.new_guest_run_for_authority_extraction == false
   end
 
-  test "producer model separates donor harness and kernel facts" do
+  test "producer model separates donor harness kernel and launchd facts" do
     producers =
       MarkerManifest.specs()
       |> Enum.map(& &1.producer)
       |> Enum.uniq()
       |> Enum.sort()
 
-    assert producers == [:donor, :harness, :kernel]
+    assert producers == [:donor, :harness, :kernel, :launchd]
     assert MarkerManifest.producer_breakdown()[:donor] > 0
     assert MarkerManifest.producer_breakdown()[:harness] > 0
     assert MarkerManifest.producer_breakdown()[:kernel] > 0
+    assert MarkerManifest.producer_breakdown()[:launchd] == 5
   end
 
   test "coverage maps every accepted family key to authority" do
@@ -135,7 +200,8 @@ defmodule RmxOSOracle.Migration.NotifydN2SeriesTest do
           mach_send: @mach_send_serial,
           mach_raw: @mach_raw_serial,
           mach_direct: @mach_direct_serial,
-          dispatch_notify_trace_timeout: @notify_trace_timeout_serial
+          dispatch_notify_trace_timeout: @notify_trace_timeout_serial,
+          concurrency: @concurrency_serial
         ] do
       coverage = NotifydN2Series.marker_coverage(family, serial)
 
@@ -149,7 +215,11 @@ defmodule RmxOSOracle.Migration.NotifydN2SeriesTest do
   test "MACH_SEND negative controls fail for intended classes" do
     controls = NotifydN2Series.negative_controls(:mach_send, @mach_send_serial, "1")
 
+    concurrency_controls =
+      NotifydN2Series.negative_controls(:concurrency, @concurrency_serial, "1")
+
     assert controls["passed"]
+    assert concurrency_controls["passed"]
 
     classes =
       controls["controls"]
@@ -168,6 +238,7 @@ defmodule RmxOSOracle.Migration.NotifydN2SeriesTest do
     refute NotifydN2Series.hard_stop_scan("WITNESS: lock diagnostic\n")["passed"]
     refute NotifydN2Series.hard_stop_scan("lock order reversal\n")["passed"]
     refute NotifydN2Series.hard_stop_scan("KASSERT(fake)\n")["passed"]
+    refute NotifydN2Series.hard_stop_scan("KDB: stack backtrace\n")["passed"]
     refute NotifydN2Series.hard_stop_scan("dispatch assertion failed\n")["passed"]
   end
 
@@ -223,6 +294,15 @@ defmodule RmxOSOracle.Migration.NotifydN2SeriesTest do
              "0e2a1b5d0fe24a1859e7e9124353dc62d10dc563a95227ae7ea819ddb7beb1bf"
 
     assert mach_send["passed"]
+
+    concurrency =
+      Enum.find(report["results"], &(&1["family"] == "concurrency")) ||
+        flunk("concurrency evidence hash result missing")
+
+    assert concurrency["expected_sha256"] ==
+             "af1a56ee8d9b81def49babf3b6c211700416658253a83152b253f94146711500"
+
+    assert concurrency["passed"]
   end
 
   test "preserved accepted MACH_SEND evidence revalidates when present" do
@@ -234,6 +314,19 @@ defmodule RmxOSOracle.Migration.NotifydN2SeriesTest do
       assert report["passed"]
       assert report["accepted_claim"] == MarkerManifest.accepted_claim()
       assert report["serial_sha256"] == MarkerManifest.evidence(:mach_send).serial_sha256
+      assert report["raw_evidence_mutated"] == false
+    end
+  end
+
+  test "preserved accepted narrowed concurrency evidence revalidates when present" do
+    evidence_path = Path.join(File.cwd!(), MarkerManifest.evidence(:concurrency).path)
+
+    if File.exists?(evidence_path) do
+      report = NotifydN2Series.revalidate_accepted_family(:concurrency, File.cwd!())
+
+      assert report["passed"]
+      assert report["accepted_claim"] == MarkerManifest.narrowed_concurrency_claim()
+      assert report["serial_sha256"] == MarkerManifest.evidence(:concurrency).serial_sha256
       assert report["raw_evidence_mutated"] == false
     end
   end
