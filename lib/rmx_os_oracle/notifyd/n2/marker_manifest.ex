@@ -35,7 +35,7 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
   @concurrency_governing_record_commit "85021e3fbc34b771877ec9a121d5768856e30814"
   @concurrency_validator_pin "ff3b7257a08c725090712741eb06304c49ea4189d4e7e783018eeac93ecb3b8a"
   @n2c2b_governing_record "docs/phase-0.95b-notifyd-n2c2b-client-death-activation-record.md"
-  @n2c2b_governing_record_commit "6a4a25b3ae57f5158d1f246d950600680cd5e89c"
+  @n2c2b_governing_record_commit "6f773cbd624b378afca5a4f73a442d717c4fbbaa"
   @n2c2b_validator_pin "7bb8a2e077ef99ad9fd11060c52e21a17c3bd44fa4204535b15a9aa22a104797"
   @validator_correction_pin "64f47c37e93351851113e4ece65b6e9b2f12d2a9"
   @donor_decode_fix_pin "d08b35d57d7be8ae6d8a85f45ca22c53cfebac68"
@@ -128,7 +128,11 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
     n2c2b_client_death: %{
       path: "priv/runs/notifyd-n2c2b/20260616T215503Z-client-death-reroute/attempt-a.serial.log",
       serial_sha256: "eb28d75767826183374b5f18dca32dffad78e2491d88c1f8c2e5f1b21c293333",
-      disposition: "pending_validate_only_reclassification_for_narrowed_contract",
+      disposition_path:
+        "priv/runs/notifyd-n2c2b/20260616T215503Z-client-death-reroute/validate-only-reclassification.json",
+      disposition: "accepted_narrowed_validate_only_reclassification",
+      accepted_by:
+        "coordinator_accepted_narrowed_n2c2b_and_gatekeeper_validate_only_reclassification",
       accepted_claim: @n2c2b_client_death_claim,
       governing_record: @n2c2b_governing_record,
       governing_record_commit: @n2c2b_governing_record_commit,
@@ -184,10 +188,11 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
       n2c2b_governing_record: @n2c2b_governing_record,
       n2c2b_governing_record_commit: @n2c2b_governing_record_commit,
       coordinator_acceptance:
-        "Coordinator accepted narrowed N2C-1/N2C-2a/N2C-3 claims on 2026-06-16; validate-only reclassification uses the unchanged 090236Z serial",
+        "Coordinator accepted narrowed N2C-1/N2C-2a/N2C-3 claims on 2026-06-16 and narrowed N2C-2b validate-only reclassification on 2026-06-17; reclassification uses unchanged preserved serials",
       validator_reviews: %{
-        glm: "accepted, confidence 9.5/10, no blockers",
-        ds4p: "no blockers, confidence 9/10"
+        glm: "N2 concurrency accepted, confidence 9.5/10, no blockers",
+        ds4p:
+          "N2 concurrency no blockers, confidence 9/10; N2C-2b post-evidence review point 5 no blockers"
       },
       source_pins: %{
         validator_correction: @validator_correction_pin,
@@ -214,8 +219,7 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
         "n2c_2b_cross_process_client_death_observation:satisfied-via-narrowed-contract"
       ],
       open_obligations: [
-        "proc_path_independent_validation_non_port_client_or_non_racing_death",
-        "notifyd_n2_series_closeout_after_n2c_2b"
+        "proc_path_independent_validation_non_port_client_or_non_racing_death"
       ],
       deferred_marker_families: %{
         n2c_2b_proc_path_independent_validation: [
@@ -236,7 +240,7 @@ defmodule RmxOSOracle.Notifyd.N2.MarkerManifest do
           }
         }
       },
-      closeout_triggered: "notifyd_n2_series_closeout_after_n2c_2b",
+      closeout_triggered: "notifyd_n2_series_closed_after_n2c_2b",
       raw_evidence_mutated: false,
       new_guest_run_for_authority_extraction: false
     }

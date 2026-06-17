@@ -236,7 +236,7 @@ defmodule RmxOSOracle.Migration.NotifydN2SeriesTest do
            }
   end
 
-  test "authority records validate-only reclassification and open N2 obligations" do
+  test "authority records validate-only reclassification and closes the N2 series" do
     closeout = MarkerManifest.closeout()
 
     assert closeout.accepted_claim == MarkerManifest.accepted_claim()
@@ -258,12 +258,14 @@ defmodule RmxOSOracle.Migration.NotifydN2SeriesTest do
     assert closeout.source_pins.n2c2b_validator == MarkerManifest.n2c2b_validator_pin()
     assert closeout.source_pins.donor_decode_fix == MarkerManifest.donor_decode_fix_pin()
     assert closeout.coordinator_acceptance =~ "narrowed N2C-1/N2C-2a/N2C-3"
+    assert closeout.coordinator_acceptance =~ "narrowed N2C-2b"
     assert "direct_launchd_notifyd_facts_for_n2c_1" in closeout.satisfied_obligations
     assert "direct_kernel_receive_facts_for_n2c_2a" in closeout.satisfied_obligations
 
     assert "n2c_2b_cross_process_client_death_observation:satisfied-via-narrowed-contract" in closeout.satisfied_obligations
 
     refute "n2c_2b_cross_process_client_death_observation" in closeout.open_obligations
+    refute "notifyd_n2_series_closeout_after_n2c_2b" in closeout.open_obligations
 
     assert "proc_path_independent_validation_non_port_client_or_non_racing_death" in closeout.open_obligations
 
@@ -275,6 +277,7 @@ defmodule RmxOSOracle.Migration.NotifydN2SeriesTest do
            }
 
     assert closeout.new_guest_run_for_authority_extraction == false
+    assert closeout.closeout_triggered == "notifyd_n2_series_closed_after_n2c_2b"
   end
 
   test "producer model separates donor harness kernel and launchd facts" do

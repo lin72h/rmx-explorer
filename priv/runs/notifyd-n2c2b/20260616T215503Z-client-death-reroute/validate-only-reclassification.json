@@ -1,0 +1,57 @@
+{
+  "schema": "rmxos_oracle.notifyd.n2c2b.validate_only_reclassification.v1",
+  "mode": "gatekeeper",
+  "record_pin": "6f773cbd624b378afca5a4f73a442d717c4fbbaa",
+  "validator_pin": "7bb8a2e077ef99ad9fd11060c52e21a17c3bd44fa4204535b15a9aa22a104797",
+  "oracle_authority_baseline": "198fa645",
+  "disposition": "accepted_narrowed_validate_only_reclassification",
+  "accepted": true,
+  "accepted_claim": "n2c_2b_cross_process_client_death_observation_satisfied_via_narrowed_mach_send_contract",
+  "guest_run_performed": false,
+  "attempts_consumed": 0,
+  "raw_evidence_mutated": false,
+  "serial_path": "priv/runs/notifyd-n2c2b/20260616T215503Z-client-death-reroute/attempt-a.serial.log",
+  "serial_sha256": "eb28d75767826183374b5f18dca32dffad78e2491d88c1f8c2e5f1b21c293333",
+  "serial_stat_before_disposition": "1781646958 21625",
+  "validation": {
+    "status": 0,
+    "passed": true,
+    "log": "narrowed-validation.log",
+    "log_sha256": "105c3f8a31eed5015ca0ac0439a89fd8dfd7f9dd164ba48c16abb61545fe6e3b"
+  },
+  "narrowed_required_set": {
+    "mach_send_dead_event": "NOTIFYD_N2_MACH_SEND_DEAD_EVENT registered_name=26 data=1\r",
+    "product_source_create": "NOTIFYD_N2_MACH_SEND_SOURCE_CREATE notify_port=21 registered_name=26 source_created=1\r",
+    "diagnostic_source_create": "NOTIFYD_N2C2B_MACH_SEND_SOURCE_CREATE registered_name=26 source_created=1\r",
+    "source_create_to_dead_event_registered_name": "26",
+    "delivery_shape_update_enter": "NOTIFYD_N2C2B_PRIVATE_NOTIFY_UPDATE_ENTER registered_name=26 new=9 del=0 mask=13 prev=0 fflags=9\r",
+    "port_event_enter": "NOTIFYD_N2C2B_PORT_EVENT_ENTER registered_name=26 data=1\r",
+    "proc_marker_required": false,
+    "proc_source_event_count": 0,
+    "diagnostic_proc_event_enter_count": 0
+  },
+  "deferred_non_claims": [
+    "NOTIFYD_N2_PROC_SOURCE_EVENT",
+    "NOTIFYD_N2C2B_PROC_EVENT_ENTER",
+    "proc_path_independent_validation_non_port_client_or_non_racing_death"
+  ],
+  "preserved_falsifiers": [
+    {
+      "path": "priv/runs/notifyd-n2c2b/20260616T152033Z-client-death/attempt-a.serial.log",
+      "sha256": "4665ca018126846362d1dcb27bbd400983cf4150827f827aa6a61612d10ee7fd"
+    },
+    {
+      "path": "priv/runs/notifyd-n2c2b/20260616T160043Z-client-death-restaged/attempt-a.serial.log",
+      "sha256": "c8b00047579c567f86d116264fa4f7fc287230a209a0dc1eec545af171b3ffa9"
+    }
+  ],
+  "next_hop": "extend_notifyd_n2_series_authority_and_closeout_n2_series",
+  "guardrails": {
+    "no_guest_run": true,
+    "no_new_attempt": true,
+    "no_source_edits": true,
+    "no_phase_085_authority": true,
+    "no_certification_or_parity_movement": true
+  },
+  "serial_stat_after_disposition": "1781646958 21625"
+}
