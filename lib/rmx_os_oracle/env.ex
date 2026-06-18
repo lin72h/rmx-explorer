@@ -13,7 +13,7 @@ defmodule RmxOSOracle.Env do
   @releng151_current "releng151-current"
   @stable15_active "stable15-active"
   @official_stable15_candidate "official-stable15-candidate"
-  @canonical_freebsd_src "/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15"
+  @canonical_freebsd_src "/Users/me/wip-mach/wip-gpt/wip-rmxos"
   @stable15_src "/Users/me/wip-mach/wip-gpt/wip-rmxos"
   @stable15_commit "a0c2a8fb822e"
   @stable15_objdir "/Users/me/wip-mach/build/wip-rmxos-alpha-obj"
@@ -176,10 +176,10 @@ defmodule RmxOSOracle.Env do
   end
 
   defp reject_oracle_source_default(errors, freebsd_src) do
-    oracle_default = Path.join(Paths.oracle_root(), "freebsd-src-stable-15")
+    oracle_default = Path.join(Paths.oracle_root(), "wip-rmxos")
 
     if is_binary(freebsd_src) and Path.expand(freebsd_src) == Path.expand(oracle_default) do
-      errors ++ ["NXPLATFORM_FREEBSD_SRC must not default to oracle-root/freebsd-src-stable-15"]
+      errors ++ ["NXPLATFORM_FREEBSD_SRC must not default to oracle-root/wip-rmxos"]
     else
       errors
     end

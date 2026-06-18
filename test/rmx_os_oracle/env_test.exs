@@ -4,8 +4,9 @@ defmodule RmxOSOracleEnvTest do
   alias RmxOSOracle.Env
 
   @workspace_root "/Users/me/wip-mach"
-  @releng_src "/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15"
   @candidate_src "/Users/me/wip-mach/wip-gpt/wip-rmxos"
+  @releng_src "/Users/me/wip-mach/wip-gpt/wip-rmxos"
+  @invalid_src "/Users/me/wip-mach"
   @releng_objdir "/Users/me/wip-mach/build/releng151-mach-obj"
   @releng_rc1_objdir "/Users/me/wip-mach/build/releng151-rc1-mach-obj"
   @candidate_objdir "/Users/me/wip-mach/build/wip-rmxos-alpha-obj"
@@ -89,11 +90,11 @@ defmodule RmxOSOracleEnvTest do
     assert_stable15_report(report, "official-stable15-candidate")
   end
 
-  test "default profile with releng source fails closed" do
+  test "default profile with noncanonical source fails closed" do
     report =
       check_with_env(%{
         "NXPLATFORM_WORKSPACE_ROOT" => @workspace_root,
-        "NXPLATFORM_FREEBSD_SRC" => @releng_src,
+        "NXPLATFORM_FREEBSD_SRC" => @invalid_src,
         "NXPLATFORM_KERNEL_OBJDIRPREFIX_LAUNCHD" => @candidate_objdir
       })
 
@@ -173,12 +174,12 @@ defmodule RmxOSOracleEnvTest do
     end
   end
 
-  test "stable15-active rejects nested releng source" do
+  test "stable15-active rejects noncanonical source" do
     report =
       check_with_env(%{
         "NXPLATFORM_BASE_PROFILE" => "stable15-active",
         "NXPLATFORM_WORKSPACE_ROOT" => @workspace_root,
-        "NXPLATFORM_FREEBSD_SRC" => @releng_src,
+        "NXPLATFORM_FREEBSD_SRC" => @invalid_src,
         "NXPLATFORM_KERNEL_OBJDIRPREFIX_LAUNCHD" => @candidate_objdir
       })
 

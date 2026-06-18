@@ -43,7 +43,7 @@ defmodule RmxOSOracleStable15EnvMatrixTest do
 
     assert by_id["default_profile_releng151_objdir"]["actual_status"] == "fail"
     assert by_id["default_profile_usrobj"]["actual_status"] == "fail"
-    assert by_id["stable15_active_releng_source"]["actual_status"] == "fail"
+    assert by_id["stable15_active_workspace_source"]["actual_status"] == "fail"
     assert by_id["stable15_active_releng_objdir"]["actual_status"] == "fail"
     assert by_id["candidate_alias_releng_objdir"]["actual_status"] == "fail"
     assert by_id["unknown_profile"]["actual_status"] == "fail"

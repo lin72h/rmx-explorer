@@ -11,7 +11,7 @@ defmodule RmxOSOracle.Stable15.EnvMatrix do
   @workspace_root "/Users/me/wip-mach"
   @stable15_src "/Users/me/wip-mach/wip-gpt/wip-rmxos"
   @stable15_objdir "/Users/me/wip-mach/build/wip-rmxos-alpha-obj"
-  @releng_src "/Users/me/wip-mach/wip-gpt/freebsd-src-stable-15"
+  @releng_src "/Users/me/wip-mach/wip-gpt/wip-rmxos"
   @releng_objdir "/Users/me/wip-mach/build/releng151-mach-obj"
   @releng_rc1_objdir "/Users/me/wip-mach/build/releng151-rc1-mach-obj"
   @all_lanes %{
@@ -122,10 +122,10 @@ defmodule RmxOSOracle.Stable15.EnvMatrix do
           "NXPLATFORM_KERNEL_OBJDIRPREFIX for stable15-active"
         ),
         fail_case(
-          "stable15_active_releng_source",
+          "stable15_active_workspace_source",
           base_env(%{
             "NXPLATFORM_BASE_PROFILE" => "stable15-active",
-            "NXPLATFORM_FREEBSD_SRC" => @releng_src,
+            "NXPLATFORM_FREEBSD_SRC" => @workspace_root,
             "NXPLATFORM_KERNEL_OBJDIRPREFIX_LAUNCHD" => @stable15_objdir
           }),
           "NXPLATFORM_FREEBSD_SRC must match accepted source pin"
