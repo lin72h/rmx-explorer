@@ -1,0 +1,53 @@
+{
+  "schema": "rmxos_oracle.env_repin_disposition.v1",
+  "mode": "gatekeeper",
+  "disposition": "accepted",
+  "oracle_env_repin_commit": "3ba87f92bff8ca79670f614dea304fa05fcab20b",
+  "accepted_source_binding": {
+    "source_path": "/Users/me/wip-mach/wip-gpt/wip-rmxos",
+    "source_branch": "alpha",
+    "source_commit": "a0c2a8fb822ee9004bd887ffce263ac925065435",
+    "objdir": "/Users/me/wip-mach/build/wip-rmxos-alpha-obj"
+  },
+  "mach_ko_byte_identity": {
+    "accepted_path": "/Users/me/wip-mach/build/official-stable15-mach-obj/Users/me/wip-mach/freebsd-src-official-stable-15/amd64.amd64/sys/modules/mach/mach.ko",
+    "repinned_path": "/Users/me/wip-mach/build/wip-rmxos-alpha-obj/Users/me/wip-mach/wip-gpt/wip-rmxos/amd64.amd64/sys/modules/mach/mach.ko",
+    "accepted_sha256": "49ac3d8970449817ebca964e0005ea05bfb2294b341425d9f54f8fcdadfeccc5",
+    "repinned_sha256": "49ac3d8970449817ebca964e0005ea05bfb2294b341425d9f54f8fcdadfeccc5",
+    "accepted_size": 345288,
+    "repinned_size": 345288,
+    "cmp_status": 0,
+    "byte_identical": true,
+    "load_bearing": true
+  },
+  "kernel_rebind": {
+    "accepted_path": "/Users/me/wip-mach/build/official-stable15-mach-obj/Users/me/wip-mach/freebsd-src-official-stable-15/amd64.amd64/sys/MACHDEBUGDEBUG/kernel",
+    "repinned_path": "/Users/me/wip-mach/build/wip-rmxos-alpha-obj/Users/me/wip-mach/wip-gpt/wip-rmxos/amd64.amd64/sys/MACHDEBUGDEBUG/kernel",
+    "accepted_sha256": "39031adb1267455043f6b04f4e073dbb975e8aa91d80a7808fd9b92a2ec63fb5",
+    "repinned_sha256": "b8f3f8a739793e7bb0e6af6874b154617b0503d532c8ab943abb604fe985cc53",
+    "accepted_size": 31404792,
+    "repinned_size": 31404792,
+    "cmp_status": 1,
+    "classification": "cosmetic_rebind_version_string_build_id",
+    "load_bearing_for_mach_ipc_evidence": false
+  },
+  "decision": {
+    "re_pin_accepted": true,
+    "basis": "mach.ko byte identity; accepted Mach IPC evidence carries by hash identity",
+    "d14_required_for_source_functional_equivalence": false,
+    "d14_decision": "skipped",
+    "d14_rationale": "D14 would be a pipeline-integrity smoke for the new wip-rmxos build/stage/boot plumbing, not a source-functional equivalence requirement. The load-bearing Mach IPC artifact is byte-identical, so no confirming D14 is required for this re-pin disposition.",
+    "retirement_unblocked_after": "Coordinator acceptance"
+  },
+  "coordinator_acceptance": {
+    "status": "accepted",
+    "attribution": "Coordinator-delegated to Arranger ('you decide') 2026-06-18",
+    "basis": "mach.ko byte-identity + Gatekeeper disposition f2e141a4",
+    "retirement_unblocked": true
+  },
+  "scope": {
+    "frozen_evidence_rewritten": false,
+    "retirement_performed": false,
+    "guest_attempts_consumed": 0
+  }
+}
