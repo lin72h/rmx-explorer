@@ -41,6 +41,7 @@ typedef int          mach_msg_return_t;
 #define KERN_INVALID_VALUE        18
 #define KERN_UREFS_OVERFLOW       19
 #define KERN_INVALID_CAPABILITY   20
+#define KERN_NOT_SUPPORTED        46
 #define MACH_MSG_SUCCESS            0
 #define MACH_SEND_INVALID_DATA     0x10000002
 #define MACH_SEND_INVALID_DEST     0x10000003
@@ -70,6 +71,10 @@ typedef int          mach_msg_return_t;
 #define MACH_MSG_PORT_DESCRIPTOR   0
 #endif /* __APPLE__ */
 
+#ifndef KERN_NOT_SUPPORTED
+#define KERN_NOT_SUPPORTED        46
+#endif
+
 /*
  * Baseline snapshot — captures mach_port_names() state.
  * Used before and after probe bodies to verify cleanup.
@@ -96,6 +101,16 @@ void nx_baseline_free(nx_baseline_t *b);
 bool nx_baseline_compare(const nx_baseline_t *before,
                          const nx_baseline_t *after,
                          int *delta);
+
+/* True when mach_port_names() failed with rmxOS's observable
+ * KERN_NOT_SUPPORTED gap. That gap should be cataloged, but it should not
+ * hide the probe's primary Mach behavior. */
+bool nx_baseline_is_unsupported_gap(const nx_baseline_t *b);
+
+/* True when a baseline failure should stop the probe before its primary
+ * behavior can be interpreted. KERN_NOT_SUPPORTED is a cataloged observable,
+ * not a setup failure. */
+bool nx_baseline_blocks_probe(const nx_baseline_t *b);
 
 /* Format a kern_return_t as a string. Returns a static buffer. */
 const char *nx_kern_return_str(kern_return_t kr);

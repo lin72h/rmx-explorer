@@ -1,0 +1,78 @@
+{
+  "schema": "nx-v64z.macos-oracle.v1",
+  "agent": "rx",
+  "test_id": "macos_m2_descriptor_move_send",
+  "cross_reference": {
+    "nextbsd_test_id": null,
+    "donor_equivalent_id": null
+  },
+  "status": "probe_failure",
+  "semantic_class": "probe_failure",
+  "environment": {
+  "sw_vers": null,
+  "uname": "FreeBSD freebsd 15.1-STABLE FreeBSD 15.1-STABLE rmx/official-stable15-mach-n283869-f71260cf4c9e MACHDEBUGDEBUG amd64",
+  "os_name": "FreeBSD",
+  "kernel_version": "15.1-STABLE",
+  "result_dir_name": "20260619T161752Z-rmxos-mach-guest",
+  "arch": "amd64",
+  "machine": "amd64",
+  "compiler": "FreeBSD clang version 19.1.7 (https://github.com/llvm/llvm-project.git llvmorg-19.1.7-0-gcd708029e0b2)",
+  "sdk": null,
+  "sdk_version": null,
+  "sdk_path": null,
+  "xcode_select_path": null,
+  "cpu_brand": "Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz",
+  "cpu_features": {},
+  "apple_silicon": {
+    "hw_optional_arm64": null,
+    "arm64e": null,
+    "pointer_authentication": null,
+    "raw_sysctls": {}
+  },
+  "rosetta": null,
+  "sip_enabled": null,
+  "sandboxed": null,
+  "run_as_root": true,
+  "ad_hoc_signed": false,
+  "hardened_runtime": false,
+  "signing": {
+    "binaries": []
+  },
+  "zig_version": null,
+  "zig_path": null,
+  "zig_lib_dir": null,
+  "zig_fallback": false,
+  "zig_fallback_reason": null,
+  "command_failures": []
+},
+  "message": {
+    "msgh_bits": "",
+    "remote_port": {
+      "name": null,
+      "disposition": null,
+      "right_type": null
+    },
+    "local_port": {
+      "name": null,
+      "disposition": null,
+      "right_type": null
+    },
+    "header_rights": [],
+    "descriptor_count": 0,
+    "descriptors": []
+  },
+  "returns": [
+    {
+      "call": "probe_process_exit",
+      "returned": "invalid_or_missing_probe_json",
+      "raw": 142,
+      "errno": null
+    }
+  ],
+  "right_deltas": [],
+  "cleanup": {
+    "returned_to_baseline": false,
+    "notes": "probe did not emit valid JSON"
+  },
+  "notes": "probe stdout was missing or invalid; generated harness fallback result"
+}

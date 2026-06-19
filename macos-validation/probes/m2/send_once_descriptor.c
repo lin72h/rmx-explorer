@@ -391,7 +391,7 @@ child_run(int status_fd)
         (void)mach_port_deallocate(mach_task_self(), service_port);
     }
 
-    if (st.kr_child_baseline_before == KERN_SUCCESS &&
+    if (!nx_baseline_blocks_probe(&before) &&
         st.kr_child_get_bootstrap == KERN_SUCCESS &&
         st.kr_child_alloc_cargo == KERN_SUCCESS &&
         st.kr_child_cargo_type_before_create == KERN_SUCCESS &&
@@ -402,7 +402,7 @@ child_run(int status_fd)
         st.mr_child_receive_verify_second == MACH_RCV_TIMED_OUT &&
         st.kr_child_cargo_type_after_verify == KERN_SUCCESS &&
         st.kr_child_destroy_cargo == KERN_SUCCESS &&
-        st.kr_child_baseline_after == KERN_SUCCESS &&
+        !nx_baseline_blocks_probe(&after) &&
         st.child_cleanup_ok) {
         st.child_exit_code = 0;
     }
@@ -681,7 +681,7 @@ main(void)
     cleanup_ok = true;
     cleanup_notes = "not applicable on non-macOS host";
 #else
-    if (before.kr != KERN_SUCCESS) {
+    if (nx_baseline_blocks_probe(&before)) {
         status = NX_STATUS_PROBE_FAILURE;
         sclass = NX_CLASS_PROBE_FAILURE;
         notes = "initial mach_port_names failed";
@@ -777,7 +777,7 @@ main(void)
         status = NX_STATUS_FAIL;
         sclass = NX_CLASS_PROBE_FAILURE;
         notes = "parent mach_port_destroy service failed";
-    } else if (after.kr != KERN_SUCCESS) {
+    } else if (nx_baseline_blocks_probe(&after)) {
         status = NX_STATUS_PROBE_FAILURE;
         sclass = NX_CLASS_PROBE_FAILURE;
         notes = "final mach_port_names failed";

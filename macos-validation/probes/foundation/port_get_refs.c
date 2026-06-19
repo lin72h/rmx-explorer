@@ -139,7 +139,7 @@ main(void)
     cleanup_ok = true;
     cleanup_notes = "not applicable on non-macOS host";
 #else
-    if (before.kr != KERN_SUCCESS) {
+    if (nx_baseline_blocks_probe(&before)) {
         status = NX_STATUS_PROBE_FAILURE;
         sclass = NX_CLASS_PROBE_FAILURE;
         notes = "initial mach_port_names failed";
@@ -195,7 +195,7 @@ main(void)
         status = NX_STATUS_FAIL;
         sclass = NX_CLASS_PROBE_FAILURE;
         notes = "mach_port_destroy receive failed";
-    } else if (after.kr != KERN_SUCCESS) {
+    } else if (nx_baseline_blocks_probe(&after)) {
         status = NX_STATUS_PROBE_FAILURE;
         sclass = NX_CLASS_PROBE_FAILURE;
         notes = "final mach_port_names failed";

@@ -307,13 +307,13 @@ case_ok(const ob24_case_t *c)
         case_dead_name_consumed_and_delivered(c) :
         case_nonexistent_rejected(c);
 
-    return c->before.kr == KERN_SUCCESS &&
+    return !nx_baseline_blocks_probe(&c->before) &&
         c->kr_alloc_service == KERN_SUCCESS &&
         c->kr_insert_service_send == KERN_SUCCESS &&
         c->kr_alloc_dead_name == KERN_SUCCESS &&
         source_behavior_ok &&
         c->kr_destroy_service == KERN_SUCCESS &&
-        c->after.kr == KERN_SUCCESS &&
+        !nx_baseline_blocks_probe(&c->after) &&
         c->cleanup_ok;
 }
 

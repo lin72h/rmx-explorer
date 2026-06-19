@@ -8,9 +8,81 @@
 
 set -eu
 
+json_escape() {
+    printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+json_string_or_null() {
+    if [ -n "${1+x}" ] && [ -n "$1" ]; then
+        printf '"%s"' "$(json_escape "$1")"
+    else
+        printf 'null'
+    fi
+}
+
 if ! command -v python3 >/dev/null 2>&1; then
-    echo "TOOLCHAIN FAILURE: python3 is required for environment capture" >&2
-    exit 2
+    uname_s=$(uname -s 2>/dev/null || printf unknown)
+    uname_n=$(uname -n 2>/dev/null || printf unknown)
+    uname_r=$(uname -r 2>/dev/null || printf unknown)
+    uname_v=$(uname -v 2>/dev/null || printf unknown)
+    uname_m=$(uname -m 2>/dev/null || printf unknown)
+    uname_full="$uname_s $uname_n $uname_r $uname_v $uname_m"
+    today=$(date -u +%Y%m%dT%H%M%SZ 2>/dev/null || date +%Y%m%d 2>/dev/null || printf unknown)
+    result_dir_name=${NX_ORACLE_RESULT_DIR_NAME:-"${today}-rmxos-mach-guest"}
+    compiler=${NX_ORACLE_COMPILER_LABEL:-}
+    if [ -z "$compiler" ]; then
+        compiler=$(cc --version 2>/dev/null | sed -n '1p' || true)
+    fi
+    if [ -z "$compiler" ]; then
+        compiler=rx-guest-prebuilt-on-host
+    fi
+    cpu_brand=$(sysctl -n hw.model 2>/dev/null || true)
+    if [ "$(id -u 2>/dev/null || printf 1)" = "0" ]; then
+        run_as_root=true
+    else
+        run_as_root=false
+    fi
+
+    cat <<EOF
+{
+  "sw_vers": null,
+  "uname": $(json_string_or_null "$uname_full"),
+  "os_name": $(json_string_or_null "$uname_s"),
+  "kernel_version": $(json_string_or_null "$uname_r"),
+  "result_dir_name": $(json_string_or_null "$result_dir_name"),
+  "arch": $(json_string_or_null "$uname_m"),
+  "machine": $(json_string_or_null "$uname_m"),
+  "compiler": $(json_string_or_null "$compiler"),
+  "sdk": null,
+  "sdk_version": null,
+  "sdk_path": null,
+  "xcode_select_path": null,
+  "cpu_brand": $(json_string_or_null "$cpu_brand"),
+  "cpu_features": {},
+  "apple_silicon": {
+    "hw_optional_arm64": null,
+    "arm64e": null,
+    "pointer_authentication": null,
+    "raw_sysctls": {}
+  },
+  "rosetta": null,
+  "sip_enabled": null,
+  "sandboxed": null,
+  "run_as_root": $run_as_root,
+  "ad_hoc_signed": false,
+  "hardened_runtime": false,
+  "signing": {
+    "binaries": []
+  },
+  "zig_version": null,
+  "zig_path": null,
+  "zig_lib_dir": null,
+  "zig_fallback": false,
+  "zig_fallback_reason": null,
+  "command_failures": []
+}
+EOF
+    exit 0
 fi
 
 exec python3 - <<'PY'

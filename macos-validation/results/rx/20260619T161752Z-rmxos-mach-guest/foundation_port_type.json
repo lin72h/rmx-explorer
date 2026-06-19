@@ -1,0 +1,38 @@
+{"schema":"nx-v64z.macos-oracle.v1","agent":"rx","test_id":"macos_foundation_port_type","cross_reference":{"nextbsd_test_id":null,"donor_equivalent_id":null},"status":"pass","semantic_class":"exact_contract","environment":{
+  "sw_vers": null,
+  "uname": "FreeBSD freebsd 15.1-STABLE FreeBSD 15.1-STABLE rmx/official-stable15-mach-n283869-f71260cf4c9e MACHDEBUGDEBUG amd64",
+  "os_name": "FreeBSD",
+  "kernel_version": "15.1-STABLE",
+  "result_dir_name": "20260619T161752Z-rmxos-mach-guest",
+  "arch": "amd64",
+  "machine": "amd64",
+  "compiler": "FreeBSD clang version 19.1.7 (https://github.com/llvm/llvm-project.git llvmorg-19.1.7-0-gcd708029e0b2)",
+  "sdk": null,
+  "sdk_version": null,
+  "sdk_path": null,
+  "xcode_select_path": null,
+  "cpu_brand": "Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz",
+  "cpu_features": {},
+  "apple_silicon": {
+    "hw_optional_arm64": null,
+    "arm64e": null,
+    "pointer_authentication": null,
+    "raw_sysctls": {}
+  },
+  "rosetta": null,
+  "sip_enabled": null,
+  "sandboxed": null,
+  "run_as_root": true,
+  "ad_hoc_signed": false,
+  "hardened_runtime": false,
+  "signing": {
+    "binaries": []
+  },
+  "zig_version": null,
+  "zig_path": null,
+  "zig_lib_dir": null,
+  "zig_fallback": false,
+  "zig_fallback_reason": null,
+  "command_failures": []
+}
+,"message":{"msgh_bits":"","remote_port":{"name":null,"disposition":null,"right_type":null},"local_port":{"name":null,"disposition":null,"right_type":null},"header_rights":[],"descriptor_count":0,"descriptors":[]},"returns":[{"call":"mach_port_names_before","returned":"KERN_NOT_SUPPORTED","raw":46,"errno":null},{"call":"mach_port_allocate_receive","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_type_receive","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_insert_right_make_send","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_type_send_receive","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_allocate_port_set","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_type_port_set","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_type_task_self","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_destroy_receive","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_destroy_port_set","returned":"KERN_SUCCESS","raw":0,"errno":null},{"call":"mach_port_names_after","returned":"KERN_NOT_SUPPORTED","raw":46,"errno":null}],"right_deltas":[{"operation":"allocate receive right","port_name":"port_type_receive_port","right_type":"MACH_PORT_TYPE_RECEIVE","before_urefs":null,"after_urefs":null,"entry_refs_before":null,"entry_refs_after":null,"expected":"MACH_PORT_TYPE_RECEIVE"},{"operation":"insert send right","port_name":"port_type_receive_port","right_type":"MACH_PORT_TYPE_SEND_RECEIVE","before_urefs":null,"after_urefs":null,"entry_refs_before":null,"entry_refs_after":null,"expected":"MACH_PORT_TYPE_SEND_RECEIVE"},{"operation":"allocate port set","port_name":"port_type_port_set","right_type":"MACH_PORT_TYPE_PORT_SET","before_urefs":null,"after_urefs":null,"entry_refs_before":null,"entry_refs_after":null,"expected":"MACH_PORT_TYPE_PORT_SET"},{"operation":"inspect task self","port_name":"mach_task_self","right_type":"MACH_PORT_TYPE_SEND","before_urefs":null,"after_urefs":null,"entry_refs_before":null,"entry_refs_after":null,"expected":"observed"}],"observations":{"receive_type":"MACH_PORT_TYPE_RECEIVE","receive_type_raw_hex":"0x20000","receive_type_exact":true,"send_receive_type":"MACH_PORT_TYPE_SEND_RECEIVE","send_receive_type_raw_hex":"0x30000","send_receive_type_exact":true,"port_set_type":"MACH_PORT_TYPE_PORT_SET","port_set_type_raw_hex":"0x80000","port_set_type_exact":true,"task_self_observed":true,"task_self_type":"MACH_PORT_TYPE_SEND","task_self_type_raw_hex":"0x10000","names_before":4294967295,"names_after":4294967295,"cleanup_delta":0},"cleanup":{"returned_to_baseline":true,"notes":""},"notes":""}

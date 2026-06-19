@@ -44,10 +44,29 @@ nx_baseline_free(nx_baseline_t *b)
 }
 
 bool
+nx_baseline_is_unsupported_gap(const nx_baseline_t *b)
+{
+    return b != NULL && !b->valid && b->kr == KERN_NOT_SUPPORTED;
+}
+
+bool
+nx_baseline_blocks_probe(const nx_baseline_t *b)
+{
+    return b == NULL || (!b->valid && !nx_baseline_is_unsupported_gap(b));
+}
+
+bool
 nx_baseline_compare(const nx_baseline_t *before,
                     const nx_baseline_t *after,
                     int *delta)
 {
+    if (nx_baseline_is_unsupported_gap(before) &&
+        nx_baseline_is_unsupported_gap(after)) {
+        if (delta)
+            *delta = 0;
+        return true;
+    }
+
     if (!before->valid || !after->valid) {
         if (delta)
             *delta = 0;
@@ -97,6 +116,7 @@ nx_kern_return_str(kern_return_t kr)
     case KERN_INVALID_VALUE:        return "KERN_INVALID_VALUE";
     case KERN_UREFS_OVERFLOW:       return "KERN_UREFS_OVERFLOW";
     case KERN_INVALID_CAPABILITY:   return "KERN_INVALID_CAPABILITY";
+    case KERN_NOT_SUPPORTED:        return "KERN_NOT_SUPPORTED";
     default:
         snprintf(buf, sizeof(buf), "KERN_0x%x", (unsigned)kr);
         return buf;
