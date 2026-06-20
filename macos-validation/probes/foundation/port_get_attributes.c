@@ -42,6 +42,7 @@ main(void)
     kern_return_t         kr_bad_name   = KERN_FAILURE;
     kern_return_t         kr_destroy    = KERN_FAILURE;
     mach_msg_type_number_t attrs_count  = 0;
+    mach_msg_type_number_t expected_attrs_count = 0;
 
     /* mx-fidelity provenance from mach_port_status_t (captured, not asserted). */
     long long mps_pset = -1, mps_seqno = -1, mps_mscount = -1, mps_qlimit = -1;
@@ -55,6 +56,7 @@ main(void)
     if (kr_alloc == KERN_SUCCESS) {
         mach_port_status_t status;
         attrs_count = MACH_PORT_RECEIVE_STATUS_COUNT;
+        expected_attrs_count = MACH_PORT_RECEIVE_STATUS_COUNT;
         kr_attrs = mach_port_get_attributes(mach_task_self(), port,
             MACH_PORT_RECEIVE_STATUS, (mach_port_info_t)&status, &attrs_count);
 
@@ -93,7 +95,7 @@ main(void)
     bool baseline_ok = nx_baseline_compare(&before, &after, &delta);
 
     bool count_exact = (kr_attrs == KERN_SUCCESS &&
-        attrs_count == MACH_PORT_RECEIVE_STATUS_COUNT);
+        attrs_count == expected_attrs_count);
     bool fresh_receive_state = (kr_attrs == KERN_SUCCESS &&
         mps_msgcount == 0 && mps_seqno == 0 && mps_sorights == 0 &&
         !mps_srights && mps_pset == 0);

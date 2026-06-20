@@ -50,6 +50,7 @@ main(void)
     kern_return_t    kr_bad_flavor = KERN_FAILURE;
     kern_return_t    kr_null_task  = KERN_FAILURE;
     mach_msg_type_number_t basic_count = 0;
+    mach_msg_type_number_t expected_basic_count = 0;
 
     /* mx-fidelity provenance fields (captured, not asserted). */
     long long suspend_count = -1;
@@ -69,6 +70,7 @@ main(void)
 
     mach_task_basic_info_data_t basic_info;
     basic_count = MACH_TASK_BASIC_INFO_COUNT;
+    expected_basic_count = MACH_TASK_BASIC_INFO_COUNT;
     kr_basic = task_info(task_self_a, MACH_TASK_BASIC_INFO,
                          (task_info_t)&basic_info, &basic_count);
     if (kr_basic == KERN_SUCCESS) {
@@ -100,7 +102,7 @@ main(void)
     bool baseline_ok = nx_baseline_compare(&before, &after, &delta);
 
     bool count_exact = (kr_basic == KERN_SUCCESS &&
-        basic_count == MACH_TASK_BASIC_INFO_COUNT);
+        basic_count == expected_basic_count);
 
     nx_status_t status = NX_STATUS_PASS;
     nx_semantic_class_t sclass = NX_CLASS_EXACT_CONTRACT;
