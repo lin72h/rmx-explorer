@@ -98,7 +98,26 @@ new activation/amendment).
 - `rmx-explorer-rx-x64z`: **block-080b** — same probes in the rmxOS guest → `rx` vectors,
   compare vs `mx-a64z`, grow the `nx-r64z` ledger.
 
-## 8. Housekeeping
+## 8. REPORT format — END EVERY REPORT WITH THIS BLOCK (Arranger directive)
+
+Prose/findings go ABOVE; the REPORT block is the structured terminal summary the Arranger
+reads. Rules: drop any line that's useless (don't pad); every line must be **Arranger-
+verifiable first-hand** — cite SHAs / hashes / paths / pins, never a bare "done"; use your
+explorer vocabulary (ready / not-ready / smallest-requirement) in verdicts.
+
+```
+REPORT
+block:        block-NNN this answers
+agent:        rmx-explorer-mx-a64z            (your full name)
+outcome:      ready | not-ready | reference-captured | parity-confirmed | mismatch | probe-failure
+namespace:    nx-r64z / mx-a64z               (contract / host; drop if no vectors)
+commits:      <sha> <one-line>                (repo commits; drop if none)
+evidence:     run dir(s) + vector/serial hash(es)
+ledger:       <feature> -> <semantic-class> -> parity-confirmed | mismatch (+intrusiveness)
+next-hop:     smallest next step / smallest falsifiable requirement
+```
+
+## 9. Housekeeping
 
 - Your tree carries 6 dirty `ui/*` WIP files from the copy (oracle-UI noise) — `git checkout`
   them (reversible; the legacy oracle still has them).
