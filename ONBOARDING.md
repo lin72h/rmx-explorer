@@ -11,7 +11,9 @@ local repo, **this onboarding wins** (your repo is a pre-split fork of the old o
   ruler — permanently, one role, no mode-switching.** (The Gatekeeper is now a separate
   agent in a separate repo.)
 - **"Ruler"** is the role-term for Explorer + Gatekeeper (a ruler *measures* rmxOS against
-  macOS truth). **"Oracle" is retired and reserved** — do not use it for yourself.
+  macOS truth). The old role-name **"Oracle" no longer means you** — do not use it for
+  yourself; you are a Ruler. ("Oracle" has since been repurposed as the Arranger's
+  consult-agent — a separate thing, not your concern.)
 - Your repo `rmx-explorer` has its OWN upstream `git@github.com:lin72h/rmx-explorer.git`
   (forked from the old oracle at `9ed6170`).
 - **Which deployment am I?**
