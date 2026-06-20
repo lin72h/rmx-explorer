@@ -256,7 +256,7 @@ except Exception:
     }
 
 payload = {
-    "schema": "nx-v64z.macos-oracle.v1",
+    "schema": "nx-r64z.macos-oracle.v1",
     "agent": agent,
     "test_id": "macos_" + probe.replace("/", "_"),
     "cross_reference": {
@@ -309,7 +309,7 @@ PY
     env_payload=$(cat "$env_path")
     cat > "$out_path" <<EOF
 {
-  "schema": "nx-v64z.macos-oracle.v1",
+  "schema": "nx-r64z.macos-oracle.v1",
   "agent": "$(json_escape "$agent")",
   "test_id": "$(json_escape "$test_id")",
   "cross_reference": {

@@ -1,7 +1,7 @@
 /*
- * nx_result.h — Oracle result schema constants and helpers.
+ * nx_result.h — Explorer result schema constants and helpers.
  *
- * Schema: nx-v64z.macos-oracle.v1
+ * Schema: nx-r64z.macos-oracle.v1
  */
 
 #ifndef NX_RESULT_H
@@ -9,8 +9,10 @@
 
 #include "nx_json.h"
 
-/* Schema name — single point of change if parent renames. */
-#define NX_SCHEMA_NAME "nx-v64z.macos-oracle.v1"
+/* Schema name — single point of change if parent renames.
+ * (nx-r64z as of block-080; the validator still accepts the pre-rename
+ * nx-v64z string as a transitional bridge for existing captures.) */
+#define NX_SCHEMA_NAME "nx-r64z.macos-oracle.v1"
 
 /* Result status values */
 typedef enum {

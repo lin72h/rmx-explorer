@@ -7,7 +7,7 @@
  * mach_port_get_refs(), destroys it, and verifies the port namespace
  * returns to baseline. Exercises every common helper.
  *
- * Emits a complete nx-v64z.macos-oracle.v1 JSON result to stdout.
+ * Emits a complete nx-r64z.macos-oracle.v1 JSON result to stdout.
  */
 
 #include <stdio.h>

@@ -27,7 +27,11 @@ import json
 import os
 import sys
 
-SCHEMA = "nx-v64z.macos-oracle.v1"
+SCHEMA = "nx-r64z.macos-oracle.v1"
+# Pre-rename captures (pre-block-080) still carry the v64z schema string.
+# Accepted as a transitional bridge so existing evidence validates without
+# re-stamping. New results must emit SCHEMA (r64z), not the legacy string.
+SCHEMA_LEGACY = "nx-v64z.macos-oracle.v1"
 
 TOP = [
     "schema", "agent", "test_id", "cross_reference", "status",
@@ -166,7 +170,7 @@ def validate(path):
 
     require_keys(data, TOP, "result", errors)
 
-    if data.get("schema") != SCHEMA:
+    if data.get("schema") not in (SCHEMA, SCHEMA_LEGACY):
         errors.append(f"unexpected schema: {data.get('schema')!r}")
     if data.get("status") not in STATUSES:
         errors.append(f"invalid status: {data.get('status')!r}")
