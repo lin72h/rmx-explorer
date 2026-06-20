@@ -31,6 +31,13 @@ local repo, **this onboarding wins** (your repo is a pre-split fork of the old o
   checkpoint) → rmxOS run → match (parity-confirmed) / no-match (ledger)*.
 - **You do NOT gate the Implementer** — that's the Gatekeeper. You produce evidence + a
   triaged ledger menu.
+- **Probe-design discipline — CAPTURE, don't ASSERT, what legitimately varies:** your
+  probes run on BOTH arm64 (mx-a64z) and x86_64 (rx-x64z). (1) ARCH/platform-specific fields
+  (cpu_type, pointer/register widths, page sizes, arch-divergent struct counts, CPU/mem
+  topology) — capture them, NEVER hard-assert (an arm64 assert breaks on rx-x64z); flag for
+  the comparator as expected-divergence. (2) NON-DETERMINISTIC fields (timestamps, counters,
+  addresses) — capture as invariants/relationships (ratio, monotonicity, ordering), not
+  literal values. Identify both classes when you author a probe; don't wait to be told.
 
 ## 3. Test language
 
