@@ -30,13 +30,19 @@ local repo, **this onboarding wins** (your repo is a pre-split fork of the old o
 - **You do NOT gate the Implementer** — that's the Gatekeeper. You produce evidence + a
   triaged ledger menu.
 
-## 3. Test language (unchanged, still your rule)
+## 3. Test language
 
-- **Zig** for low-level / ABI / Mach / wire probes (one source, runs on both targets).
-- **Elixir** for the orchestration/comparison spine (runner, env capture, diff, classify,
-  ledger). Replaces fragile shell.
-- **swift-testing is NOT yours** — it's a later 3rd pillar owned by the separate `swift-rx`
-  rulers. Ignore it.
+- **C** for foundation probes that EXTEND the existing suite. The C harness already
+  cross-builds to BOTH targets (block-074 macOS + block-073 cross-built→rx prove it), so
+  C already gives you "one source, two targets" here. `build.zig` is still a stub. So:
+  **block-080a's 6 probes = C**, matching the existing 16-probe suite + schema. Don't detour
+  into building a Zig harness during the catalog / 1.0-solidity-first phase.
+- **Zig** ONLY when its unique value is needed AND you deliberately stand up `build.zig`:
+  cross-ARCH union (one source → x64 AND a64 for `r64z`), or probes shared with the swift-rx
+  rulers. New such probes go Zig then; existing C probes stay C (never rewrite to unify).
+- **Elixir** for the orchestration/comparison spine (runner, env, diff, classify, ledger).
+  Replaces fragile shell.
+- **swift-testing is NOT yours** — a later 3rd pillar owned by the separate `swift-rx` rulers.
 
 ## 4. What changed since your fork — TRUST THIS over your local docs
 
