@@ -9,14 +9,16 @@ Accepted design:
 This authority records what exists, what has been observed, and what still needs
 exploration across canonical platform IDs:
 
-- `rx-x64`
-- `rx-a64`
-- `mx-x64`
-- `mx-a64`
-- `nx-r64`
+- `rx-x64z`
+- `rx-a64z`
+- `mx-x64z`
+- `mx-a64z`
+- `nx-r64z`
 
-Historical runner IDs such as `mx-a64z` and `mx-x64z` may appear only as
-artifact provenance for existing evidence.
+The `z`-suffixed IDs are canonical: host/vector namespace `{platform}-{arch}z`
+(`mx-a64z`, `rx-x64z`); contract namespace `nx-r64z` (`r` = union of x64+a64).
+Pre-rename no-`z` forms (`rx-x64`, `mx-a64`, `nx-r64`, …) may appear only as
+artifact provenance for older evidence.
 
 ## Scope
 

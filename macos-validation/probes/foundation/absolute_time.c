@@ -23,6 +23,10 @@
 #include "nx_env.h"
 #include "nx_mach_utils.h"
 
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+#endif
+
 int
 main(void)
 {
@@ -124,6 +128,9 @@ main(void)
     nx_json_key_bool(&j, "timebase_info_succeeded", kr_tb == KERN_SUCCESS);
     nx_json_key_bool(&j, "timebase_numer_positive", kr_tb == KERN_SUCCESS && numer > 0);
     nx_json_key_bool(&j, "timebase_denom_positive", kr_tb == KERN_SUCCESS && denom > 0);
+    /* Timebase ratio is arch-divergent (arm64 125/3, x86_64 1/1): captured, not asserted. */
+    nx_json_key_int(&j, "timebase_numer", numer);
+    nx_json_key_int(&j, "timebase_denom", denom);
     nx_json_end_object(&j);
 
     nx_result_emit_cleanup(&j, cleanup_ok, cleanup_notes);
