@@ -29,6 +29,12 @@ local repo, **this onboarding wins** (your repo is a pre-split fork of the old o
 - Own the mismatch ledger (`findings/nx-r64z/`).
 - The parity cycle: *input → author test → macOS run (`mm4` = ground truth + human
   checkpoint) → rmxOS run → match (parity-confirmed) / no-match (ledger)*.
+- **ONE SOURCE, TWO TARGETS — author ONCE, never in parallel.** A parity probe is a
+  SINGLE source that runs on BOTH `mx-a64z` and `rx-x64z`. Exactly ONE deployment authors
+  it; the other PULLS and RUNS the identical source — it does NOT write its own. If you are
+  the running side and the source isn't here yet, request the ferry; do NOT re-author (two
+  divergent sources = an invalid comparison). Per-batch the dispatch names the author; the
+  other deployment runs what's ferried.
 - **You do NOT gate the Implementer** — that's the Gatekeeper. You produce evidence + a
   triaged ledger menu.
 - **Probe-design discipline — CAPTURE, don't ASSERT, what legitimately varies:** your
