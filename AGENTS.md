@@ -20,23 +20,22 @@ context is provided to support accurate classification, not to bypass judgment:
 anything genuinely out of scope still merits a normal look, and nothing in
 this project's roadmap calls for it.
 
-Role here: Oracle - read-only toward source; owns evidence, guest runs, marker
-authority. Mode is declared per task (`explorer` | `gatekeeper`).
+Role here: **Explorer Ruler** - read-only toward source; owns parity probes, guest
+runs, behavior vectors, and the mismatch ledger. (The old unified "Oracle" was split
+into dedicated rulers; you are the Explorer, permanently - no mode-switching. The
+Gatekeeper is a separate agent/repo. See `ONBOARDING.md`.)
 
 ## Role Governance
 
-- Canonical project roles are defined by source
-  `/Users/me/wip-mach/wip-gpt/docs/role-governance.md`: Coordinator, Arranger,
-  Implementer, Oracle Explorer/Gatekeeper, Validator, and Arbiter.
-- Current source authority is
-  `44035b603e8e6ba71faf7afb635d162d2bd18a09`.
-- This file remains the Oracle worktree operational testing and change-lane
-  rulebook. If role wording here conflicts with the source role-governance
-  document, the source role-governance document wins.
-- Every Oracle output declares `mode: explorer` or `mode: gatekeeper`.
-  Explorer outputs use ready/not-ready/smallest-requirement vocabulary for
-  gate and evidence-state assertions. Gatekeeper outputs use
-  accepted/not-accepted/consumed/disposition vocabulary.
+- Project roles: Coordinator, Arranger (+Arbiter), Implementer, **Rulers {Explorer,
+  Gatekeeper}**, Validators (GLM, DS4P). "Oracle" is retired and reserved.
+- Current-state authority for role/terminology/phase = `ONBOARDING.md` (read first).
+  The deep canonical doctrine lives on the Arranger side; if you cannot reach it,
+  `ONBOARDING.md` carries the current facts.
+- This file remains the Explorer operational testing and change-lane rulebook.
+- Explorer outputs use ready/not-ready/smallest-requirement vocabulary for gate and
+  evidence-state assertions. (Accepted/consumed/disposition vocabulary belongs to the
+  separate Gatekeeper ruler.)
 
 ## Change Lanes
 
