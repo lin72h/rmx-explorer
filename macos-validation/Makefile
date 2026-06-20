@@ -24,13 +24,18 @@ COMMON_OBJS = \
 	$(OBJ_DIR)/nx_mach_utils.o
 
 # Probes — explicit list
-PROBES = foundation/smoke foundation/port_names foundation/port_type foundation/port_get_refs foundation/task_info m1/header_copy_send_accounting m1/header_move_send_accounting m2/descriptor_copy_send m2/descriptor_move_send m2/send_once_descriptor m2/invalid_descriptor_disposition m2/dead_name_descriptor_right m2/double_move_send_descriptor
+PROBES = foundation/smoke foundation/port_names foundation/port_type foundation/port_get_refs foundation/task_info foundation/host_info foundation/absolute_time foundation/port_get_attributes foundation/port_set foundation/msg_rcv_timeout m1/header_copy_send_accounting m1/header_move_send_accounting m2/descriptor_copy_send m2/descriptor_move_send m2/send_once_descriptor m2/invalid_descriptor_disposition m2/dead_name_descriptor_right m2/double_move_send_descriptor
 PROBE_BINS = \
 	$(BIN_DIR)/foundation/smoke \
 	$(BIN_DIR)/foundation/port_names \
 	$(BIN_DIR)/foundation/port_type \
 	$(BIN_DIR)/foundation/port_get_refs \
 	$(BIN_DIR)/foundation/task_info \
+	$(BIN_DIR)/foundation/host_info \
+	$(BIN_DIR)/foundation/absolute_time \
+	$(BIN_DIR)/foundation/port_get_attributes \
+	$(BIN_DIR)/foundation/port_set \
+	$(BIN_DIR)/foundation/msg_rcv_timeout \
 	$(BIN_DIR)/m1/header_copy_send_accounting \
 	$(BIN_DIR)/m1/header_move_send_accounting \
 	$(BIN_DIR)/m2/descriptor_copy_send \
@@ -83,6 +88,26 @@ $(BIN_DIR)/foundation/port_get_refs: probes/foundation/port_get_refs.c $(COMMON_
 $(BIN_DIR)/foundation/task_info: probes/foundation/task_info.c $(COMMON_OBJS)
 	@mkdir -p $(BIN_DIR)/foundation
 	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/foundation/task_info.c $(COMMON_OBJS)
+
+$(BIN_DIR)/foundation/host_info: probes/foundation/host_info.c $(COMMON_OBJS)
+	@mkdir -p $(BIN_DIR)/foundation
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/foundation/host_info.c $(COMMON_OBJS)
+
+$(BIN_DIR)/foundation/absolute_time: probes/foundation/absolute_time.c $(COMMON_OBJS)
+	@mkdir -p $(BIN_DIR)/foundation
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/foundation/absolute_time.c $(COMMON_OBJS)
+
+$(BIN_DIR)/foundation/port_get_attributes: probes/foundation/port_get_attributes.c $(COMMON_OBJS)
+	@mkdir -p $(BIN_DIR)/foundation
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/foundation/port_get_attributes.c $(COMMON_OBJS)
+
+$(BIN_DIR)/foundation/port_set: probes/foundation/port_set.c $(COMMON_OBJS)
+	@mkdir -p $(BIN_DIR)/foundation
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/foundation/port_set.c $(COMMON_OBJS)
+
+$(BIN_DIR)/foundation/msg_rcv_timeout: probes/foundation/msg_rcv_timeout.c $(COMMON_OBJS)
+	@mkdir -p $(BIN_DIR)/foundation
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/foundation/msg_rcv_timeout.c $(COMMON_OBJS)
 
 $(BIN_DIR)/m1/header_copy_send_accounting: probes/m1/header_copy_send_accounting.c $(COMMON_OBJS)
 	@mkdir -p $(BIN_DIR)/m1
