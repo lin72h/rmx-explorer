@@ -43,7 +43,23 @@ local repo, **this onboarding wins** (your repo is a pre-split fork of the old o
   topology) — capture them, NEVER hard-assert (an arm64 assert breaks on rx-x64z); flag for
   the comparator as expected-divergence. (2) NON-DETERMINISTIC fields (timestamps, counters,
   addresses) — capture as invariants/relationships (ratio, monotonicity, ordering), not
-  literal values. Identify both classes when you author a probe; don't wait to be told.
+  literal values. (3) APIs that hold resources the probe can't release — e.g. libdispatch
+  keeps internal Mach ports (worker reply/event), so a dispatch probe CANNOT return the port
+  namespace to baseline. Capture the namespace delta as a non-deterministic observation; do
+  NOT gate such probes on baseline-to-zero. (The probe's OWN allocations are still checked —
+  e.g. its recv-right destroy — just not the global baseline.) Identify all three classes when
+  you author a probe; don't wait to be told.
+- **Purpose-driven guards.** Pick the capability guard so the probe RUNS on the system under
+  test (the SUT it validates) — never one that skips it there. `__APPLE__` is the wrong default
+  if the SUT isn't Apple; prefer dependency guards like `__has_include(<dispatch/dispatch.h>)`
+  or `__has_include(<mach/mach.h>)` that match what the probe actually needs. Identify the
+  LOAD-BEARING probe — the one that exercises the fix under test — and get its guard/build
+  right FIRST; don't leave the validating probe set to skip on the very system it's meant to
+  validate. (rmxOS has Mach, so a Mach+dispatch probe guards on both headers, not `__APPLE__`.)
+- **Distinguishing-signal-per-platform.** When the parity-distinguishing fact is exposed
+  differently per platform (e.g. `kern.twq.threads_created` is rmxOS-only, absent on macOS),
+  capture the equivalent signal on each side (macOS: `task_threads` thread-count delta), not
+  the literal — so the cross-target comparison stays meaningful.
 
 ## 3. Test language
 
