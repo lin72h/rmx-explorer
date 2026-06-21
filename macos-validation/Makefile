@@ -16,6 +16,10 @@ COMMON_DIR = probes/common
 
 COMMON_INCLUDES = -I$(COMMON_DIR)
 
+# libdispatch: macOS links via libSystem (no flag); other hosts need -ldispatch.
+# Auto-detected via uname; override with DISPATCH_LDFLAGS=... if your make lacks $(shell).
+DISPATCH_LDFLAGS ?= $(shell uname -s 2>/dev/null | grep -q Darwin || echo -ldispatch)
+
 # Common helper objects — explicit list
 COMMON_OBJS = \
 	$(OBJ_DIR)/nx_json.o \
@@ -114,15 +118,15 @@ $(BIN_DIR)/foundation/msg_rcv_timeout: probes/foundation/msg_rcv_timeout.c $(COM
 
 $(BIN_DIR)/dispatch/dispatch_mach_recv_source: probes/dispatch/dispatch_mach_recv_source.c $(COMMON_OBJS)
 	@mkdir -p $(BIN_DIR)/dispatch
-	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/dispatch/dispatch_mach_recv_source.c $(COMMON_OBJS)
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/dispatch/dispatch_mach_recv_source.c $(COMMON_OBJS) $(DISPATCH_LDFLAGS)
 
 $(BIN_DIR)/dispatch/dispatch_global_queue_service: probes/dispatch/dispatch_global_queue_service.c $(COMMON_OBJS)
 	@mkdir -p $(BIN_DIR)/dispatch
-	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/dispatch/dispatch_global_queue_service.c $(COMMON_OBJS)
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/dispatch/dispatch_global_queue_service.c $(COMMON_OBJS) $(DISPATCH_LDFLAGS)
 
 $(BIN_DIR)/dispatch/dispatch_primitives: probes/dispatch/dispatch_primitives.c $(COMMON_OBJS)
 	@mkdir -p $(BIN_DIR)/dispatch
-	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/dispatch/dispatch_primitives.c $(COMMON_OBJS)
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/dispatch/dispatch_primitives.c $(COMMON_OBJS) $(DISPATCH_LDFLAGS)
 
 $(BIN_DIR)/m1/header_copy_send_accounting: probes/m1/header_copy_send_accounting.c $(COMMON_OBJS)
 	@mkdir -p $(BIN_DIR)/m1

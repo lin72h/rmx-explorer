@@ -11,10 +11,13 @@
  *   - the source fires -> handler runs -> services (receives) the message
  *
  * This is the dispatch-servicing-of-a-Mach-port target behavior (#2 / MACH_RECV).
- * The probe needs BOTH Mach (recv right) and libdispatch, so it is Apple-only
- * (rmxOS guest skips until it has Mach recv + dispatch). Raw port names are
- * provenance, not a comparison axis. Timing is non-deterministic (capture-not-
- * assert): only the source-fired + handler-serviced invariants are asserted.
+ * The probe needs BOTH Mach (recv right) and libdispatch, so it guards on BOTH
+ * being present (__has_include(<mach/mach.h>) + <dispatch/dispatch.h>) -- it
+ * runs on macOS AND the rmxOS guest (which has Mach), skipping only where either
+ * is absent. (This is the load-bearing probe for op-081-R's #2 sub-fix: its guard
+ * must let it run on the SUT.) Raw port names are provenance, not a comparison
+ * axis. Timing is non-deterministic (capture-not-assert): only the source-fired
+ * + handler-serviced invariants are asserted.
  *
  * Emits an nx-r64z.macos-oracle.v1 JSON result to stdout.
  */
@@ -28,7 +31,7 @@
 #include "nx_env.h"
 #include "nx_mach_utils.h"
 
-#if defined(__APPLE__) && __has_include(<dispatch/dispatch.h>)
+#if __has_include(<mach/mach.h>) && __has_include(<dispatch/dispatch.h>)
 #define NX_HAVE_DISPATCH 1
 #include <dispatch/dispatch.h>
 #include <stdatomic.h>

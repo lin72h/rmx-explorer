@@ -33,8 +33,24 @@
 #define NX_HAVE_DISPATCH 1
 #include <dispatch/dispatch.h>
 #include <stdatomic.h>
+#include <sys/sysctl.h>   /* kern.twq.threads_created (rmxOS distinguishing signal) */
 #else
 #define NX_HAVE_DISPATCH 0
+#endif
+
+#if NX_HAVE_DISPATCH
+/* kern.twq.threads_created: rmxOS kernel-TWQ counter (absent on macOS). Returns
+ * -1 when the sysctl is absent so the macOS vector stays byte-identical. */
+static long long
+read_kern_twq_threads_created(void)
+{
+    long long val = 0;
+    size_t    sz  = sizeof(val);
+    if (sysctlbyname("kern.twq.threads_created", &val, &sz, NULL, 0) != 0) {
+        return -1;
+    }
+    return val;
+}
 #endif
 
 #ifdef __APPLE__
@@ -83,6 +99,9 @@ main(void)
     long long threads_before = -1;
     long long threads_after = -1;
     long long threads_delta = -1;
+    long long twq_before = -1;
+    long long twq_after = -1;
+    long long twq_delta = -1;
     unsigned long long elapsed_ns = 0;
     int cleanup_delta = 0;
     bool cleanup_ok = false;
@@ -91,6 +110,8 @@ main(void)
     ran = 1;
     atomic_int counter;
     atomic_init(&counter, 0);
+
+    twq_before = read_kern_twq_threads_created();
 
 #ifdef __APPLE__
     threads_before = current_thread_count();
@@ -108,6 +129,11 @@ main(void)
     }
     wait_kr = (long long)dispatch_group_wait(grp, DISPATCH_TIME_FOREVER);
     completed = (long long)atomic_load(&counter);
+
+    twq_after = read_kern_twq_threads_created();
+    if (twq_before >= 0 && twq_after >= 0) {
+        twq_delta = twq_after - twq_before;
+    }
 
 #ifdef __APPLE__
     uint64_t t1 = mach_absolute_time();
@@ -196,6 +222,13 @@ main(void)
     nx_json_key_string(&j, "kwq_signal_note",
         "kern.twq.threads_created is rmxOS-specific (absent on macOS); "
         "threads_delta is the macOS kernel-workqueue analog");
+    /* kern.twq.threads_created: emitted ONLY when the sysctl is present (rmxOS).
+     * Absent on macOS -> not emitted -> macOS vector byte-identical to op-082. */
+    if (twq_before >= 0) {
+        nx_json_key_int(&j, "kern_twq_threads_created_before", twq_before);
+        nx_json_key_int(&j, "kern_twq_threads_created_after", twq_after);
+        nx_json_key_int(&j, "kern_twq_threads_created_delta", twq_delta);
+    }
     nx_json_key_int(&j, "names_before", before.valid ? before.names_count : -1);
     nx_json_key_int(&j, "names_after", after.valid ? after.names_count : -1);
     nx_json_key_int(&j, "cleanup_delta", cleanup_delta);
