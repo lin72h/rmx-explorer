@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdatomic.h>   /* atomic_int used by dgqs_work at file scope (unconditional) */
 
 #include "nx_json.h"
 #include "nx_result.h"

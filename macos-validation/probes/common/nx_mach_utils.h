@@ -15,10 +15,12 @@
 
 #include <stdbool.h>
 
-#ifdef __APPLE__
+#if __has_include(<mach/mach.h>)
 #include <mach/mach.h>
 #else
-/* Minimal stubs for non-macOS development builds. */
+/* Minimal stubs for hosts WITHOUT <mach/mach.h> (e.g. bare FreeBSD). rmxOS
+ * (which has Mach) takes the real path above, same as macOS -- the guard keys
+ * on Mach availability, not on __APPLE__. */
 typedef unsigned int mach_port_t;
 typedef unsigned int mach_port_name_t;
 typedef unsigned int mach_port_type_t;
@@ -69,7 +71,7 @@ typedef int          mach_msg_return_t;
 #define MACH_PORT_RIGHT_PORT_SET   3
 #define MACH_MSG_TYPE_MAKE_SEND   20
 #define MACH_MSG_PORT_DESCRIPTOR   0
-#endif /* __APPLE__ */
+#endif /* !__has_include(<mach/mach.h>) */
 
 #ifndef KERN_NOT_SUPPORTED
 #define KERN_NOT_SUPPORTED        46
