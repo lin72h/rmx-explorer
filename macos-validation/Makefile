@@ -24,7 +24,7 @@ COMMON_OBJS = \
 	$(OBJ_DIR)/nx_mach_utils.o
 
 # Probes — explicit list
-PROBES = foundation/smoke foundation/port_names foundation/port_type foundation/port_get_refs foundation/task_info foundation/host_info foundation/absolute_time foundation/port_get_attributes foundation/port_set foundation/msg_rcv_timeout m1/header_copy_send_accounting m1/header_move_send_accounting m2/descriptor_copy_send m2/descriptor_move_send m2/send_once_descriptor m2/invalid_descriptor_disposition m2/dead_name_descriptor_right m2/double_move_send_descriptor
+PROBES = foundation/smoke foundation/port_names foundation/port_type foundation/port_get_refs foundation/task_info foundation/host_info foundation/absolute_time foundation/port_get_attributes foundation/port_set foundation/msg_rcv_timeout dispatch/dispatch_mach_recv_source dispatch/dispatch_global_queue_service dispatch/dispatch_primitives m1/header_copy_send_accounting m1/header_move_send_accounting m2/descriptor_copy_send m2/descriptor_move_send m2/send_once_descriptor m2/invalid_descriptor_disposition m2/dead_name_descriptor_right m2/double_move_send_descriptor
 PROBE_BINS = \
 	$(BIN_DIR)/foundation/smoke \
 	$(BIN_DIR)/foundation/port_names \
@@ -36,6 +36,9 @@ PROBE_BINS = \
 	$(BIN_DIR)/foundation/port_get_attributes \
 	$(BIN_DIR)/foundation/port_set \
 	$(BIN_DIR)/foundation/msg_rcv_timeout \
+	$(BIN_DIR)/dispatch/dispatch_mach_recv_source \
+	$(BIN_DIR)/dispatch/dispatch_global_queue_service \
+	$(BIN_DIR)/dispatch/dispatch_primitives \
 	$(BIN_DIR)/m1/header_copy_send_accounting \
 	$(BIN_DIR)/m1/header_move_send_accounting \
 	$(BIN_DIR)/m2/descriptor_copy_send \
@@ -108,6 +111,18 @@ $(BIN_DIR)/foundation/port_set: probes/foundation/port_set.c $(COMMON_OBJS)
 $(BIN_DIR)/foundation/msg_rcv_timeout: probes/foundation/msg_rcv_timeout.c $(COMMON_OBJS)
 	@mkdir -p $(BIN_DIR)/foundation
 	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/foundation/msg_rcv_timeout.c $(COMMON_OBJS)
+
+$(BIN_DIR)/dispatch/dispatch_mach_recv_source: probes/dispatch/dispatch_mach_recv_source.c $(COMMON_OBJS)
+	@mkdir -p $(BIN_DIR)/dispatch
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/dispatch/dispatch_mach_recv_source.c $(COMMON_OBJS)
+
+$(BIN_DIR)/dispatch/dispatch_global_queue_service: probes/dispatch/dispatch_global_queue_service.c $(COMMON_OBJS)
+	@mkdir -p $(BIN_DIR)/dispatch
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/dispatch/dispatch_global_queue_service.c $(COMMON_OBJS)
+
+$(BIN_DIR)/dispatch/dispatch_primitives: probes/dispatch/dispatch_primitives.c $(COMMON_OBJS)
+	@mkdir -p $(BIN_DIR)/dispatch
+	$(CC) $(CFLAGS) $(COMMON_INCLUDES) -o $@ probes/dispatch/dispatch_primitives.c $(COMMON_OBJS)
 
 $(BIN_DIR)/m1/header_copy_send_accounting: probes/m1/header_copy_send_accounting.c $(COMMON_OBJS)
 	@mkdir -p $(BIN_DIR)/m1

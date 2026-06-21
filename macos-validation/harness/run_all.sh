@@ -54,7 +54,7 @@ done
 
 discover_probes() {
     probes=""
-    for dir in foundation m1 m2; do
+    for dir in foundation m1 m2 dispatch; do
         probe_dir="$BUILD_BIN/$dir"
         if [ -d "$probe_dir" ]; then
             for bin in "$probe_dir"/*; do
