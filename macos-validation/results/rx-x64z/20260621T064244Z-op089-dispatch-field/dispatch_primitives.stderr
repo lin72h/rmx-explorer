@@ -1,0 +1,1 @@
+ld-elf.so.1: /usr/lib/libdispatch.so.5: Undefined symbol "pthread_attr_set_qos_class_np"
