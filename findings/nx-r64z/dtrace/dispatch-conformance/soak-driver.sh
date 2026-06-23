@@ -28,7 +28,8 @@ while [ "$(date +%s)" -lt "$end" ]; do
 done
 
 echo "[soak] stopping dtrace (SIGINT → END → deltas)"
-kill -INT "$DTRACE_PID" 2>/dev/null; sleep 2; wait "$DTRACE_PID" 2>/dev/null
+kill -INT "$DTRACE_PID" 2>/dev/null; sleep 3
+kill -KILL "$DTRACE_PID" 2>/dev/null || true
 
 printf 'soak_iterations=%d soak_fails=%d soak_duration=%d\n' "$iter" "$fails" "$SOAK_DURATION"
 printf 'op104_proof_terminal status=0\n'
