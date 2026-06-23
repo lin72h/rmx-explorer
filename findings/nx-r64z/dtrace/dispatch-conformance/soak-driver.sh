@@ -12,6 +12,7 @@ export LD_LIBRARY_PATH=/usr/lib
 kldload mach 2>/dev/null || true
 kldload opensolaris 2>/dev/null; kldload dtrace 2>/dev/null
 kldload fbt 2>/dev/null; kldload fasttrap 2>/dev/null; kldload systrace 2>/dev/null
+kldload profile 2>/dev/null   # tick-Ns probes need the profile provider
 
 echo "[soak] starting dtrace oracle (background, self-terminating)"
 dtrace -Z -DSOAK_SECONDS="$SOAK_DURATION" -s "$ORACLE" > "$ORACLE_LOG" 2>&1 &
