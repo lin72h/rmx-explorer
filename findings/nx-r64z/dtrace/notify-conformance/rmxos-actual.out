@@ -1,0 +1,12 @@
+notify_post: FAIL
+register_check+cipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+set_state+get_state: FAIL
+notify_cancel: Fipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+name_coalescing:ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+multi_client_broadcast: FAIL
+register_signal:ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+register_mach_port: FAIL
+op110_matrix_fails=8
+op110_matrix_terminal status=0
+notify_harness_rc=0
+op110_rx_terminal status=0
