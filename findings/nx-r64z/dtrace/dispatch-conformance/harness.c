@@ -13,6 +13,7 @@ static _Atomic int g_flag;
 static void cb_set(void *c) { atomic_store((_Atomic int*)c, 1); }
 static void _sem_handler(void *c) { dispatch_semaphore_signal((dispatch_semaphore_t)c); }
 static void cb_add(void *c, size_t i) { (void)i; (*(int*)c)++; }
+static void cb_once(void *c) { (*(int*)c)++; }  /* dispatch_function_t (1-arg) for dispatch_once_f */
 static int g_fails = 0;
 #define R(name, val) printf("%s: %s\n", name, (val)?"PASS":"FAIL"); g_fails += !(val)
 #define R2(name, bv, fv) printf("%s: block=%s f=%s\n", name, (bv)?"PASS":"FAIL", (fv)?"PASS":"FAIL"); g_fails += !(bv) + !(fv)
@@ -44,7 +45,7 @@ int main(void) {
     { static dispatch_once_t p1; static int o1=0;
       dispatch_once(&p1,^{o1++;}); dispatch_once(&p1,^{o1++;}); int bv=(o1==1);
       static dispatch_once_t p2; int o2=0;
-      dispatch_once_f(&p2,&o2,cb_add); dispatch_once_f(&p2,&o2,cb_add); int fv=(o2==1);
+      dispatch_once_f(&p2,&o2,cb_once); dispatch_once_f(&p2,&o2,cb_once); int fv=(o2==1);
       R2("once", bv, fv); }
 
     /* barrier_async + barrier_sync */
