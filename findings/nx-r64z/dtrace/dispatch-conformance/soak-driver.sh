@@ -24,7 +24,7 @@ iter=0; fails=0
 while [ "$(date +%s)" -lt "$end" ]; do
   iter=$((iter + 1))
   if "$HARNESS" >> "$HARNESS_LOG" 2>&1; then :; else
-    fails=$((fails + 1)); echo "iter=$iter FAIL rc=$?" >> "$HARNESS_LOG"; fi
+    rc=$?; fails=$((fails + 1)); echo "iter=$iter FAIL rc=$rc" >> "$HARNESS_LOG"; fi
 done
 
 echo "[soak] stopping dtrace (SIGINT → END → deltas)"
