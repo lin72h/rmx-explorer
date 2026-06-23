@@ -1,0 +1,50 @@
+# op-117 mx-a64z asl-harness macOS-truth (op-116 conformance reference)
+# host:      mm4.local
+# os:        macOS 27.0 (Darwin 27.0.0)  arch arm64 (Apple M4)
+# asl:       Apple system ASL (libSystem; API deprecated since macOS 10.12, replaced by os_log)
+# syslogd:   com.apple.system.logger (pid 566), Mach bootstrap
+# compiler:  Apple clang 17.0.0
+# source:    asl-harness.c @794a208 (blob 7327cbd97ed0255277290be099366a58f38d9bb9) -- UNMODIFIED (byte-identical, verified)
+# build:     cc asl-harness.c -o asl-harness
+#
+# === UNMODIFIED BUILD RESULT: FAIL (cc rc=1) ===
+# Error: asl-harness.c:83 invalid operands to binary expression ('void' == 'int'):
+#     R("asl_close", asl_close(c) == 0)
+# asl_close returns VOID on macOS Apple ASL (asl.h __API_DEPRECATED in 10.12) but INT on
+# rmxOS libasl. => DIVERGENCE #1 (compile-level): asl_close return type (macOS void vs rmxOS int).
+# The 9-case matrix does NOT compile/run unmodified on macOS-27.
+#
+# === SUPPLEMENTARY: asl_close-void-return workaround build (TEMP COPY, NOT the ferried harness) ===
+# workaround: line 83 `asl_close(c) == 0` -> `(asl_close(c), 1)` (drop the void-comparison); all else byte-identical.
+# cc /tmp/asl-workaround.c -o asl-harness-wa  (17 deprecation warnings, 0 errors); run rc=0.
+# Captures the 8 runnable cases + asl_search; asl_close here = PASS (call runs) but the
+# UNMODIFIED truth for asl_close is BUILD-FAIL (see DIVERGENCE #1).
+#
+# --- macOS-truth per case (9 R()-cases) ---
+#   asl_open: PASS | asl_new: PASS | asl_set: PASS | asl_log: PASS
+#   asl_get_roundtrip: PASS | asl_set_filter: PASS | asl_log_filtered: PASS
+#   asl_search_roundtrip: FAIL   <- DIVERGENCE #2 (behavioral)
+#   asl_close: BUILD-FAIL        <- DIVERGENCE #1 (compile: asl_close void on macOS vs int on rmxOS)
+#
+# --- supplementary workaround run output (evidence for the 8 runnable cases) ---
+asl_open: PASS
+asl_new: PASS
+asl_set: PASS
+asl_log: PASS
+asl_get_roundtrip: PASS
+asl_set_filter: PASS
+asl_log_filtered: PASS
+asl_search_roundtrip: FAIL
+asl_close: PASS
+op116_matrix_fails=1
+op116_matrix_terminal status=0
+#
+# === DIVERGENCES vs rmxOS (for op-116-cont semantics-diff) ===
+#  #1 asl_close return type: macOS void (Apple asl.h, deprecated->os_log) vs rmxOS int.
+#     Compile-level; the harness's `asl_close(c) == 0` is portable only if asl_close returns int.
+#     Candidate fix: harness use `asl_close(c); R("asl_close", 1);` (op-116's call) OR rmxOS align
+#     asl_close to void. Either way it's a real API-signature divergence to ladder.
+#  #2 asl_search_roundtrip: macOS FAIL (asl_search returned no match within the harness's 200ms window).
+#     macOS unified-logging ASL store does not reliably index just-sent custom-facility messages for
+#     immediate asl_search; the harness comment (asl-harness.c:67-69) anticipates NULL/0 on
+#     bootstrap/propagation gaps. Behavioral divergence vs rmxOS (where op-116 reports PASS).
