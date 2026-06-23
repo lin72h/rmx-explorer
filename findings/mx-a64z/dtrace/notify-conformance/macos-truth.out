@@ -1,0 +1,22 @@
+# op-112 mx-a64z notify-harness macOS-truth (op-110 conformance reference)
+# host:      mm4.local
+# os:        macOS 27.0 (Darwin 27.0.0)  arch arm64 (Apple M4)
+# libnotify: Apple system notify(3) (libSystem; no separate version on macOS)
+# notifyd:   running under launchd
+# compiler:  Apple clang 17.0.0
+# source:    notify-harness.c @ 2da90e7 (findings/nx-r64z/dtrace/notify-conformance/) -- UNMODIFIED
+# build:     cc notify-harness.c -o notify-harness  (1 warning: mach_port_destroy deprecated)
+# run:       rc=0, op110_matrix_fails=0
+
+notify_post: PASS
+register_check+check: PASS
+check_first_call: PASS
+set_state+get_state: PASS
+notify_cancel: PASS
+name_coalescing: PASS
+multi_client_broadcast: PASS
+register_signal: PASS
+register_mach_port: PASS
+mach_port_delivery: PASS
+op110_matrix_fails=0
+op110_matrix_terminal status=0
