@@ -1,0 +1,255 @@
+{
+  "schema": "nx-r64z.macos-oracle.v1",
+  "agent": "mx-a64z",
+  "test_id": "macos_dispatch_conformance_matrix_op102",
+  "cross_reference": {
+    "nextbsd_test_id": "op102-dispatch-matrix",
+    "donor_equivalent_id": null
+  },
+  "status": "pass",
+  "semantic_class": "exact_contract",
+  "environment": {
+    "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0\nBuildVersion:\t\t26A5353q",
+    "uname": "Darwin mm4.local 27.0.0 Darwin Kernel Version 27.0.0: Wed May 27 02:11:37 PDT 2026; root:xnu-13361.0.0.501.1~2/RELEASE_ARM64_T8132 arm64",
+    "os_name": "Darwin",
+    "kernel_version": "27.0.0",
+    "result_dir_name": "20260621-27.0-27.0.0",
+    "arch": "arm64",
+    "machine": "arm64",
+    "compiler": "Apple clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 38c9bd4e92f23a7cbf1126f10b688eed60ec48d6)",
+    "sdk": "/Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+    "sdk_version": "27.0",
+    "sdk_path": "/Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+    "xcode_select_path": "/Applications/Xcode-beta.app/Contents/Developer",
+    "cpu_brand": "Apple M4",
+    "cpu_features": {
+      "machdep.cpu.features": "",
+      "machdep.cpu.leaf7_features": null,
+      "hw.optional.arm64": "1",
+      "hw.optional.arm.FEAT_PAuth": "1",
+      "hw.optional.arm.FEAT_PAuth2": "1"
+    },
+    "apple_silicon": {
+      "hw_optional_arm64": "1",
+      "arm64e": "1",
+      "pointer_authentication": "1",
+      "raw_sysctls": {
+        "hw.optional.arm64": "1",
+        "hw.optional.arm.FEAT_PAuth": "1",
+        "hw.optional.arm.FEAT_PAuth2": "1"
+      }
+    },
+    "rosetta": "native",
+    "sip_enabled": true,
+    "sandboxed": false,
+    "run_as_root": false,
+    "ad_hoc_signed": true,
+    "hardened_runtime": false,
+    "signing": {
+      "binaries": [
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/absolute_time",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/absolute_time"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/host_info",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/host_info"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/msg_rcv_timeout",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/msg_rcv_timeout"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/port_get_attributes",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/port_get_attributes"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/port_get_refs",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/port_get_refs"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/port_names",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/port_names"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/port_set",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/port_set"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/port_type",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/port_type"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/smoke",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/smoke"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/task_info",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/foundation/task_info"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m1/header_copy_send_accounting",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m1/header_copy_send_accounting"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m1/header_move_send_accounting",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m1/header_move_send_accounting"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/dead_name_descriptor_right",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/dead_name_descriptor_right"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/descriptor_copy_send",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/descriptor_copy_send"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/descriptor_move_send",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/descriptor_move_send"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/double_move_send_descriptor",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/double_move_send_descriptor"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/invalid_descriptor_disposition",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/invalid_descriptor_disposition"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/send_once_descriptor",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/m2/send_once_descriptor"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/dispatch/dispatch_global_queue_service",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/dispatch/dispatch_global_queue_service"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/dispatch/dispatch_mach_recv_source",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/dispatch/dispatch_mach_recv_source"
+        },
+        {
+          "path": "/Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/dispatch/dispatch_primitives",
+          "status": "signed",
+          "return_code": 0,
+          "output": "signed: /Users/linz/Local/wip-mach/rmx-explorer/macos-validation/.build/bin/dispatch/dispatch_primitives"
+        }
+      ]
+    },
+    "zig_version": "0.16.0",
+    "zig_path": "/usr/local/bin/zig",
+    "zig_lib_dir": "/usr/local/lib/zig",
+    "zig_fallback": false,
+    "zig_fallback_reason": null,
+    "command_failures": [
+      {
+        "command": [
+          "sysctl",
+          "-n",
+          "machdep.cpu.leaf7_features"
+        ],
+        "return_code": 1,
+        "stderr": "sysctl: unknown oid 'machdep.cpu.leaf7_features'"
+      }
+    ]
+  },
+  "message": {
+    "msgh_bits": "",
+    "remote_port": {
+      "name": null,
+      "disposition": null,
+      "right_type": null
+    },
+    "local_port": {
+      "name": null,
+      "disposition": null,
+      "right_type": null
+    },
+    "header_rights": [],
+    "descriptor_count": 0,
+    "descriptors": []
+  },
+  "returns": [
+    {
+      "call": "op102_matrix_fails",
+      "returned": "0",
+      "raw": 0,
+      "errno": null
+    },
+    {
+      "call": "op102_matrix_terminal",
+      "returned": "status=0",
+      "raw": 0,
+      "errno": null
+    }
+  ],
+  "right_deltas": [],
+  "observations": {
+    "async_block": "PASS",
+    "async_f": "PASS",
+    "sync_block": "PASS",
+    "sync_f": "PASS",
+    "apply_block": "PASS",
+    "apply_f": "PASS",
+    "once_block": "PASS",
+    "once_f": "PASS",
+    "barrier_block": "PASS",
+    "barrier_f": "PASS",
+    "group_block": "PASS",
+    "group_f": "PASS",
+    "semaphore_block": "PASS",
+    "semaphore_f": "PASS",
+    "source_timer_normal": "PASS",
+    "source_mach_recv": "PASS",
+    "op102_matrix_fails": 0,
+    "coverage": "9 cases: async/sync/apply/once/barrier/group/semaphore (block+_f), source-timer(NORMAL), source-MACH_RECV",
+    "omitted": "data, io \u2014 not present in the op-102 core matrix harness (harness.c covers the listed core subset only)",
+    "build": "clang -fblocks -Wno-error=incompatible-function-pointer-types -O2 (source UNMODIFIED; macOS Apple clang 17)",
+    "build_divergence_once_f": "dispatch_once_f passed cb_add void(*)(void*,size_t) where void(*)(void*) expected; macOS Apple clang 17 = ERROR by default (-Werror=incompatible-function-pointer-types); rmxOS clang = warning. Built with -Wno-error=... (compile flag only, source unmodified). Behavioral result identical (once_f runs o2++ once = PASS). This is a compiler-strictness divergence, NOT a dispatch-behavior divergence.",
+    "raw_output": "async: block=PASS f=PASS\nsync: block=PASS f=PASS\napply: block=PASS f=PASS\nonce: block=PASS f=PASS\nbarrier: block=PASS f=PASS\ngroup: block=PASS f=PASS\nsemaphore: block=PASS f=PASS\nsource-timer(NORMAL): PASS\nsource-MACH_RECV: PASS\nop102_matrix_fails=0\nop102_matrix_terminal status=0"
+  },
+  "cleanup": {
+    "returned_to_baseline": true,
+    "notes": "harness exited rc=0; dispatch queues/semaphores/sources released per-case; not a port-namespace baseline probe"
+  },
+  "notes": "op-103 macOS-as-truth ferry of op-102 libdispatch conformance matrix (harness.c unmodified). Full matrix PASS on macOS-27 (mm4) \u2014 matches rx-x64z ALL GREEN behaviorally. One compiler-strictness divergence recorded (once_f; see build_divergence_once_f). macOS is truth ONLY for the cases that ran; data/io omitted (not in op-102 core harness)."
+}
