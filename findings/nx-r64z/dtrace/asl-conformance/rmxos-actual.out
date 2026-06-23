@@ -1,14 +1,12 @@
-# op-116 rx-x64z asl-harness rmxOS-actual
+# op-116 rx-x64z asl-harness rmxOS-actual (unified blob, count>0 loop)
+# harness sha: 11c5f402bce6248541dfadb50a4f40b75520a4a83887df04dc3df44764b1b89b
 # host:      bdw-fx15-x64z
 # os:        rmxOS (FreeBSD 15.0-STABLE rmx/official-stable15-mach) arch amd64
 # kernel:    MACHDEBUGDEBUG @ e101f9c
-# libasl:    alpha libasl.so.1 (obj_root: block-075-alpha-final-obj)
-# syslogd:   Apple ASL syslogd (asld) running under launchd (com.apple.syslogd)
-# transport: Mach bootstrap (com.apple.system.logger) — probe-child path
-# source:    asl-harness.c (portability fixes: aslresponse_next→removed, asl_close void)
-# run:       SYSLOG_LOAD rc=0, SYSLOG_START rc=0, ASL_HARNESS_LOAD rc=0, ASL_HARNESS_START rc=0
-#            rc=0, op116_matrix_fails=1
-# serial sha: 82959f993c64aef532353830670d0c2df010fdbcbbf4795ceafa48572df23e3b
+# libasl:    alpha libasl.so.1
+# syslogd:   Apple ASL syslogd (asld) under launchd (SYSLOG_LOAD/START rc=0)
+# transport: Mach bootstrap (probe-child path)
+# serial sha: c9d8dbfce417fe6712cd826f627d3bc7ecf3c11f6abca4e98a25446a29e0ffec
 
 asl_open: PASS
 asl_new: PASS
