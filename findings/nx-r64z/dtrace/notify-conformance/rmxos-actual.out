@@ -1,12 +1,24 @@
-notify_post: FAIL
-register_check+cipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
-set_state+get_state: FAIL
-notify_cancel: Fipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
-name_coalescing:ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
-multi_client_broadcast: FAIL
-register_signal:ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
-register_mach_port: FAIL
-op110_matrix_fails=8
+# op-110 rx-x64z notify-harness rmxOS-actual (op-110 conformance reference)
+# host:      bdw-fx15-x64z
+# os:        rmxOS (FreeBSD 15.1-STABLE rmx/official-stable15-mach) arch amd64
+# kernel:    MACHDEBUGDEBUG @ e101f9c (bl-009 fixed: pin port-set receive candidate across lock drop)
+# libnotify: alpha libnotify.so.5 (from block-075-alpha-final-obj)
+# notifyd:   running under launchd (block-078 smoke, BLOCK078_NOTIFYD_ROUNDTRIP status=0)
+# source:    notify-harness.c @ 2da90e7 (UNMODIFIED — same source as op-112)
+# run:       as launchd child of the nxplatform-probe session (bootstrap inherited from launchd)
+#            OP110_HARNESS_LOAD status=0, OP110_HARNESS_START status=0
+#            rc=0, op110_matrix_fails=0
+# serial sha: 46bcd75102eed0267a000cc79df97ce408623f2b541dba5f58e073026461302a
+
+notify_post: PASS
+register_check+check: PASS
+check_first_call: PASS
+set_state+get_state: PASS
+notify_cancel: PASS
+name_coalescing: PASS
+multi_client_broadcast: PASS
+register_signal: PASS
+register_mach_port: PASS
+mach_port_delivery: PASS
+op110_matrix_fails=0
 op110_matrix_terminal status=0
-notify_harness_rc=0
-op110_rx_terminal status=0
