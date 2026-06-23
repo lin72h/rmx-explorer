@@ -1,7 +1,7 @@
 #!/bin/sh
-# soak-driver.sh — continuous harness loop under the 4-oracle DTrace (op-104 infra).
-# Loops harness.c for SOAK_DURATION seconds while dtrace aggregates in the background.
-# On completion: SIGINT dtrace (fires END → final deltas), print summary, power off.
+# soak-driver.sh — continuous harness loop under DTrace oracle (op-104/105 infra).
+# Carry-forwards: drop -DSOAK_SECONDS (vestigial); assert tick period matches
+# SOAK_DURATION; global-int counters only (not aggregations).
 SOAK_DURATION="${SOAK_DURATION:-300}"
 HARNESS="${HARNESS:-/root/harness}"
 ORACLE="${ORACLE:-/root/soak-oracle.d}"
@@ -15,7 +15,7 @@ kldload fbt 2>/dev/null; kldload fasttrap 2>/dev/null; kldload systrace 2>/dev/n
 kldload profile 2>/dev/null   # tick-Ns probes need the profile provider
 
 echo "[soak] starting dtrace oracle (background, self-terminating)"
-dtrace -Z -DSOAK_SECONDS="$SOAK_DURATION" -s "$ORACLE" > "$ORACLE_LOG" 2>&1 &
+dtrace -Z -s "$ORACLE" > "$ORACLE_LOG" 2>&1 &
 DTRACE_PID=$!
 sleep 3
 
