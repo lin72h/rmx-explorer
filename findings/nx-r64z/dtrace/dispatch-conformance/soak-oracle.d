@@ -1,15 +1,11 @@
-/* soak-oracle.d — combined invariant oracle for the continuous soak (op-104).
- * FIX (Arbiter op-104-cont): replaced count() AGGREGATIONS with plain global int
- * counters — DTrace forbids printf/arithmetic on aggregations; the END block needs
- * inline deltas (sends - recvs), so globals are the correct choice (printa can't
- * subtract). All 4 invariants in one script.
- * - msg-balance: mach_msg_send vs mach_msg_receive
- * - kmsg-balance: ipc_kmsg_alloc vs ipc_kmsg_destroy
- * - queue-balance: ipc_mqueue_send vs ipc_mqueue_receive
- * - port-balance: ipc_port_alloc vs ipc_port_destroy (nonzero end-delta expected —
- *   ports persist for queue/source lifetimes; op-105 refines to per-iteration delta) */
+/* soak-oracle.d — self-terminating combined oracle (op-104).
+ * FIX (run 2): FreeBSD dtrace doesn't reliably fire END on SIGINT; the output
+ * buffer was lost on SIGKILL. Replaced END with a tick-1s countdown that prints
+ * the deltas + exit(0) — dtrace flushes cleanly on its own exit.
+ * Pass SOAK_SECONDS via -DSOAK_SECONDS=N on the dtrace command line. */
 #pragma D option quiet
-BEGIN { printf("soak-oracle begin\n"); }
+
+BEGIN { printf("soak-oracle begin (SOAK_SECONDS=%d)\n", SOAK_SECONDS); countdown = SOAK_SECONDS; }
 
 fbt::mach_msg_send:entry      { sends++; }
 fbt::mach_msg_receive:entry   { recvs++; }
@@ -20,7 +16,8 @@ fbt::ipc_mqueue_receive:entry { deqs++; }
 fbt::ipc_port_alloc:entry     { pallocs++; }
 fbt::ipc_port_destroy:entry   { pdestroys++; }
 
-END {
+tick-1s /countdown > 0/ { countdown--; }
+tick-1s /countdown == 0/ {
   printf("=== SOAK ORACLE FINAL ===\n");
   printf("msg:  send=%d recv=%d delta=%d\n", sends, recvs, sends - recvs);
   printf("kmsg: alloc=%d destroy=%d delta=%d\n", kallocs, kdestroys, kallocs - kdestroys);
@@ -28,4 +25,5 @@ END {
   printf("port: alloc=%d destroy=%d delta=%d (nonzero expected; op-105 refines)\n",
          pallocs, pdestroys, pallocs - pdestroys);
   printf("=== SOAK ORACLE END ===\n");
+  exit(0);
 }

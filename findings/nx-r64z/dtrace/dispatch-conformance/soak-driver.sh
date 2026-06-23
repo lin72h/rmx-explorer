@@ -13,8 +13,8 @@ kldload mach 2>/dev/null || true
 kldload opensolaris 2>/dev/null; kldload dtrace 2>/dev/null
 kldload fbt 2>/dev/null; kldload fasttrap 2>/dev/null; kldload systrace 2>/dev/null
 
-echo "[soak] starting dtrace oracle (background)"
-dtrace -Z -s "$ORACLE" > "$ORACLE_LOG" 2>&1 &
+echo "[soak] starting dtrace oracle (background, self-terminating)"
+dtrace -Z -DSOAK_SECONDS="$SOAK_DURATION" -s "$ORACLE" > "$ORACLE_LOG" 2>&1 &
 DTRACE_PID=$!
 sleep 3
 
@@ -27,9 +27,8 @@ while [ "$(date +%s)" -lt "$end" ]; do
     rc=$?; fails=$((fails + 1)); echo "iter=$iter FAIL rc=$rc" >> "$HARNESS_LOG"; fi
 done
 
-echo "[soak] stopping dtrace (SIGINT → END → deltas)"
-kill -INT "$DTRACE_PID" 2>/dev/null; sleep 3
-kill -KILL "$DTRACE_PID" 2>/dev/null || true
+echo "[soak] harness loop done; waiting for oracle self-exit"
+wait "$DTRACE_PID" 2>/dev/null || true
 
 printf 'soak_iterations=%d soak_fails=%d soak_duration=%d\n' "$iter" "$fails" "$SOAK_DURATION"
 printf 'op104_proof_terminal status=0\n'
