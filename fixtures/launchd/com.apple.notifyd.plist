@@ -3,26 +3,27 @@
  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>Label</key>
+	<string>com.apple.notifyd</string>
+	<key>KeepAlive</key>
+	<true/>
+	<key>EnableTransactions</key>
+	<true/>
+	<key>POSIXSpawnType</key>
+	<string>Interactive</string>
 	<key>EnvironmentVariables</key>
 	<dict>
 		<key>ASL_DISABLE</key>
 		<string>1</string>
 	</dict>
-	<key>POSIXSpawnType</key>
-	<string>Interactive</string>
 	<key>MachServices</key>
 	<dict>
 		<key>com.apple.system.notification_center</key>
 		<true/>
 	</dict>
-	<key>EnableTransactions</key>
-	<true/>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/sbin/notifyd</string>
-		<string>-d</string>
 	</array>
-	<key>Label</key>
-	<string>com.apple.notifyd</string>
 </dict>
 </plist>

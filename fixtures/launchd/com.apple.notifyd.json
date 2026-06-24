@@ -1,0 +1,15 @@
+{
+  "Label": "com.apple.notifyd",
+  "KeepAlive": true,
+  "EnableTransactions": true,
+  "POSIXSpawnType": "Interactive",
+  "EnvironmentVariables": {
+    "ASL_DISABLE": "1"
+  },
+  "MachServices": {
+    "com.apple.system.notification_center": true
+  },
+  "ProgramArguments": [
+    "/usr/sbin/notifyd"
+  ]
+}
