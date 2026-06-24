@@ -10,13 +10,19 @@
 # - global-int counters in the oracle (not aggregations)
 # - self-terminating tick (not SIGINT+END)
 #
-# Prerequisites: launchd + notifyd up (the nxplatform-probe session provides
-# the bootstrap port for the notify client). The oracle observes the kernel
-# IPC layer via fbt — no bootstrap needed for the oracle itself.
+# DESIGN (op-131 hardening):
+#   This driver runs from the SHELL (not a launchd job). bs_probe round-trips
+#   go through /root/run-as-launchd-job.sh (li-005: shell=port 0, launchd
+#   child=port 19). Direct /root/bs_probe from here would get port=0 → fail.
+#   The oracle (DTrace fbt) runs in the background — no bootstrap needed.
+#
+# Prerequisites: launchd + notifyd up (the nxplatform-probe session manages
+# launchd). /root/run-as-launchd-job.sh + /root/bs_probe must be present.
 SOAK_DURATION="${SOAK_DURATION:-300}"
 ORACLE="${ORACLE:-/root/notifyd-soak-oracle.d}"
 ORACLE_LOG="${ORACLE_LOG:-/root/notifyd-soak-oracles.log}"
 CLIENT_LOG="${CLIENT_LOG:-/root/notifyd-soak-client.log}"
+RUNNER="${RUNNER:-/root/run-as-launchd-job.sh}"
 
 export LD_LIBRARY_PATH=/usr/lib
 kldload mach 2>/dev/null || true
@@ -29,22 +35,19 @@ dtrace -Z -s "$ORACLE" > "$ORACLE_LOG" 2>&1 &
 DTRACE_PID=$!
 sleep 3
 
-echo "[notifyd-soak] churning notify register/post/check/cancel for ${SOAK_DURATION}s"
+echo "[notifyd-soak] churning notify via launchd-child runner for ${SOAK_DURATION}s"
 end=$(( $(date +%s) + SOAK_DURATION ))
 iter=0; fails=0
 while [ "$(date +%s)" -lt "$end" ]; do
   iter=$((iter + 1))
-  # Inline notify round-trip: register → post → check → cancel
-  # Uses the bs_probe (or a lightweight inline client) for each iteration.
-  # The bs_probe does a full round-trip including bootstrap_look_up each time
-  # (heavier than needed for soak, but exercises the full path).
-  if [ -x /root/bs_probe ]; then
-    if /root/bs_probe >> "$CLIENT_LOG" 2>&1; then :; else
+  # Route through the shipped runner → launchd child → bootstrap inherited.
+  # Direct bs_probe from shell gets port=0 (li-005). The runner overhead is
+  # acceptable for a soak (the oracle measures kernel IPC balance, not latency).
+  if [ -x "$RUNNER" ] && [ -x /root/bs_probe ]; then
+    if "$RUNNER" /root/bs_probe >> "$CLIENT_LOG" 2>&1; then :; else
       rc=$?; fails=$((fails + 1)); echo "iter=$iter FAIL rc=$rc" >> "$CLIENT_LOG"; fi
   else
-    # Fallback: just post (lighter, doesn't test register/check but exercises the
-    # transport layer for msg/port balance)
-    echo "iter=$iter (bs_probe absent — post-only)" >> "$CLIENT_LOG"
+    echo "iter=$iter (runner/bs_probe absent — skip)" >> "$CLIENT_LOG"
   fi
 done
 
