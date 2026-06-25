@@ -1,0 +1,109 @@
+===== asld: dl_init_phdr_info disassembly (crash site) =====
+
+/Users/me/wip-mach/build/block-075-alpha-final-obj/Users/me/wip-mach/wip-gpt/wip-rmxos/amd64.amd64/usr.sbin/asl/asld:	file format elf64-x86-64
+
+Disassembly of section .text:
+
+00000000003165f0 <dl_init_phdr_info>:
+  3165f0: 55                           	pushq	%rbp
+  3165f1: 48 89 e5                     	movq	%rsp, %rbp
+  3165f4: 48 8b 05 75 5b 10 00         	movq	0x105b75(%rip), %rax    # 0x41c170 <__elf_aux_vector>
+  3165fb: 48 8b 08                     	movq	(%rax), %rcx
+  3165fe: 48 85 c9                     	testq	%rcx, %rcx
+  316601: 74 5c                        	je	0x31665f <dl_init_phdr_info+0x6f>
+  316603: 48 83 c0 08                  	addq	$0x8, %rax
+  316607: eb 1e                        	jmp	0x316627 <dl_init_phdr_info+0x37>
+  316609: 0f 1f 80 00 00 00 00         	nopl	(%rax)
+  316610: 48 8b 08                     	movq	(%rax), %rcx
+  316613: 48 89 0d c6 5c 10 00         	movq	%rcx, 0x105cc6(%rip)    # 0x41c2e0 <phdr_info>
+  31661a: 48 8b 48 08                  	movq	0x8(%rax), %rcx
+  31661e: 48 83 c0 10                  	addq	$0x10, %rax
+  316622: 48 85 c9                     	testq	%rcx, %rcx
+  316625: 74 38                        	je	0x31665f <dl_init_phdr_info+0x6f>
+  316627: 48 83 c1 fd                  	addq	$-0x3, %rcx
+  31662b: 48 d1 c9                     	rorq	%rcx
+  31662e: 48 83 f9 06                  	cmpq	$0x6, %rcx
+  316632: 77 e6                        	ja	0x31661a <dl_init_phdr_info+0x2a>
+  316634: ff 24 cd a0 19 23 00         	jmpq	*0x2319a0(,%rcx,8)
+  31663b: 48 8b 08                     	movq	(%rax), %rcx
+  31663e: 48 89 0d ab 5c 10 00         	movq	%rcx, 0x105cab(%rip)    # 0x41c2f0 <phdr_info+0x10>
+  316645: eb d3                        	jmp	0x31661a <dl_init_phdr_info+0x2a>
+  316647: 0f b7 08                     	movzwl	(%rax), %ecx
+  31664a: 66 89 0d a7 5c 10 00         	movw	%cx, 0x105ca7(%rip)     # 0x41c2f8 <phdr_info+0x18>
+  316651: eb c7                        	jmp	0x31661a <dl_init_phdr_info+0x2a>
+  316653: 48 8b 08                     	movq	(%rax), %rcx
+  316656: 48 89 0d 8b 5c 10 00         	movq	%rcx, 0x105c8b(%rip)    # 0x41c2e8 <phdr_info+0x8>
+  31665d: eb bb                        	jmp	0x31661a <dl_init_phdr_info+0x2a>
+  31665f: 0f b7 05 92 5c 10 00         	movzwl	0x105c92(%rip), %eax    # 0x41c2f8 <phdr_info+0x18>
+  316666: 48 85 c0                     	testq	%rax, %rax
+  316669: 74 27                        	je	0x316692 <dl_init_phdr_info+0xa2>
+  31666b: 48 8b 0d 7e 5c 10 00         	movq	0x105c7e(%rip), %rcx    # 0x41c2f0 <phdr_info+0x10>
+  316672: 83 f8 01                     	cmpl	$0x1, %eax
+  316675: 75 28                        	jne	0x31669f <dl_init_phdr_info+0xaf>
+  316677: 31 d2                        	xorl	%edx, %edx
+  316679: a8 01                        	testb	$0x1, %al
+  31667b: 74 15                        	je	0x316692 <dl_init_phdr_info+0xa2>
+  31667d: 48 6b c2 38                  	imulq	$0x38, %rdx, %rax
+
+===== asld: __init_elf_aux_vector disassembly =====
+
+/Users/me/wip-mach/build/block-075-alpha-final-obj/Users/me/wip-mach/wip-gpt/wip-rmxos/amd64.amd64/usr.sbin/asl/asld:	file format elf64-x86-64
+
+Disassembly of section .text:
+
+0000000000313510 <__init_elf_aux_vector>:
+  313510: 55                           	pushq	%rbp
+  313511: 48 89 e5                     	movq	%rsp, %rbp
+  313514: b8 b8 2c 40 00               	movl	$0x402cb8, %eax         # imm = 0x402CB8
+  313519: 48 85 c0                     	testq	%rax, %rax
+  31351c: 74 02                        	je	0x313520 <__init_elf_aux_vector+0x10>
+  31351e: 5d                           	popq	%rbp
+  31351f: c3                           	retq
+  313520: bf 60 c1 41 00               	movl	$0x41c160, %edi         # imm = 0x41C160
+  313525: be 30 35 31 00               	movl	$0x313530, %esi         # imm = 0x313530
+  31352a: 5d                           	popq	%rbp
+  31352b: e9 f0 23 00 00               	jmp	0x315920 <_once>
+
+0000000000313530 <init_aux_vector_once>:
+  313530: 55                           	pushq	%rbp
+  313531: 48 89 e5                     	movq	%rsp, %rbp
+  313534: 48 8b 05 35 77 0f 00         	movq	0xf7735(%rip), %rax     # 0x40ac70 <environ>
+  31353b: 0f 1f 44 00 00               	nopl	(%rax,%rax)
+  313540: 48 83 38 00                  	cmpq	$0x0, (%rax)
+  313544: 48 8d 40 08                  	leaq	0x8(%rax), %rax
+  313548: 75 f6                        	jne	0x313540 <init_aux_vector_once+0x10>
+  31354a: 48 89 05 1f 8c 10 00         	movq	%rax, 0x108c1f(%rip)    # 0x41c170 <__elf_aux_vector>
+  313551: 5d                           	popq	%rbp
+  313552: c3                           	retq
+  313553: 66 66 66 66 2e 0f 1f 84 00 00 00 00 00       	nopw	%cs:(%rax,%rax)
+
+0000000000313560 <elf_aux_info>:
+  313560: 55                           	pushq	%rbp
+  313561: 48 89 e5                     	movq	%rsp, %rbp
+  313564: 41 57                        	pushq	%r15
+  313566: 41 56                        	pushq	%r14
+  313568: 41 54                        	pushq	%r12
+  31356a: 53                           	pushq	%rbx
+  31356b: 41 89 d6                     	movl	%edx, %r14d
+  31356e: 48 89 f3                     	movq	%rsi, %rbx
+  313571: 41 89 ff                     	movl	%edi, %r15d
+  313574: b8 b8 2c 40 00               	movl	$0x402cb8, %eax         # imm = 0x402CB8
+  313579: 48 85 c0                     	testq	%rax, %rax
+  31357c: 0f 84 90 01 00 00            	je	0x313712 <elf_aux_info+0x1b2>
+  313582: 48 83 3d e6 8b 10 00 00      	cmpq	$0x0, 0x108be6(%rip)    # 0x41c170 <__elf_aux_vector>
+  31358a: 0f 84 9f 01 00 00            	je	0x31372f <elf_aux_info+0x1cf>
+  313590: 8b 05 82 8c 10 00            	movl	0x108c82(%rip), %eax    # 0x41c218 <aux_once>
+  313596: 85 c0                        	testl	%eax, %eax
+  313598: 0f 85 a5 01 00 00            	jne	0x313743 <elf_aux_info+0x1e3>
+  31359e: 48 8b 05 cb 8b 10 00         	movq	0x108bcb(%rip), %rax    # 0x41c170 <__elf_aux_vector>
+
+===== asld: symbols around the auxv/dlfcn machinery =====
+0000000000313510 T __init_elf_aux_vector
+0000000000316430 W dladdr
+0000000000316560 W _dl_iterate_phdr_locked
+00000000003165f0 t dl_init_phdr_info
+00000000003166e0 W dl_iterate_phdr
+000000000041c170 B __elf_aux_vector
+000000000041c2d0 b dl_phdr_info_once
+000000000041c2e0 b phdr_info
+000000000041c320 b dl_phdr_info_lock

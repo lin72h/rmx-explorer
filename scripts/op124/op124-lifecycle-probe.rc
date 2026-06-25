@@ -1,0 +1,251 @@
+#!/bin/sh
+# op124-lifecycle-probe.rc — /etc/rc.local probe for op-124 asl leg-1 lifecycle.
+#
+# Drives asld (as com.apple.syslogd) through the full launchd lifecycle spine:
+#   load → start → observe (asl round-trip) → restart → remove → reload
+#
+# Mirrors op-123 leg-1 structure. The lifecycle spine is the leg-1 bar — a real
+# asl round-trip at observe/restart/reload, not just pgrep liveness.
+#
+# Foundation (proven by op-145 v3 PASS, reused verbatim per Arranger):
+#   - launchd -u does NOT auto-load /etc/launchd.d/ — every rung uses explicit
+#     launchctl verbs.
+#   - rc.d/syslogd is renamed .disabled on the staged image (prevents stock
+#     FreeBSD syslogd colliding with asld's process name).
+#   - MachServices/Sockets in the plist are TOLERATED by asld under -u launchd
+#     (op-145 PASS + op-143 root cause was the static-libsys link, NOT the plist).
+#
+# FAIL modes:
+#   - lifecycle rung fails but asld doesn't crash → report failing rung.
+#   - asld SIGSEGV / dl_init_phdr anywhere → STOP, capture core, reopen id-024.
+#
+# Installed as /etc/rc.local on the staged op-124 image.
+set -u
+
+emit() { printf '%s\n' "$1"; }
+
+emit "OP124_LIFECYCLE_START"
+date -u '+OP124_TIME utc=%Y-%m-%dT%H:%M:%SZ'
+uname -a | sed 's/^/OP124_UNAME /'
+
+# === ldconfig (surface overlay libs) ===
+if command -v ldconfig >/dev/null 2>&1; then
+	ldconfig -m /usr/lib >/tmp/op124-ldconfig.out 2>&1 || {
+		rc=$?
+		emit "OP124_LDCONFIG status=$rc"
+		emit "OP124_LIFECYCLE_TERMINAL status=1 reason=ldconfig"
+		sync; sleep 1; shutdown -p now; exit "$rc"
+	}
+	emit "OP124_LDCONFIG status=0"
+fi
+
+# === sanity: required files present (absent = wrong base, not consumed) ===
+FAIL_SETUP=0
+for f in /sbin/launchd /bin/launchctl /usr/sbin/asld /usr/lib/libasl.so.1 \
+         /usr/lib/libmach.so.5 /usr/lib/libdispatch.so.5 /usr/lib/liblaunch.so.5 \
+         /root/run-as-launchd-job.sh /root/asl-harness; do
+	if [ ! -e "$f" ]; then
+		emit "OP124_SANITY missing=$f"
+		FAIL_SETUP=1
+	fi
+done
+if [ "$FAIL_SETUP" -ne 0 ]; then
+	emit "OP124_LIFECYCLE_TERMINAL status=1 reason=sanity_fail_setup_not_consumed"
+	sync; sleep 1; shutdown -p now; exit 64
+fi
+emit "OP124_SANITY status=0"
+
+# === kldload mach (FreeBSD kernel needs the Mach compat layer loaded) ===
+kldload mach 2>/dev/null || true
+kldstat 2>/dev/null | grep -q 'mach.ko' && emit "OP124_MODLOAD status=0 module=mach" \
+	|| { emit "OP124_M_FIRST_BLOCKER rung=modload reason=mach.ko_not_loaded" \
+		; emit "OP124_LIFECYCLE_TERMINAL status=1 reason=modload" \
+		; sync; sleep 1; shutdown -p now; exit 65; }
+
+PLIST=/etc/launchd.d/com.apple.syslogd.plist
+LABEL=com.apple.syslogd
+FAIL=0
+
+# asl round-trip via run-as-launchd-job.sh (inherits bootstrap from launchd).
+# Sets $RT_OUT to asl-harness stdout. Returns 0 if asl_search_roundtrip PASS.
+do_roundtrip() {
+	RT_OUT=""
+	if [ ! -x /root/run-as-launchd-job.sh ] || [ ! -x /root/asl-harness ]; then
+		emit "OP124_ROUNDTRIP_WARN reason=runner_or_harness_absent"
+		return 99
+	fi
+	RT_OUT=$(/root/run-as-launchd-job.sh /root/asl-harness 2>&1)
+	if echo "$RT_OUT" | grep -q 'asl_search_roundtrip: PASS'; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+# ===================================================================
+# RUNG 1: launchd -u up
+# ===================================================================
+rm -f /tmp/op124-launchd.out
+BLOCK078_LAUNCHD_DEBUG=1 /sbin/launchd -u > /tmp/op124-launchd.out 2>&1 &
+launchd_pid=$!
+sleep 2
+if ! kill -0 "$launchd_pid" >/dev/null 2>&1; then
+	emit "OP124_LAUNCHD_UP status=1 reason=launchd_exited"
+	emit "OP124_LAUNCHD_STDOUT_BEGIN"; cat /tmp/op124-launchd.out 2>/dev/null || true; emit "OP124_LAUNCHD_STDOUT_END"
+	emit "OP124_LIFECYCLE_TERMINAL status=1 reason=launchd_died"
+	sync; sleep 1; shutdown -p now; exit 30
+fi
+launchd_socket=$(ls -t /tmp/launchd-*/sock 2>/dev/null | head -n 1)
+if [ -z "$launchd_socket" ]; then
+	emit "OP124_LAUNCHD_UP status=1 reason=socket_not_found"
+	emit "OP124_LAUNCHD_STDOUT_BEGIN"; cat /tmp/op124-launchd.out 2>/dev/null || true; emit "OP124_LAUNCHD_STDOUT_END"
+	emit "OP124_LIFECYCLE_TERMINAL status=1 reason=no_socket"
+	kill "$launchd_pid" 2>/dev/null || true
+	sync; sleep 1; shutdown -p now; exit 32
+fi
+export LAUNCHD_SOCKET="$launchd_socket"
+emit "OP124_LAUNCHD_UP status=0 pid=$launchd_pid socket=$launchd_socket"
+
+# ===================================================================
+# RUNG 2: load (launchctl load the syslogd plist)
+# ===================================================================
+if [ ! -f "$PLIST" ]; then
+	emit "OP124_LOAD status=1 reason=plist_absent path=$PLIST"
+	emit "OP124_LIFECYCLE_TERMINAL status=1 reason=plist_absent"
+	kill "$launchd_pid" 2>/dev/null || true
+	sync; sleep 1; shutdown -p now; exit 34
+fi
+launchctl load "$PLIST" > /tmp/op124-load.out 2>&1
+lc_load_rc=$?
+emit "OP124_LOAD status=$lc_load_rc"
+cat /tmp/op124-load.out 2>/dev/null | sed 's/^/OP124_LOAD_OUT /' || true
+[ "$lc_load_rc" -ne 0 ] && {
+	emit "OP124_FIRST_BLOCKER rung=load rc=$lc_load_rc"; FAIL=1; }
+
+# ===================================================================
+# RUNG 3: start (launchctl start com.apple.syslogd → pgrep -x asld)
+# ===================================================================
+if [ "$FAIL" -eq 0 ]; then
+	launchctl start "$LABEL" > /tmp/op124-start.out 2>&1
+	lc_start_rc=$?
+	emit "OP124_START status=$lc_start_rc"
+	cat /tmp/op124-start.out 2>/dev/null | sed 's/^/OP124_START_OUT /' || true
+	sleep 2
+	if pgrep -x asld >/dev/null 2>&1; then
+		asld_pid=$(pgrep -x asld | head -1)
+		emit "OP124_START_OBSERVE_PROC status=0 pid=$asld_pid"
+	else
+		emit "OP124_START_OBSERVE_PROC status=1 reason=asld_not_in_ps"
+		emit "OP124_FIRST_BLOCKER rung=start_proc rc=1"; FAIL=1
+	fi
+	[ "$lc_start_rc" -ne 0 ] && { emit "OP124_FIRST_BLOCKER rung=start rc=$lc_start_rc"; FAIL=1; }
+fi
+
+# ===================================================================
+# RUNG 4: observe (asl round-trip — the leg-1 functional bar)
+# ===================================================================
+if [ "$FAIL" -eq 0 ]; then
+	if do_roundtrip; then
+		emit "OP124_OBSERVE status=0 msg_roundtrip=1"
+	else
+		emit "OP124_OBSERVE status=1 msg_roundtrip=0 reason=asl_search_roundtrip_failed"
+		echo "$RT_OUT" 2>/dev/null | sed 's/^/OP124_OBSERVE_RT /' || true
+		emit "OP124_FIRST_BLOCKER rung=observe rc=1"; FAIL=1
+	fi
+fi
+
+# ===================================================================
+# RUNG 5: restart (kill asld, verify launchd auto-restart OR manual restart)
+# ===================================================================
+if [ "$FAIL" -eq 0 ]; then
+	asld_pid=$(pgrep -x asld 2>/dev/null | head -1)
+	if [ -n "$asld_pid" ]; then
+		kill "$asld_pid" 2>/dev/null || true
+		sleep 3
+		if pgrep -x asld >/dev/null 2>&1; then
+			new_pid=$(pgrep -x asld | head -1)
+			emit "OP124_RESTART status=0 reason=launchd_auto_restart old_pid=$asld_pid new_pid=$new_pid"
+		else
+			# Manual restart fallback
+			launchctl start "$LABEL" > /tmp/op124-restart.out 2>&1
+			sleep 2
+			if pgrep -x asld >/dev/null 2>&1; then
+				emit "OP124_RESTART status=0 reason=manual_restart"
+			else
+				emit "OP124_RESTART status=1 reason=asld_down_after_restart"
+				emit "OP124_FIRST_BLOCKER rung=restart rc=1"; FAIL=1
+			fi
+		fi
+		# Verify round-trip still works after restart
+		if [ "$FAIL" -eq 0 ]; then
+			if do_roundtrip; then
+				emit "OP124_RESTART_ROUNDTRIP status=0 msg_roundtrip=1"
+			else
+				emit "OP124_RESTART_ROUNDTRIP status=1 msg_roundtrip=0"
+				echo "$RT_OUT" 2>/dev/null | sed 's/^/OP124_RESTART_RT /' || true
+				emit "OP124_FIRST_BLOCKER rung=restart_roundtrip rc=1"; FAIL=1
+			fi
+		fi
+	else
+		emit "OP124_RESTART status=1 reason=asld_pid_not_found"
+		emit "OP124_FIRST_BLOCKER rung=restart_pid rc=1"; FAIL=1
+	fi
+fi
+
+# ===================================================================
+# RUNG 6: remove (launchctl remove → asld gone, no auto-restart)
+# ===================================================================
+# op-137 asld-lifecycle-harness + op-110 notifyd pattern: use `launchctl remove`
+# (NOT unload). rmxOS launchd's `unload` returns rc=64 here and does not stop the
+# running daemon (auto-restart wins the race). `remove` drops the job from
+# launchd's table entirely → no KeepAlive-ish respawn.
+if [ "$FAIL" -eq 0 ]; then
+	launchctl remove "$LABEL" > /tmp/op124-remove.out 2>&1
+	lc_remove_rc=$?
+	sleep 3
+	if pgrep -x asld >/dev/null 2>&1; then
+		emit "OP124_REMOVE status=1 reason=asld_still_running remove_rc=$lc_remove_rc"
+		emit "OP124_FIRST_BLOCKER rung=remove rc=1"; FAIL=1
+	else
+		emit "OP124_REMOVE status=0 remove_rc=$lc_remove_rc"
+	fi
+fi
+
+# ===================================================================
+# RUNG 7: reload (load + start → asld back + round-trip works)
+# ===================================================================
+# After RUNG 6's `launchctl remove`, the job is gone from launchd's table.
+# Reload = `launchctl load` (re-registers) + `launchctl start` (kicks it off).
+if [ "$FAIL" -eq 0 ]; then
+	launchctl load "$PLIST" > /tmp/op124-reload-load.out 2>&1
+	lc_reload_load_rc=$?
+	launchctl start "$LABEL" > /tmp/op124-reload-start.out 2>&1
+	lc_reload_start_rc=$?
+	sleep 2
+	if pgrep -x asld >/dev/null 2>&1; then
+		emit "OP124_RELOAD status=0 load_rc=$lc_reload_load_rc start_rc=$lc_reload_start_rc pid=$(pgrep -x asld | head -1)"
+		if do_roundtrip; then
+			emit "OP124_RELOAD_ROUNDTRIP status=0 msg_roundtrip=1"
+		else
+			emit "OP124_RELOAD_ROUNDTRIP status=1 msg_roundtrip=0"
+			echo "$RT_OUT" 2>/dev/null | sed 's/^/OP124_RELOAD_RT /' || true
+			emit "OP124_FIRST_BLOCKER rung=reload_roundtrip rc=1"; FAIL=1
+		fi
+	else
+		emit "OP124_RELOAD status=1 reason=asld_not_up_after_reload load_rc=$lc_reload_load_rc start_rc=$lc_reload_start_rc"
+		emit "OP124_FIRST_BLOCKER rung=reload rc=1"; FAIL=1
+	fi
+fi
+
+# === capture any regressing-core if asld crashed ===
+if ls /root/asld.core* 2>/dev/null 1>&2 || ls /asld.core* 2>/dev/null 1>&2; then
+	emit "OP124_REGRESSION status=1 reason=asld_core_present_id_024_reopen"
+	ls /*.core* /root/*.core* 2>/dev/null | sed 's/^/OP124_CORE_FOUND /' || true
+	FAIL=2
+fi
+
+# === shutdown ===
+kill "$launchd_pid" 2>/dev/null || true
+emit "OP124_LIFECYCLE_TERMINAL status=$FAIL"
+sync; sleep 1; shutdown -p now
+exit "$FAIL"

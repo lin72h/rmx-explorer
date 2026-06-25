@@ -1,0 +1,122 @@
+#!/bin/sh
+# op139-auxv-probe.rc — /etc/rc.local probe for op-139 auxv-confirm.
+#
+# Goal: confirm or refute the id-024 hypothesis — that AT_PHDR is missing
+# from the auxv of launchd-spawned processes (causing the asld SIGSEGV in
+# dl_init_phdr_info at libc dlfcn.c:180). The op-138 backtrace pointed at
+# this code path; op-139 confirms the root cause.
+#
+# Two runs, same image, same boot:
+#   (a) shell-context  — rc.local runs /root/auxv-probe directly. The
+#       probe process is a FreeBSD-init child (rc.local→probe shell). No
+#       launchd involvement. AT_PHDR should be present per FreeBSD's exec.
+#   (b) launchd-context — launchd -u is started, then run-as-launchd-job.sh
+#       loads+starts a transient launchd job that exec's /root/auxv-probe.
+#       This is the same launch path asld took in op-138 (launchctl-loaded
+#       plist → launchd fork+exec). If AT_PHDR is missing here, that's the
+#       smoking gun for id-024.
+#
+# Verdict logic:
+#   - shell:   OP139_AT_PHDR_present=1  (FreeBSD-init path is known-good)
+#   - launchd: OP139_AT_PHDR_present=?  (the question)
+#   If shell=1 and launchd=0 → id-024 CONFIRMED.
+#   If shell=1 and launchd=1 → id-024 REFUTED (look elsewhere for the crash).
+#   If shell=0 → the FreeBSD-init path is also broken; widen the lens.
+#
+# Installed as /etc/rc.local on the staged op-139 image.
+set -u
+
+emit() { printf '%s\n' "$1"; }
+
+emit "OP139_COLDBOOT_START"
+date -u '+OP139_TIME utc=%Y-%m-%dT%H:%M:%SZ'
+uname -a | sed 's/^/OP139_UNAME /'
+
+# ldconfig — surface the staged shared libs.
+if command -v ldconfig >/dev/null 2>&1; then
+	ldconfig -m /usr/lib >/tmp/op139-ldconfig.out 2>&1 || {
+		rc=$?
+		emit "OP139_LDCONFIG status=$rc"
+		cat /tmp/op139-ldconfig.out
+		emit "OP139_COLDBOOT_TERMINAL status=1 reason=ldconfig"
+		sync; sleep 1; shutdown -p now; exit "$rc"
+	}
+	emit "OP139_LDCONFIG status=0"
+fi
+
+# Sanity: confirm the probe binary is present.
+if [ ! -x /root/auxv-probe ]; then
+	emit "OP139_COLDBOOT_TERMINAL status=1 reason=auxv_probe_absent"
+	sync; sleep 1; shutdown -p now; exit 64
+fi
+
+# ============================================================
+# RUN A: shell-context (rc.local → /root/auxv-probe direct exec)
+# ============================================================
+# This rc.local shell is a FreeBSD-init child (init → rc → rc.local).
+# Its children inherit init's TASK_BOOTSTRAP_PORT=MACH_PORT_NULL
+# (the bl-016 ambient-bootstrap gap), but that doesn't affect the
+# ELF auxv — the kernel sets up the auxv via execve regardless of
+# Mach bootstrap.
+emit "OP139_RUN_A_CONTEXT_SHELL_BEGIN"
+/root/auxv-probe 2>&1 | sed 's/^/OP139_A /'
+emit "OP139_RUN_A_CONTEXT_SHELL_END"
+
+# ============================================================
+# RUN B: launchd-context (launchd fork+exec → /root/auxv-probe)
+# ============================================================
+# Start launchd -u (the rmxOS session manager, NOT PID 1).
+rm -f /tmp/op139-launchd.out
+/sbin/launchd -u > /tmp/op139-launchd.out 2>&1 &
+launchd_pid=$!
+sleep 2
+
+if ! kill -0 "$launchd_pid" >/dev/null 2>&1; then
+	wait "$launchd_pid" 2>/dev/null || true
+	emit "OP139_LAUNCHD_START status=1 reason=launchd_exited"
+	emit "OP139_LAUNCHD_STDOUT_BEGIN"
+	cat /tmp/op139-launchd.out 2>/dev/null || true
+	emit "OP139_LAUNCHD_STDOUT_END"
+	emit "OP139_COLDBOOT_TERMINAL status=1 reason=launchd_died"
+	sync; sleep 1; shutdown -p now; exit 30
+fi
+
+launchd_socket=$(ls -t /tmp/launchd-*/sock 2>/dev/null | head -n 1)
+if [ -z "$launchd_socket" ]; then
+	emit "OP139_LAUNCHD_START status=1 reason=socket_not_found"
+	emit "OP139_LAUNCHD_STDOUT_BEGIN"
+	cat /tmp/op139-launchd.out 2>/dev/null || true
+	emit "OP139_LAUNCHD_STDOUT_END"
+	emit "OP139_COLDBOOT_TERMINAL status=1 reason=no_socket"
+	kill "$launchd_pid" >/dev/null 2>&1 || true
+	sync; sleep 1; shutdown -p now; exit 32
+fi
+emit "OP139_LAUNCHD_START status=0 pid=$launchd_pid socket=$launchd_socket"
+export LAUNCHD_SOCKET="$launchd_socket"
+
+# Launch /root/auxv-probe as a launchd child via run-as-launchd-job.sh.
+# This is the same exec path asld took in op-138 (launchctl load + start of
+# a plist that exec's the binary). The probe inherits launchd's bootstrap
+# port AND — the question — its ELF auxv.
+emit "OP139_RUN_B_CONTEXT_LAUNCHD_BEGIN"
+if [ -x /root/run-as-launchd-job.sh ]; then
+	launchd_out=$(/root/run-as-launchd-job.sh /root/auxv-probe 2>&1)
+	printf '%s\n' "$launchd_out" | sed 's/^/OP139_B /'
+else
+	emit "OP139_B OP139_RUN_B_status=1 reason=runner_absent"
+fi
+emit "OP139_RUN_B_CONTEXT_LAUNCHD_END"
+
+# ============================================================
+# VERDICT: emitted by analysis of the serial log post-run.
+# The two runs above print OP139_A OP139_AT_PHDR_present=N and
+# OP139_B OP139_AT_PHDR_present=N. The comparison happens in the
+# findings note (one boot, two perspectives — diff in analysis).
+# ============================================================
+
+# Kill launchd to allow clean shutdown.
+kill "$launchd_pid" >/dev/null 2>&1 || true
+
+emit "OP139_COLDBOOT_TERMINAL status=0"
+sync; sleep 1; shutdown -p now
+exit 0
