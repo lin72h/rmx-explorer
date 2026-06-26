@@ -1,0 +1,187 @@
+Setting hostuuid: b2f167e6-e72d-4ca4-a50f-405b37661dcd.
+Setting hostid: 0x82e0000b.
+Starting file system checks:
+/dev/gpt/rootfs: FILE SYSTEM CLEAN; SKIPPING CHECKS
+/dev/gpt/rootfs: clean, 597086 free (3102 frags, 74248 blocks, 0.2% fragmentation)
+/dev/gpt/efiboot0: 4 files, 31 MiB free (64226 clusters)
+FIXED
+/dev/gpt/efiboot0: MARKING FILE SYSTEM CLEAN
+Growing root partition to fill device
+vtbd0 recovering is not needed
+gpart: autofill: No space left on device
+growfs: requested size 5.0GB is equal to the current filesystem size 5.0GB
+Mounting local filesystems:.
+ELF ldconfig path: /lib /usr/lib
+32-bit compatibility ldconfig path: /usr/lib32
+Setting hostname: freebsd.
+Setting up harvesting: PURE_VMGENID,PURE_RDSEED,RANDOMDEV,[CALLOUT],[UMA],[FS_ATIME],SWI,INTERRUPT,NET_NG,[NET_ETHER],NET_TUN,MOUSE,KEYBOARD,ATTACH,CACHED
+Feeding entropy: .
+lo0: link state changed to UP
+Starting Network: lo0.
+lo0: flags=1008049<UP,LOOPBACK,RUNNING,MULTICAST,LOWER_UP> metric 0 mtu 16384
+	options=680003<RXCSUM,TXCSUM,LINKSTATE,RXCSUM_IPV6,TXCSUM_IPV6>
+	inet 127.0.0.1 netmask 0xff000000
+	inet6 ::1 prefixlen 128
+	inet6 fe80::1%lo0 prefixlen 64 scopeid 0x1
+	groups: lo
+	nd6 options=23<PERFORMNUD,ACCEPT_RTADV,AUTO_LINKLOCAL>
+Starting devd.
+route: message indicates error: File exists
+add host 127.0.0.1: gateway lo0 fib 0: route already in table
+route: message indicates error: File exists
+add host ::1: gateway lo0 fib 0: route already in table
+add net fe80::: gateway ::1
+add net ff02::: gateway ::1
+add net ::ffff:0.0.0.0: gateway ::1
+add net ::0.0.0.0: gateway ::1
+Updating motd:.
+Creating and/or trimming log files.
+Clearing /tmp (X related).
+Updating /var/run/os-release done.
+Starting syslogd.
+No core dumps found.
+Mounting late filesystems:.
+Starting local daemons:ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+OP122_LAUNCHD_UP status=0
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+xpc_dictionary_create: PASS
+xpc_int64_create: PASS
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+xpc_int64_get_value: PASS
+xpc_dictionary_get_string: PASS
+xpc_dictionary_get_int64: PASS
+xpc_dictionary_get_count: PASS
+xpc_string_create: PASS
+xpc_data_create: PASS
+xpc_data_get_length: PASS
+xpc_data_get_bytes_ptr: PASS
+xpc_hash_consistent: PASS
+xpc_connection_create: PASS
+xpc_connection_set_event_handler: connection=0xbafc481a000
+xpc_connection_resume: connection=0xbafc481a000
+xpc_connection_lifecycle: PASS
+
+--- PLANE CASES (op-122) ---
+op122_plane_connect_create: PASS
+xpc_connection_set_event_handler: connection=0xbafc481a0a0
+xpc_connection_resume: connection=0xbafc481a0a0
+op122_plane_connect_resume: PASS
+op122_plane_msg_construct: PASS
+xpc_send: connection=0xbafc481a0a0, message=0xbafc480e380, id=1
+1 nvl = 0xbafc5401000
+nv = 0xbafc5401000
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+xpc_send: send failed, kr=22
+op122_plane_reply_received: FAIL
+op122_plane_reply_valid: FAIL
+op122_plane_seqid_correlation: FAIL
+  (note: no reply within 5s — service may not be registered)
+op122_plane_typed_int64: PASS
+op122_plane_typed_string: PASS
+op122_plane_typed_bool: PASS
+op122_plane_typed_uint64: PASS
+op122_plane_typed_count: PASS
+op122_plane_cancel_connect: PASS
+xpc_connection_set_event_handler: connection=0xbafc481a0a0
+xpc_connection_resume: connection=0xbafc481a0a0
+op122_plane_cancel_event_fired: FAIL
+op122_plane_cancel_event_obj: FAIL
+op122_plane_cancel_error_desc_present: FAIL
+xpc_release: PASS
+op122_matrix_fails=6
+op122_matrix_terminal status=0
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+xpc_dictionary_create: PASS
+xpc_int64_create: PASS
+xpc_int64_get_value: PASS
+xpc_dictionary_get_string: PASS
+xpc_dictionary_get_int64: PASS
+xpc_dictionary_get_count: PASS
+xpc_string_create: PASS
+xpc_data_create: PASS
+xpc_data_get_length: PASS
+xpc_data_get_bytes_ptr: PASS
+xpc_hash_consistent: PASS
+xpc_connection_create: PASS
+xpc_connection_set_event_handler: connection=0x286f66c1a000
+xpc_connection_resume: connection=0x286f66c1a000
+xpc_connection_lifecycle: PASS
+
+--- PLANE CASES (op-122) ---
+op122_plane_connect_create: PASS
+xpc_connection_set_event_handler: connection=0x286f66c1a0a0
+xpc_connection_resume: connection=0x286f66c1a0a0
+op122_plane_connect_resume: PASS
+op122_plane_msg_construct: PASS
+xpc_send: connection=0x286f66c1a0a0, message=0x286f66c0e380, id=1
+1 nvl = 0x287b68c00000
+nv = 0x287b68c00000
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+xpc_send: send failed, kr=22
+op122_plane_reply_received: FAIL
+op122_plane_reply_valid: FAIL
+op122_plane_seqid_correlation: FAIL
+  (note: no reply within 5s — service may not be registered)
+op122_plane_typed_int64: PASS
+op122_plane_typed_string: PASS
+op122_plane_typed_bool: PASS
+op122_plane_typed_uint64: PASS
+op122_plane_typed_count: PASS
+op122_plane_cancel_connect: PASS
+xpc_connection_set_event_handler: connection=0x286f66c1a0a0
+xpc_connection_resume: connection=0x286f66c1a0a0
+op122_plane_cancel_event_fired: FAIL
+op122_plane_cancel_event_obj: FAIL
+op122_plane_cancel_error_desc_present: FAIL
+xpc_release: PASS
+op122_matrix_fails=6
+op122_matrix_terminal status=0
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+xpc_dictionary_create: PASS
+xpc_int64_create: PASS
+xpc_int64_get_value: PASS
+xpc_dictionary_get_string: PASS
+xpc_dictionary_get_int64: PASS
+xpc_dictionary_get_count: PASS
+xpc_string_create: PASS
+xpc_data_create: PASS
+xpc_data_get_length: PASS
+xpc_data_get_bytes_ptr: PASS
+xpc_hash_consistent: PASS
+xpc_connection_create: PASS
+xpc_connection_set_event_handler: connection=0x38fd1fe1a000
+xpc_connection_resume: connection=0x38fd1fe1a000
+xpc_connection_lifecycle: PASS
+
+--- PLANE CASES (op-122) ---
+op122_plane_connect_create: PASS
+xpc_connectioipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+n_set_event_handler: connection=0x38fd1fe1a0a0
+xpc_connection_resume: connection=0x38fd1fe1a0a0
+op122_plane_connect_resume: PASS
+op122_plane_msg_construct: PASS
+xpc_send: connection=0x38fd1fe1a0a0, message=0x38fd1fe0e380, id=1
+1 nvl = 0x390921e00000
+nv = 0x390921e00000
+xpc_send: send failed, kr=22
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+Shutdown NOW!
+shutdown: [pid 977]
+
+System shutdown time has arrived
+Jun 26 21:12:53 freebsd shutdown[977]: power-down by root: 
+Jun 26 21:12:53 freebsd syslogd: exiting on signal 15
+Waiting (max 60 seconds) for system process `vnlru' to stop... done
+Waiting (max 60 seconds) for system process `syncer' to stop... 
+Syncing disks, vnodes remaining... 0 done
+All buffers synced.
+Uptime: 21s
+acpi0: Powering system off
