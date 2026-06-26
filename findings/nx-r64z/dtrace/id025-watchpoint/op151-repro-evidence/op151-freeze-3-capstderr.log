@@ -1,0 +1,22 @@
+[cap 15:01:36] connecting to bhyve TCP serial 127.0.0.1:14677
+[cap 15:01:36] connected
+[cap 15:01:36] freeze detector: polling serial silence for 900s
+[cap 15:03:16] FREEZE-DETECTED serial-silent=93s bytes=3503 bhyve-still-alive=yes
+[cap 15:03:16] injecting NMI
+[cap 15:03:19] sending DDB commands
+[cap 15:03:19] DDB: trace
+[cap 15:03:21] DDB: show locks
+[cap 15:03:23] DDB: ps
+[cap 15:03:25] DDB: show pcpu
+[cap 15:03:27] DDB: msg
+[cap 15:03:29] DDB: boot dump
+[cap 15:03:36] capture complete
+Traceback (most recent call last):
+  File "/Users/me/wip-mach/rmx-explorer/scripts/op151/op151-capture-ddb.py", line 120, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/Users/me/wip-mach/rmx-explorer/scripts/op151/op151-capture-ddb.py", line 116, in main
+    log("capture complete")
+  File "/Users/me/wip-mach/rmx-explorer/scripts/op151/op151-capture-ddb.py", line 35, in log
+    out.write(line.encode())
+ValueError: I/O operation on closed file

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- op-151 churn probe plist — rendered from @@SOAK_DURATION@@ placeholder.
+     Body is op-150's plist verbatim (Fable-verified @ gatekeeper 4b16fd1);
+     only the SOAK_DURATION value is parameterized per-run by the staging script. -->
+<plist version="1.0"><dict>
+<key>Label</key><string>com.rmxos.op150.churn</string>
+<key>ProgramArguments</key><array><string>/root/notify-churn-probe</string></array>
+<key>RunAtLoad</key><false/>
+<key>KeepAlive</key><false/>
+<key>StandardOutPath</key><string>/tmp/op150-churn.out</string>
+<key>StandardErrorPath</key><string>/tmp/op150-churn.err</string>
+<key>EnvironmentVariables</key><dict>
+<key>SOAK_DURATION</key><string>@@SOAK_DURATION@@</string>
+<key>LD_LIBRARY_PATH</key><string>/usr/lib</string>
+</dict>
+</dict></plist>

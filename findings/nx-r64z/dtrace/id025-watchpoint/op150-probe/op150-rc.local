@@ -1,0 +1,31 @@
+#!/bin/sh
+# op-150 thin glue — NOT a harness. No OP150_ verdict markers from shell.
+# Modules + launchd + notifyd + watchpoint .d + churn probe (launchd child) + wait + poweroff.
+kldload mach 2>/dev/null || true
+kldload opensolaris 2>/dev/null; kldload dtrace 2>/dev/null
+kldload fbt 2>/dev/null; kldload profile 2>/dev/null
+export LD_LIBRARY_PATH=/usr/lib
+
+BLOCK078_LAUNCHD_DEBUG=1 /sbin/launchd -u > /tmp/op150-launchd.out 2>&1 &
+sleep 2
+export LAUNCHD_SOCKET=$(ls -t /tmp/launchd-*/sock 2>/dev/null | head -1)
+
+# notifyd up (churn's notify ops need it registered)
+/bin/launchctl load /root/nxplatform/block078/com.apple.notifyd.plist 2>/dev/null
+/bin/launchctl start com.apple.notifyd 2>/dev/null
+sleep 1
+
+# start the op-148 freeze watchpoint (.d — passive observation)
+dtrace -s /root/op148-freeze-watchpoint.d > /tmp/op150-watchpoint.log 2>&1 &
+
+# start the churn probe as a launchd child (inherits bootstrap port — li-005)
+/bin/launchctl load /root/com.rmxos.op150.churn.plist 2>/dev/null
+/bin/launchctl start com.rmxos.op150.churn
+
+# wait for the soak (SOAK_DURATION=7200 + 300s buffer for boot/shutdown)
+sleep 7500
+
+# print the watchpoint + churn output
+cat /tmp/op150-watchpoint.log
+cat /tmp/op150-churn.out
+sync; sleep 1; shutdown -p now

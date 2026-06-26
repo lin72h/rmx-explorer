@@ -1,0 +1,55 @@
+#!/bin/sh
+# op-151 thin glue rc.local (NOT a harness per op-147m).
+# Setup: modules + launchd + notifyd + watchpoint .d + churn probe (launchd child) + wait + poweroff.
+# NO OP151_ verdicts emitted from this script — the Elixir conductor parses
+# serial for OP150_CHURN_* + OP148_HB markers and emits the verdict.
+kldload mach 2>/dev/null || true
+kldload opensolaris 2>/dev/null
+kldload dtrace 2>/dev/null
+kldload fbt 2>/dev/null
+kldload profile 2>/dev/null
+export LD_LIBRARY_PATH=/usr/lib
+
+BLOCK078_LAUNCHD_DEBUG=1 /sbin/launchd -u > /tmp/op151-launchd.out 2>&1 &
+launchd_pid=$!
+sleep 2
+launchd_socket=$(ls -t /tmp/launchd-*/sock 2>/dev/null | head -n 1)
+if [ -z "$launchd_socket" ]; then
+	echo "OP151_SETUP_FAIL reason=launchd_no_socket"
+	cat /tmp/op151-launchd.out 2>/dev/null
+	sync; sleep 1; shutdown -p now; exit 32
+fi
+export LAUNCHD_SOCKET="$launchd_socket"
+
+# notifyd up (churn's notify ops need it registered with bootstrap).
+/bin/launchctl load /root/nxplatform/block078/com.apple.notifyd.plist 2>/dev/null
+/bin/launchctl start com.apple.notifyd 2>/dev/null
+sleep 1
+if ! pgrep -x notifyd >/dev/null 2>&1; then
+	echo "OP151_SETUP_FAIL reason=notifyd_not_up"
+	sync; sleep 1; shutdown -p now; exit 33
+fi
+
+# op-148 freeze watchpoint .d (passive observation — dies on guest freeze, that's the §B gap).
+dtrace -s /root/op148-freeze-watchpoint.d > /tmp/op151-watchpoint.log 2>&1 &
+watchpoint_pid=$!
+sleep 1   # let the watchpoint arm before the churn starts
+
+# op-150 churn probe as a launchd child (inherits bootstrap port — li-005 path).
+/bin/launchctl load /root/com.rmxos.op150.churn.plist
+/bin/launchctl start com.rmxos.op150.churn
+
+# Wait for the soak duration (set by staging script from the Elixir conductor's
+# SOAK_DURATION arg). After the soak, dump watchpoint + churn logs and power off.
+SOAK_DURATION=@@SOAK_DURATION@@
+sleep $((SOAK_DURATION + 60))
+
+echo "=== op151-rc.local: soak elapsed, dumping captured logs ==="
+cat /tmp/op151-watchpoint.log 2>/dev/null
+cat /tmp/op150-churn.out 2>/dev/null
+
+# Cleanup + power off.
+kill "$watchpoint_pid" 2>/dev/null || true
+kill "$launchd_pid" 2>/dev/null || true
+sync; sleep 1; shutdown -p now
+exit 0

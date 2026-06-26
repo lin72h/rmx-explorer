@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0"><dict>
+<key>Label</key><string>com.rmxos.op150.churn</string>
+<key>ProgramArguments</key><array><string>/root/notify-churn-probe</string></array>
+<key>RunAtLoad</key><false/>
+<key>KeepAlive</key><false/>
+<key>StandardOutPath</key><string>/tmp/op150-churn.out</string>
+<key>StandardErrorPath</key><string>/tmp/op150-churn.err</string>
+<key>EnvironmentVariables</key><dict>
+<key>SOAK_DURATION</key><string>7200</string>
+<key>LD_LIBRARY_PATH</key><string>/usr/lib</string>
+</dict>
+</dict></plist>
