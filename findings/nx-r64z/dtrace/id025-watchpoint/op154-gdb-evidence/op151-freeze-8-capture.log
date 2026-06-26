@@ -1,0 +1,393 @@
+[cap 16:31:24] connecting to bhyve TCP serial 127.0.0.1:14677
+[cap 16:31:24] serial connected
+[cap 16:31:24] freeze detector: polling serial silence for 900s
+Setting hostuuid: b2f167e6-e72d-4ca4-a50f-405b37661dcd.
+Setting hostid: 0x82e0000b.
+Starting file system checks:
+/dev/gpt/rootfs: FILE SYSTEM CLEAN; SKIPPING CHECKS
+/dev/gpt/rootfs: clean, 597087 free (3103 frags, 74248 blocks, 0.2% fragmentation)
+/dev/gpt/efiboot0: 4 files, 31 MiB free (64226 clusters)
+FIXED
+/dev/gpt/efiboot0: MARKING FILE SYSTEM CLEAN
+Growing root partition to fill device
+vtbd0 recovering is not needed
+gpart: autofill: No space left on device
+growfs: requested size 5.0GB is equal to the current filesystem size 5.0GB
+Mounting local filesystems:.
+ELF ldconfig path: /lib /usr/lib
+32-bit compatibility ldconfig path: /usr/lib32
+Setting hostname: freebsd.
+Setting up harvesting: PURE_VMGENID,PURE_RDSEED,RANDOMDEV,[CALLOUT],[UMA],[FS_ATIME],SWI,INTERRUPT,NET_NG,[NET_ETHER],NET_TUN,MOUSE,KEYBOARD,ATTACH,CACHED
+Feeding entropy: .
+lo0: link state changed to UP
+Starting Network: lo0.
+lo0: flags=1008049<UP,LOOPBACK,RUNNING,MULTICAST,LOWER_UP> metric 0 mtu 16384
+	options=680003<RXCSUM,TXCSUM,LINKSTATE,RXCSUM_IPV6,TXCSUM_IPV6>
+	inet 127.0.0.1 netmask 0xff000000
+	inet6 ::1 prefixlen 128
+	inet6 fe80::1%lo0 prefixlen 64 scopeid 0x1
+	groups: lo
+	nd6 options=23<PERFORMNUD,ACCEPT_RTADV,AUTO_LINKLOCAL>
+Starting devd.
+route: message indicates error: File exists
+add host 127.0.0.1: gateway lo0 fib 0: route already in table
+route: message indicates error: File exists
+add host ::1: gateway lo0 fib 0: route already in table
+add net fe80::: gateway ::1
+add net ff02::: gateway ::1
+add net ::ffff:0.0.0.0: gateway ::1
+add net ::0.0.0.0: gateway ::1
+Updating motd:.
+Creating and/or trimming log files.
+Clearing /tmp (X related).
+Updating /var/run/os-release done.
+Starting syslogd.
+No core dumps found.
+Mounting late filesystems:.
+Starting local daemons:ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+[cap 16:33:04] FREEZE-DETECTED serial-silent=94s bytes=2635
+[cap 16:33:04] attaching kgdb with sysroot=/tmp/op154-sysroot
+[cap 16:33:04] running kgdb (sysroot=/tmp/op154-sysroot)
+[cap 16:33:05] kgdb rc=0 stdout=15528B stderr=226B
+
+===== KGDB STDOUT =====
+Reading symbols from /Users/me/wip-mach/build/official-stable15-mach-obj/Users/me/wip-mach/freebsd-src-official-stable-15/amd64.amd64/sys/MACHDEBUGDEBUG/kernel.debug...
+(kgdb) (kgdb) (kgdb) (kgdb) (kgdb) Remote debugging using :12345
+Reading symbols from /tmp/op154-sysroot/boot/modules/mach.ko...
+Reading symbols from /tmp/op154-sysroot/usr/lib/debug/boot/modules/mach.ko.debug...
+0xffffffff810be2d4 in cpu_idle_acpi (sbt=40153593)
+    at /usr/src/sys/x86/x86/cpu_machdep.c:363
+363		__asm __volatile("sti; hlt");
+(kgdb) === KGDB ATTACHED ===
+(kgdb) 
+=== info sharedlibrary ===
+(kgdb) From                To                  Syms Read   Shared Object Library
+0xffffffff8272b000  0xffffffff82755000  Yes         /tmp/op154-sysroot/boot/modules/mach.ko
+                                        No          /boot/kernel/opensolaris.ko
+                                        No          /boot/kernel/dtrace.ko
+                                        No          /boot/kernel/fbt.ko
+                                        No          /boot/kernel/profile.ko
+(kgdb) 
+=== add-kld mach ===
+(kgdb) (kgdb) 
+=== info sharedlibrary (post add-kld) ===
+(kgdb) From                To                  Syms Read   Shared Object Library
+0xffffffff8272b000  0xffffffff82755000  Yes         /tmp/op154-sysroot/boot/modules/mach.ko
+                                        No          /boot/kernel/opensolaris.ko
+                                        No          /boot/kernel/dtrace.ko
+                                        No          /boot/kernel/fbt.ko
+                                        No          /boot/kernel/profile.ko
+(kgdb) 
+=== verify mach symbols resolved ===
+(kgdb) Symbol "ipc_mqueue_receive" is a function at address 0xffffffff82745410.
+(kgdb) Symbol "ipc_mqueue_pset_receive" is a function at address 0xffffffff82744f10.
+(kgdb) Symbol "thread_block" is a function at address 0xffffffff8273bdb0.
+(kgdb) Symbol "thread_pool_wakeup" is a function at address 0xffffffff827544d0.
+(kgdb) Symbol "ipc_pset_signal" is a function at address 0xffffffff82749870.
+(kgdb) 
+=== info threads (vCPUs only) ===
+(kgdb)   Id   Target Id         Frame 
+* 1    Thread 1 (vCPU 0) 0xffffffff810be2d4 in cpu_idle_acpi (sbt=40153593)
+    at /usr/src/sys/x86/x86/cpu_machdep.c:363
+  2    Thread 2 (vCPU 1) 0xffffffff810be2d4 in cpu_idle_acpi (sbt=333085920)
+    at /usr/src/sys/x86/x86/cpu_machdep.c:363
+(kgdb) 
+=== thread apply all bt (vCPU stacks) ===
+(kgdb) 
+Thread 2 (Thread 2 (vCPU 1)):
+#0  0xffffffff810be2d4 in cpu_idle_acpi (sbt=333085920) at /usr/src/sys/x86/x86/cpu_machdep.c:363
+#1  0xffffffff810be3a6 in cpu_idle (busy=0) at /usr/src/sys/x86/x86/cpu_machdep.c:801
+#2  0xffffffff80bddff4 in sched_ule_idletd (dummy=<optimized out>) at /usr/src/sys/kern/sched_ule.c:3168
+#3  0xffffffff80b54c62 in fork_exit (callout=0xffffffff80bddad0 <sched_ule_idletd>, arg=0x0, frame=0xfffffe0067c40f40) at /usr/src/sys/kern/kern_fork.c:1199
+#4  <signal handler called>
+
+Thread 1 (Thread 1 (vCPU 0)):
+#0  0xffffffff810be2d4 in cpu_idle_acpi (sbt=40153593) at /usr/src/sys/x86/x86/cpu_machdep.c:363
+#1  0xffffffff810be3a6 in cpu_idle (busy=0) at /usr/src/sys/x86/x86/cpu_machdep.c:801
+#2  0xffffffff80bddff4 in sched_ule_idletd (dummy=<optimized out>) at /usr/src/sys/kern/sched_ule.c:3168
+#3  0xffffffff80b54c62 in fork_exit (callout=0xffffffff80bddad0 <sched_ule_idletd>, arg=0x0, frame=0xfffffe0067c45f40) at /usr/src/sys/kern/kern_fork.c:1199
+#4  <signal handler called>
+(kgdb) 
+=== allproc manual walk ===
+(kgdb) (kgdb) (kgdb)  > > > >proc[0] pid=982 comm=sleep numthreads=1 p_state=1
+proc[1] pid=980 comm=notify-churn-probe numthreads=1 p_state=1
+proc[2] pid=977 comm=dtrace numthreads=1 p_state=1
+proc[3] pid=973 comm=notifyd numthreads=4 p_state=1
+proc[4] pid=967 comm=launchd numthreads=3 p_state=1
+proc[5] pid=959 comm=sh numthreads=1 p_state=1
+proc[6] pid=839 comm=syslogd numthreads=1 p_state=1
+proc[7] pid=838 comm=syslogd numthreads=1 p_state=1
+proc[8] pid=835 comm=syslogd numthreads=1 p_state=1
+proc[9] pid=547 comm=devd numthreads=1 p_state=1
+proc[10] pid=15 comm=sh numthreads=1 p_state=1
+proc[11] pid=14 comm=syncer numthreads=1 p_state=1
+proc[12] pid=9 comm=vnlru numthreads=1 p_state=1
+proc[13] pid=8 comm=bufdaemon numthreads=4 p_state=1
+proc[14] pid=7 comm=vmdaemon numthreads=1 p_state=1
+proc[15] pid=6 comm=pagedaemon numthreads=3 p_state=1
+proc[16] pid=5 comm=rand_harvestq numthreads=1 p_state=1
+proc[17] pid=4 comm=cam numthreads=3 p_state=1
+proc[18] pid=3 comm=crypto numthreads=3 p_state=1
+proc[19] pid=13 comm=geom numthreads=3 p_state=1
+proc[20] pid=2 comm=clock numthreads=2 p_state=1
+proc[21] pid=12 comm=intr numthreads=9 p_state=1
+proc[22] pid=11 comm=idle numthreads=2 p_state=1
+proc[23] pid=1 comm=init numthreads=1 p_state=1
+proc[24] pid=10 comm=audit numthreads=1 p_state=1
+proc[25] pid=0 comm=kernel numthreads=34 p_state=1
+(kgdb) 
+=== END allproc walk, total=26 ===
+(kgdb) 
+=== ptype struct thread (find linkage field) ===
+(kgdb) type = struct thread {
+    struct mtx * volatile td_lock;
+    struct proc *td_proc;
+    struct {
+        struct thread *tqe_next;
+        struct thread **tqe_prev;
+    } td_plist;
+    struct {
+        struct thread *tqe_next;
+        struct thread **tqe_prev;
+    } td_runq;
+    union {
+        struct {...} td_slpq;
+        struct thread *td_zombie;
+    };
+    struct {
+        struct thread *tqe_next;
+        struct thread **tqe_prev;
+    } td_lockq;
+    struct {
+        struct thread *le_next;
+        struct thread **le_prev;
+    } td_hash;
+    struct cpuset *td_cpuset;
+    struct domainset_ref td_domain;
+    struct seltd *td_sel;
+    struct sleepqueue *td_sleepqueue;
+    struct turnstile *td_turnstile;
+    void *td_pad1;
+    struct umtx_q *td_umtxq;
+    lwpid_t td_tid;
+    sigqueue_t td_sigqueue;
+    u_char td_lend_user_pri;
+    u_char td_allocdomain;
+    u_char td_base_ithread_pri;
+    struct kmsan_td *td_kmsan;
+    int td_flags;
+    int td_ast;
+    int td_inhibitors;
+    int td_pflags;
+    int td_pflags2;
+    int td_dupfd;
+    int td_sqqueue;
+    const void *td_wchan;
+    const char *td_wmesg;
+    volatile u_char td_owepreempt;
+    u_char td_tsqueue;
+    u_char _td_pad0[2];
+    int td_locks;
+    int td_rw_rlocks;
+    int td_sx_slocks;
+    int td_lk_slocks;
+    struct lock_object *td_wantedlock;
+    struct turnstile *td_blocked;
+    const char *td_lockname;
+    struct {
+        struct turnstile *lh_first;
+    } td_contested;
+    struct lock_list_entry *td_sleeplocks;
+    int td_intr_nesting_level;
+    int td_pinned;
+    struct ucred *td_realucred;
+    struct ucred *td_ucred;
+    struct plimit *td_limit;
+    int td_slptick;
+    int td_blktick;
+    int td_swvoltick;
+    int td_swinvoltick;
+    u_int td_cow;
+    struct rusage td_ru;
+    struct rusage_ext td_rux;
+    uint64_t td_incruntime;
+    uint64_t td_runtime;
+    u_int td_pticks;
+    u_int td_sticks;
+    u_int td_iticks;
+    u_int td_uticks;
+    int td_intrval;
+    sigset_t td_oldsigmask;
+    volatile u_int td_generation;
+    stack_t td_sigstk;
+    int td_xsig;
+    u_long td_profil_addr;
+    u_int td_profil_ticks;
+    char td_name[20];
+    struct file *td_fpop;
+    int td_dbgflags;
+    siginfo_t td_si;
+    int td_ng_outbound;
+    struct osd td_osd;
+    struct vm_map_entry *td_map_def_user;
+    pid_t td_dbg_forked;
+    u_int td_no_sleeping;
+    struct vnode *td_vp_reserved;
+    void *td_su;
+    sbintime_t td_sleeptimo;
+    int td_rtcgen;
+    int td_errno;
+    size_t td_vslock_sz;
+    struct kcov_info *td_kcov_info;
+    long td_ucredref;
+    struct kexterr td_kexterr;
+    sigset_t td_sigmask;
+    u_char td_rqindex;
+    u_char td_base_pri;
+    u_char td_priority;
+    u_char td_pri_class;
+    u_char td_user_pri;
+    u_char td_base_user_pri;
+    uintptr_t td_rb_list;
+    uintptr_t td_rbp_list;
+    uintptr_t td_rb_inact;
+    struct syscall_args td_sa;
+    void *td_sigblock_ptr;
+    uint32_t td_sigblock_val;
+    void *td_exterr_ptr;
+    struct pcb *td_pcb;
+    enum td_states td_state;
+    union {
+        syscallarg_t tdu_retval[2];
+        off_t tdu_off;
+    } td_uretoff;
+    u_int td_cowgen;
+    struct callout td_slpcallout;
+    struct trapframe *td_frame;
+    vm_offset_t td_kstack;
+    u_short td_kstack_pages;
+    u_short td_kstack_domain;
+    volatile u_int td_critnest;
+    struct mdthread td_md;
+    struct kaudit_record *td_ar;
+    struct lpohead td_lprof[2];
+    struct kdtrace_thread *td_dtrace;
+    struct vnet *td_vnet;
+    const char *td_vnet_lpush;
+    struct trapframe *td_intr_frame;
+    struct proc *td_rfppwait_p;
+    struct vm_page **td_ma;
+    int td_ma_cnt;
+    void *td_emuldata;
+    void *td_machdata;
+    struct twq_thread *td_twq;
+    int td_lastcpu;
+    int td_oncpu;
+    void *td_lkpi_task;
+    int td_pmcpend;
+    void *td_remotereq;
+    off_t td_ktr_io_lim;
+}
+(kgdb) 
+=== walk per-proc threads using td_plist ===
+(kgdb) (kgdb) (kgdb)  > > >  >  >  >  > > > >proc[0] pid=982 thr[0] td=0xfffff800b888d000 td_state=1 wchan=0xffffffff81de7221 wmesg=nanslp
+proc[1] pid=980 thr[0] td=0xfffff800b886e780 td_state=1 wchan=0xffffffff81de7221 wmesg=nanslp
+proc[2] pid=977 thr[0] td=0xfffff800b884f780 td_state=1 wchan=0xfffff80003417480 wmesg=uwait
+proc[3] pid=973 thr[0] td=0xfffff800b888f000 td_state=1 wchan=0xffffffff81de7221 wmesg=nanslp
+proc[3] pid=973 thr[1] td=0xfffff800b888e780 td_state=1 wchan=0xfffff800037cf600 wmesg=kqread
+proc[3] pid=973 thr[2] td=0xfffff800b888e000 td_state=1 wchan=0xfffffe0062ca60b0 wmesg=sigsusp
+proc[3] pid=973 thr[3] td=0xfffff800b888c780 td_state=1 wchan=0xfffff80003a0a100 wmesg=uwait
+proc[4] pid=967 thr[0] td=0xfffff800b888d780 td_state=1 wchan=0xfffff80003918340 wmesg=thread_block
+proc[4] pid=967 thr[1] td=0xfffff800b8890000 td_state=1 wchan=0xfffff80003a0edc0 wmesg=select
+proc[4] pid=967 thr[2] td=0xfffff800b888f780 td_state=1 wchan=0xfffffe0062caa5a0 wmesg=wait
+proc[5] pid=959 thr[0] td=0xfffff800b8871000 td_state=1 wchan=0xfffffe0062ca6ad0 wmesg=wait
+proc[6] pid=839 thr[0] td=0xfffff800b886f780 td_state=1 wchan=0xfffff80003a113c0 wmesg=select
+proc[7] pid=838 thr[0] td=0xfffff800b8850000 td_state=1 wchan=0xfffff80003a110c0 wmesg=select
+proc[8] pid=835 thr[0] td=0xfffff800b884f000 td_state=1 wchan=0xfffff800037cee00 wmesg=kqread
+proc[9] pid=547 thr[0] td=0xfffff800b888a780 td_state=1 wchan=0xfffff80003a11440 wmesg=select
+proc[10] pid=15 thr[0] td=0xfffff800b8851780 td_state=1 wchan=0xfffffe0062c03568 wmesg=wait
+proc[11] pid=14 thr[0] td=0xfffff80100d46000 td_state=1 wchan=0xffffffff822d8d78 wmesg=syncer
+proc[12] pid=9 thr[0] td=0xfffff80100d46780 td_state=1 wchan=0xfffffe0062c04038 wmesg=vlruwt
+proc[13] pid=8 thr[0] td=0xfffff80100d47000 td_state=1 wchan=0xffffffff822d7d68 wmesg=psleep
+proc[13] pid=8 thr[1] td=0xfffff800b8852780 td_state=1 wchan=0xffffffff81a01e80 wmesg=-
+proc[13] pid=8 thr[2] td=0xfffff800b8852000 td_state=1 wchan=0xffffffff81a02100 wmesg=-
+proc[13] pid=8 thr[3] td=0xfffff800b886f000 td_state=1 wchan=0xfffff800038a5ce8 wmesg=sdflush
+proc[14] pid=7 thr[0] td=0xfffff80100d47780 td_state=1 wchan=0xffffffff8230d030 wmesg=psleep
+proc[15] pid=6 thr[0] td=0xfffff80100d48000 td_state=1 wchan=0xffffffff822f36c8 wmesg=psleep
+proc[15] pid=6 thr[1] td=0xfffff80004535780 td_state=1 wchan=0xffffffff822f36d4 wmesg=launds
+proc[15] pid=6 thr[2] td=0xfffff80004535000 td_state=1 wchan=0xffffffff80f77800 wmesg=umarcl
+proc[16] pid=5 thr[0] td=0xfffff80100d49780 td_state=1 wchan=0xffffffff81be5048 wmesg=-
+proc[17] pid=4 thr[0] td=0xfffff80004536780 td_state=1 wchan=0xffffffff81bb6240 wmesg=-
+proc[17] pid=4 thr[1] td=0xfffff80004536000 td_state=1 wchan=0xffffffff81bb61c0 wmesg=-
+proc[17] pid=4 thr[2] td=0xfffff80100d48780 td_state=1 wchan=0xffffffff81bb6090 wmesg=-
+proc[18] pid=3 thr[0] td=0xfffff80004530000 td_state=1 wchan=0xffffffff822f0bb0 wmesg=crypto_wait
+proc[18] pid=3 thr[1] td=0xfffff80004537780 td_state=1 wchan=0xfffff80003573030 wmesg=crypto_ret_wait
+proc[18] pid=3 thr[2] td=0xfffff80004537000 td_state=1 wchan=0xfffff80003573080 wmesg=crypto_ret_wait
+proc[19] pid=13 thr[0] td=0xfffff80004532780 td_state=1 wchan=0xffffffff81da3160 wmesg=-
+proc[19] pid=13 thr[1] td=0xfffff80004532000 td_state=1 wchan=0xffffffff81da3168 wmesg=-
+proc[19] pid=13 thr[2] td=0xfffff80004531780 td_state=1 wchan=0xffffffff81da3170 wmesg=-
+proc[20] pid=2 thr[0] td=0xfffff8000452c780 td_state=1 wchan=(nil) wmesg=(none)
+proc[20] pid=2 thr[1] td=0xfffff8000452c000 td_state=1 wchan=(nil) wmesg=(none)
+proc[21] pid=12 thr[0] td=0xfffff80004525780 td_state=1 wchan=(nil) wmesg=(none)
+proc[21] pid=12 thr[1] td=0xfffff80004525000 td_state=1 wchan=(nil) wmesg=(none)
+proc[21] pid=12 thr[2] td=0xfffff80004524000 td_state=1 wchan=(nil) wmesg=(none)
+proc[21] pid=12 thr[3] td=0xfffff80004533780 td_state=1 wchan=(nil) wmesg=(none)
+proc[21] pid=12 thr[4] td=0xfffff8000453e780 td_state=1 wchan=(nil) wmesg=(none)
+proc[21] pid=12 thr[5] td=0xfffff8000453e000 td_state=1 wchan=(nil) wmesg=(none)
+proc[21] pid=12 thr[6] td=0xfffff8000452d000 td_state=1 wchan=(nil) wmesg=(none)
+proc[21] pid=12 thr[7] td=0xfffff8000453d780 td_state=1 wchan=(nil) wmesg=(none)
+proc[21] pid=12 thr[8] td=0xfffff8000453d000 td_state=1 wchan=(nil) wmesg=(none)
+proc[22] pid=11 thr[0] td=0xfffff80004516780 td_state=4 wchan=(nil) wmesg=(none)
+proc[22] pid=11 thr[1] td=0xfffff80004516000 td_state=4 wchan=(nil) wmesg=(none)
+proc[23] pid=1 thr[0] td=0xfffff80004517000 td_state=1 wchan=0xfffffe0062c02070 wmesg=wait
+proc[24] pid=10 thr[0] td=0xfffff80004517780 td_state=1 wchan=0xffffffff822f10b0 wmesg=audit_worker_cv
+proc[25] pid=0 thr[0] td=0xffffffff81abe640 td_state=1 wchan=0xffffffff8298bff0 wmesg=-
+proc[25] pid=0 thr[1] td=0xfffff80004515780 td_state=1 wchan=0xfffff80003225a00 wmesg=-
+proc[25] pid=0 thr[2] td=0xfffff80004515000 td_state=1 wchan=0xfffff80003225800 wmesg=-
+proc[25] pid=0 thr[3] td=0xfffff80004514780 td_state=1 wchan=0xfffff80003225600 wmesg=-
+proc[25] pid=0 thr[4] td=0xfffff80004514000 td_state=1 wchan=0xfffff80003225400 wmesg=-
+proc[25] pid=0 thr[5] td=0xfffff80004527780 td_state=1 wchan=0xfffff80003225200 wmesg=-
+proc[25] pid=0 thr[6] td=0xfffff80004527000 td_state=1 wchan=0xfffff800031bee00 wmesg=-
+proc[25] pid=0 thr[7] td=0xfffff80004526780 td_state=1 wchan=0xfffff800031bed00 wmesg=-
+proc[25] pid=0 thr[8] td=0xfffff80004526000 td_state=1 wchan=0xfffff800031bec00 wmesg=-
+proc[25] pid=0 thr[9] td=0xfffff80004524780 td_state=1 wchan=0xfffff800031be900 wmesg=-
+proc[25] pid=0 thr[10] td=0xfffff8000452b780 td_state=1 wchan=0xfffff800031be700 wmesg=-
+proc[25] pid=0 thr[11] td=0xfffff8000452b000 td_state=1 wchan=0xfffff800031be600 wmesg=-
+proc[25] pid=0 thr[12] td=0xfffff8000452a780 td_state=1 wchan=0xfffff800031be500 wmesg=-
+proc[25] pid=0 thr[13] td=0xfffff8000452a000 td_state=1 wchan=0xfffff800031be400 wmesg=-
+proc[25] pid=0 thr[14] td=0xfffff80004529780 td_state=1 wchan=0xfffff800031be300 wmesg=-
+proc[25] pid=0 thr[15] td=0xfffff80004529000 td_state=1 wchan=0xfffff800031be200 wmesg=-
+proc[25] pid=0 thr[16] td=0xfffff80004528780 td_state=1 wchan=0xfffff800031be200 wmesg=-
+proc[25] pid=0 thr[17] td=0xfffff80004528000 td_state=1 wchan=0xfffff800031be200 wmesg=-
+proc[25] pid=0 thr[18] td=0xfffff8000452f780 td_state=1 wchan=0xfffff800031be200 wmesg=-
+proc[25] pid=0 thr[19] td=0xfffff8000452f000 td_state=1 wchan=0xfffff800031be100 wmesg=-
+(kgdb) 
+=== END per-proc thread walk ===
+(kgdb) 
+=== END CAPTURE ===
+(kgdb) Detaching from program: /Users/me/wip-mach/build/official-stable15-mach-obj/Users/me/wip-mach/freebsd-src-official-stable-15/amd64.amd64/sys/MACHDEBUGDEBUG/kernel.debug, Remote target
+Ending remote debugging.
+[Inferior 1 (Remote target) detached]
+(kgdb) 
+===== KGDB STDERR =====
+warning: Could not load shared library symbols for 4 libraries, e.g. opensolaris.ko.
+Use the "info sharedlibrary" command to see the complete listing.
+Do you need "set solib-search-path" or "set sysroot"?
+Unable to locate kld
+[cap 16:33:05] DDB cross-check: NMI + ps + alltrace
+NMI/cpu0 ... going to debugger
+ps
+show pcpu
+alltrace
+reset
+[cap 16:33:21] forcing guest poweroff
