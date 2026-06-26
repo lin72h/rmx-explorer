@@ -1,0 +1,247 @@
+[cap 17:23:32] connecting to bhyve TCP serial 127.0.0.1:14677
+[cap 17:23:32] serial connected
+[cap 17:23:32] freeze detector: HB-iter gate=380 stall=120s max_wait=1500s
+Setting hostuuid: b2f167e6-e72d-4ca4-a50f-405b37661dcd.
+Setting hostid: 0x82e0000b.
+Starting file system checks:
+/dev/gpt/rootfs: FILE SYSTEM CLEAN; SKIPPING CHECKS
+/dev/gpt/rootfs: clean, 597087 free (3103 frags, 74248 blocks, 0.2% fragmentation)
+/dev/gpt/efiboot0: 4 files, 31 MiB free (64226 clusters)
+FIXED
+/dev/gpt/efiboot0: MARKING FILE SYSTEM CLEAN
+Growing root partition to fill device
+vtbd0 recovering is not needed
+gpart: autofill: No space left on device
+growfs: requested size 5.0GB is equal to the current filesystem size 5.0GB
+Mounting local filesystems:.
+ELF ldconfig path: /lib /usr/lib
+32-bit compatibility ldconfig path: /usr/lib32
+Setting hostname: freebsd.
+Setting up harvesting: PURE_VMGENID,PURE_RDSEED,RANDOMDEV,[CALLOUT],[UMA],[FS_ATIME],SWI,INTERRUPT,NET_NG,[NET_ETHER],NET_TUN,MOUSE,KEYBOARD,ATTACH,CACHED
+Feeding entropy: .
+lo0: link state changed to UP
+Starting Network: lo0.
+lo0: flags=1008049<UP,LOOPBACK,RUNNING,MULTICAST,LOWER_UP> metric 0 mtu 16384
+	options=680003<RXCSUM,TXCSUM,LINKSTATE,RXCSUM_IPV6,TXCSUM_IPV6>
+	inet 127.0.0.1 netmask 0xff000000
+	inet6 ::1 prefixlen 128
+	inet6 fe80::1%lo0 prefixlen 64 scopeid 0x1
+	groups: lo
+	nd6 options=23<PERFORMNUD,ACCEPT_RTADV,AUTO_LINKLOCAL>
+Starting devd.
+route: message indicates error: File exists
+add host 127.0.0.1: gateway lo0 fib 0: route already in table
+route: message indicates error: File exists
+add host ::1: gateway lo0 fib 0: route already in table
+add net fe80::: gateway ::1
+add net ff02::: gateway ::1
+add net ::ffff:0.0.0.0: gateway ::1
+add net ::0.0.0.0: gateway ::1
+Updating motd:.
+Creating and/or trimming log files.
+Clearing /tmp (X related).
+Updating /var/run/os-release done.
+Starting syslogd.
+No core dumps found.
+Mounting late filesystems:.
+Starting local daemons:ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+
+==> /tmp/op155-watchpoint.log <==
+dtrace: script '/root/op148-freeze-watchpoint.d' matched 10 probes
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+OP150_CHURN_START duration=1500
+
+==> /tmp/op155-watchpoint.log <==
+CPU     ID                    FUNCTION:NAME
+  0  71777                        :tick-10s OP148_HB mqs=72 mqr=94 mqsig=31 mqpst=54 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=112 mqr=154 mqsig=54 mqpst=94 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=152 mqr=214 mqsig=75 mqpst=134 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=192 mqr=274 mqsig=97 mqpst=174 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=232 mqr=334 mqsig=119 mqpst=214 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=272 mqr=394 mqsig=142 mqpst=254 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=308 mqr=448 mqsig=165 mqpst=290 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=348 mqr=508 mqsig=190 mqpst=330 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=388 mqr=568 mqsig=214 mqpst=370 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=428 mqr=628 mqsig=236 mqpst=410 blocked_now=0 blk_obs=0
+
+
+==> /tmp/op150-churn.out <==
+OP150_CHURN_HB iter=100 fails=0
+
+==> /tmp/op155-watchpoint.log <==
+  0  71777                        :tick-10s OP148_HB mqs=468 mqr=688 mqsig=258 mqpst=450 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=508 mqr=748 mqsig=284 mqpst=490 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=548 mqr=808 mqsig=307 mqpst=530 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=588 mqr=868 mqsig=332 mqpst=570 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=628 mqr=928 mqsig=353 mqpst=610 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=668 mqr=988 mqsig=380 mqpst=650 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=708 mqr=1048 mqsig=404 mqpst=690 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=748 mqr=1108 mqsig=424 mqpst=730 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=788 mqr=1168 mqsig=448 mqpst=770 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=828 mqr=1228 mqsig=469 mqpst=810 blocked_now=0 blk_obs=0
+
+
+==> /tmp/op150-churn.out <==
+OP150_CHURN_HB iter=200 fails=0
+
+==> /tmp/op155-watchpoint.log <==
+  0  71777                        :tick-10s OP148_HB mqs=868 mqr=1288 mqsig=491 mqpst=850 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=908 mqr=1348 mqsig=514 mqpst=890 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=948 mqr=1408 mqsig=535 mqpst=930 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=988 mqr=1468 mqsig=555 mqpst=970 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1028 mqr=1528 mqsig=579 mqpst=1010 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1068 mqr=1588 mqsig=600 mqpst=1050 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1108 mqr=1648 mqsig=623 mqpst=1090 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1148 mqr=1708 mqsig=644 mqpst=1130 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1188 mqr=1768 mqsig=664 mqpst=1170 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1228 mqr=1828 mqsig=686 mqpst=1210 blocked_now=0 blk_obs=0
+
+
+==> /tmp/op150-churn.out <==
+OP150_CHURN_HB iter=300 fails=0
+
+==> /tmp/op155-watchpoint.log <==
+  0  71777                        :tick-10s OP148_HB mqs=1268 mqr=1888 mqsig=708 mqpst=1250 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1308 mqr=1948 mqsig=729 mqpst=1290 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1348 mqr=2008 mqsig=749 mqpst=1330 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1388 mqr=2068 mqsig=772 mqpst=1370 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1428 mqr=2128 mqsig=792 mqpst=1410 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1468 mqr=2188 mqsig=812 mqpst=1450 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1508 mqr=2248 mqsig=832 mqpst=1490 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1548 mqr=2308 mqsig=855 mqpst=1530 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1588 mqr=2368 mqsig=880 mqpst=1570 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1628 mqr=2428 mqsig=904 mqpst=1610 blocked_now=0 blk_obs=0
+
+
+==> /tmp/op150-churn.out <==
+OP150_CHURN_HB iter=400 fails=0
+
+==> /tmp/op155-watchpoint.log <==
+  0  71777                        :tick-10s OP148_HB mqs=1668 mqr=2488 mqsig=925 mqpst=1650 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1708 mqr=2548 mqsig=945 mqpst=1690 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1748 mqr=2608 mqsig=967 mqpst=1730 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1788 mqr=2668 mqsig=987 mqpst=1770 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1828 mqr=2728 mqsig=1008 mqpst=1810 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1868 mqr=2788 mqsig=1030 mqpst=1850 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1908 mqr=2848 mqsig=1054 mqpst=1890 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1948 mqr=2908 mqsig=1077 mqpst=1930 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=1988 mqr=2968 mqsig=1098 mqpst=1970 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2028 mqr=3028 mqsig=1121 mqpst=2010 blocked_now=0 blk_obs=0
+
+
+==> /tmp/op150-churn.out <==
+OP150_CHURN_HB iter=500 fails=0
+
+==> /tmp/op155-watchpoint.log <==
+  0  71777                        :tick-10s OP148_HB mqs=2068 mqr=3088 mqsig=1144 mqpst=2050 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2108 mqr=3148 mqsig=1164 mqpst=2090 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2148 mqr=3208 mqsig=1187 mqpst=2130 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2188 mqr=3268 mqsig=1209 mqpst=2170 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2228 mqr=3328 mqsig=1230 mqpst=2210 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2268 mqr=3388 mqsig=1251 mqpst=2250 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2308 mqr=3448 mqsig=1274 mqpst=2290 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2348 mqr=3508 mqsig=1294 mqpst=2330 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2388 mqr=3568 mqsig=1315 mqpst=2370 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2428 mqr=3628 mqsig=1336 mqpst=2410 blocked_now=0 blk_obs=0
+
+
+==> /tmp/op150-churn.out <==
+OP150_CHURN_HB iter=600 fails=0
+
+==> /tmp/op155-watchpoint.log <==
+  0  71777                        :tick-10s OP148_HB mqs=2468 mqr=3688 mqsig=1358 mqpst=2450 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2508 mqr=3748 mqsig=1379 mqpst=2490 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2548 mqr=3808 mqsig=1399 mqpst=2530 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2588 mqr=3868 mqsig=1421 mqpst=2570 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2628 mqr=3928 mqsig=1441 mqpst=2610 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2668 mqr=3988 mqsig=1461 mqpst=2650 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2708 mqr=4048 mqsig=1483 mqpst=2690 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2748 mqr=4108 mqsig=1504 mqpst=2730 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2788 mqr=4168 mqsig=1526 mqpst=2770 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2828 mqr=4228 mqsig=1547 mqpst=2810 blocked_now=0 blk_obs=0
+
+
+==> /tmp/op150-churn.out <==
+OP150_CHURN_HB iter=700 fails=0
+
+==> /tmp/op155-watchpoint.log <==
+  0  71777                        :tick-10s OP148_HB mqs=2868 mqr=4288 mqsig=1571 mqpst=2850 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2908 mqr=4348 mqsig=1594 mqpst=2890 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2948 mqr=4408 mqsig=1615 mqpst=2930 blocked_now=0 blk_obs=0
+
+  0  71777                        :tick-10s OP148_HB mqs=2988 mqr=4468 mqsig=1637 mqpst=2970 blocked_now=0 blk_obs=0
+
