@@ -1,0 +1,24 @@
+[cap 15:48:17] connecting to bhyve TCP serial 127.0.0.1:14677
+[cap 15:48:17] serial connected
+[cap 15:48:17] freeze detector: polling serial silence for 900s
+[cap 15:49:57] FREEZE-DETECTED serial-silent=95s bytes=877
+[cap 15:49:57] attaching kgdb to bhyve gdb stub 127.0.0.1:12345
+[cap 15:49:57] running kgdb (stdin-pipe mode) targeting :12345
+[cap 15:49:57] kgdb rc=0 stdout=3144B stderr=491B
+[cap 15:49:57] forcing guest poweroff
+[cap 15:49:57] capture complete
+Traceback (most recent call last):
+  File "/Users/me/wip-mach/rmx-explorer/scripts/op151/op153-capture-gdb.py", line 155, in <module>
+[cap 15:49:57] reader: EOF from bhyve serial
+    sys.exit(main())
+Exception in thread Thread-1 (reader):
+             ^^^^^^
+Traceback (most recent call last):
+  File "/Users/me/wip-mach/rmx-explorer/scripts/op151/op153-capture-gdb.py", line 151, in main
+  File "/usr/local/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
+    log("capture complete")
+  File "/Users/me/wip-mach/rmx-explorer/scripts/op151/op153-capture-gdb.py", line 46, in log
+    self.run()
+    out.write(line.encode())
+  File "/usr/local/lib/python3.11/threading.py", line 982, in run
+ValueError: I/O operation on closed file

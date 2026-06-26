@@ -1,0 +1,89 @@
+[cap 15:48:17] connecting to bhyve TCP serial 127.0.0.1:14677
+[cap 15:48:17] serial connected
+[cap 15:48:17] freeze detector: polling serial silence for 900s
+Mounting late filesystems:.
+Starting local daemons:ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
+[cap 15:49:57] FREEZE-DETECTED serial-silent=95s bytes=877
+[cap 15:49:57] attaching kgdb to bhyve gdb stub 127.0.0.1:12345
+[cap 15:49:57] running kgdb (stdin-pipe mode) targeting :12345
+[cap 15:49:57] kgdb rc=0 stdout=3144B stderr=491B
+
+===== KGDB STDOUT =====
+Reading symbols from /Users/me/wip-mach/build/official-stable15-mach-obj/Users/me/wip-mach/freebsd-src-official-stable-15/amd64.amd64/sys/MACHDEBUGDEBUG/kernel.debug...
+(kgdb) (kgdb) (kgdb) Remote debugging using :12345
+Reading symbols from /boot/kernel/opensolaris.ko...
+Reading symbols from /usr/lib/debug//boot/kernel/opensolaris.ko.debug...
+Reading symbols from /boot/kernel/dtrace.ko...
+Reading symbols from /usr/lib/debug//boot/kernel/dtrace.ko.debug...
+Reading symbols from /boot/kernel/fbt.ko...
+Reading symbols from /usr/lib/debug//boot/kernel/fbt.ko.debug...
+Reading symbols from /boot/kernel/profile.ko...
+Reading symbols from /usr/lib/debug//boot/kernel/profile.ko.debug...
+0xffffffff810be2d4 in cpu_idle_acpi (sbt=40140102)
+    at /usr/src/sys/x86/x86/cpu_machdep.c:363
+363		__asm __volatile("sti; hlt");
+(kgdb) (kgdb) === KGDB ATTACHED — dumping state ===
+(kgdb) 
+=== current thread bt ===
+(kgdb) #0  0xffffffff810be2d4 in cpu_idle_acpi (sbt=40140102)
+    at /usr/src/sys/x86/x86/cpu_machdep.c:363
+#1  0xffffffff810be3a6 in cpu_idle (busy=0)
+    at /usr/src/sys/x86/x86/cpu_machdep.c:801
+#2  0xffffffff80bddff4 in sched_ule_idletd (dummy=<optimized out>)
+    at /usr/src/sys/kern/sched_ule.c:3168
+#3  0xffffffff80b54c62 in fork_exit (
+    callout=0xffffffff80bddad0 <sched_ule_idletd>, arg=0x0, 
+    frame=0xfffffe0067c45f40) at /usr/src/sys/kern/kern_fork.c:1199
+#4  <signal handler called>
+(kgdb) 
+=== info threads ===
+(kgdb)   Id   Target Id         Frame 
+* 1    Thread 1 (vCPU 0) 0xffffffff810be2d4 in cpu_idle_acpi (sbt=40140102)
+    at /usr/src/sys/x86/x86/cpu_machdep.c:363
+  2    Thread 2 (vCPU 1) 0xffffffff810be2d4 in cpu_idle_acpi (sbt=557997395)
+    at /usr/src/sys/x86/x86/cpu_machdep.c:363
+(kgdb) 
+=== thread apply all bt ===
+(kgdb) 
+Thread 2 (Thread 2 (vCPU 1)):
+#0  0xffffffff810be2d4 in cpu_idle_acpi (sbt=557997395) at /usr/src/sys/x86/x86/cpu_machdep.c:363
+#1  0xffffffff810be3a6 in cpu_idle (busy=0) at /usr/src/sys/x86/x86/cpu_machdep.c:801
+#2  0xffffffff80bddff4 in sched_ule_idletd (dummy=<optimized out>) at /usr/src/sys/kern/sched_ule.c:3168
+#3  0xffffffff80b54c62 in fork_exit (callout=0xffffffff80bddad0 <sched_ule_idletd>, arg=0x0, frame=0xfffffe0067c40f40) at /usr/src/sys/kern/kern_fork.c:1199
+#4  <signal handler called>
+
+Thread 1 (Thread 1 (vCPU 0)):
+#0  0xffffffff810be2d4 in cpu_idle_acpi (sbt=40140102) at /usr/src/sys/x86/x86/cpu_machdep.c:363
+#1  0xffffffff810be3a6 in cpu_idle (busy=0) at /usr/src/sys/x86/x86/cpu_machdep.c:801
+#2  0xffffffff80bddff4 in sched_ule_idletd (dummy=<optimized out>) at /usr/src/sys/kern/sched_ule.c:3168
+#3  0xffffffff80b54c62 in fork_exit (callout=0xffffffff80bddad0 <sched_ule_idletd>, arg=0x0, frame=0xfffffe0067c45f40) at /usr/src/sys/kern/kern_fork.c:1199
+#4  <signal handler called>
+(kgdb) 
+=== info address (key mach fns) ===
+(kgdb) (kgdb) (kgdb) (kgdb) (kgdb) (kgdb) 
+=== END KGDB CAPTURE ===
+(kgdb) Detaching from program: /Users/me/wip-mach/build/official-stable15-mach-obj/Users/me/wip-mach/freebsd-src-official-stable-15/amd64.amd64/sys/MACHDEBUGDEBUG/kernel.debug, Remote target
+Ending remote debugging.
+[Inferior 1 (Remote target) detached]
+(kgdb) 
+===== KGDB STDERR =====
+warning: remote target does not support file transfer, attempting to access files from local filesystem.
+warning: Could not load shared library symbols for mach.ko.
+Do you need "set solib-search-path" or "set sysroot"?
+Unable to locate kld
+No symbol "ipc_mqueue_receive" in current context.
+No symbol "ipc_mqueue_pset_receive" in current context.
+No symbol "thread_block" in current context.
+No symbol "thread_pool_wakeup" in current context.
+No symbol "ipc_pset_signal" in current context.
+[cap 15:49:57] forcing guest poweroff
