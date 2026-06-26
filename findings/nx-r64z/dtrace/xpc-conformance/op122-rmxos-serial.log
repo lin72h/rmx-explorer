@@ -2,7 +2,7 @@ Setting hostuuid: b2f167e6-e72d-4ca4-a50f-405b37661dcd.
 Setting hostid: 0x82e0000b.
 Starting file system checks:
 /dev/gpt/rootfs: FILE SYSTEM CLEAN; SKIPPING CHECKS
-/dev/gpt/rootfs: clean, 597086 free (3102 frags, 74248 blocks, 0.2% fragmentation)
+/dev/gpt/rootfs: clean, 597082 free (3098 frags, 74248 blocks, 0.2% fragmentation)
 /dev/gpt/efiboot0: 4 files, 31 MiB free (64226 clusters)
 FIXED
 /dev/gpt/efiboot0: MARKING FILE SYSTEM CLEAN
@@ -50,52 +50,12 @@ ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
 ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
 OP122_LAUNCHD_UP status=0
 ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
-xpc_dictionary_create: PASS
-xpc_int64_create: PASS
+OP122_ECHO_START pid=969 service=com.rmxos.op122.echo
+OP122_ECHO_LISTENER status=0
+xpc_connection_set_event_handler: connection=0x7d5bd00e000
+xpc_connection_resume: connection=0x7d5bd00e000
+OP122_RESPONDER_LOADED
 ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
-xpc_int64_get_value: PASS
-xpc_dictionary_get_string: PASS
-xpc_dictionary_get_int64: PASS
-xpc_dictionary_get_count: PASS
-xpc_string_create: PASS
-xpc_data_create: PASS
-xpc_data_get_length: PASS
-xpc_data_get_bytes_ptr: PASS
-xpc_hash_consistent: PASS
-xpc_connection_create: PASS
-xpc_connection_set_event_handler: connection=0xbafc481a000
-xpc_connection_resume: connection=0xbafc481a000
-xpc_connection_lifecycle: PASS
-
---- PLANE CASES (op-122) ---
-op122_plane_connect_create: PASS
-xpc_connection_set_event_handler: connection=0xbafc481a0a0
-xpc_connection_resume: connection=0xbafc481a0a0
-op122_plane_connect_resume: PASS
-op122_plane_msg_construct: PASS
-xpc_send: connection=0xbafc481a0a0, message=0xbafc480e380, id=1
-1 nvl = 0xbafc5401000
-nv = 0xbafc5401000
-ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
-xpc_send: send failed, kr=22
-op122_plane_reply_received: FAIL
-op122_plane_reply_valid: FAIL
-op122_plane_seqid_correlation: FAIL
-  (note: no reply within 5s — service may not be registered)
-op122_plane_typed_int64: PASS
-op122_plane_typed_string: PASS
-op122_plane_typed_bool: PASS
-op122_plane_typed_uint64: PASS
-op122_plane_typed_count: PASS
-op122_plane_cancel_connect: PASS
-xpc_connection_set_event_handler: connection=0xbafc481a0a0
-xpc_connection_resume: connection=0xbafc481a0a0
-op122_plane_cancel_event_fired: FAIL
-op122_plane_cancel_event_obj: FAIL
-op122_plane_cancel_error_desc_present: FAIL
-xpc_release: PASS
-op122_matrix_fails=6
-op122_matrix_terminal status=0
 ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
 xpc_dictionary_create: PASS
 xpc_int64_create: PASS
@@ -109,79 +69,50 @@ xpc_data_get_length: PASS
 xpc_data_get_bytes_ptr: PASS
 xpc_hash_consistent: PASS
 xpc_connection_create: PASS
-xpc_connection_set_event_handler: connection=0x286f66c1a000
-xpc_connection_resume: connection=0x286f66c1a000
+xpc_connection_set_event_handler: connection=0x334929810000
+xpc_connection_resume: connection=0x334929810000
 xpc_connection_lifecycle: PASS
 
 --- PLANE CASES (op-122) ---
-op122_plane_connect_create: PASS
-xpc_connection_set_event_handler: connection=0x286f66c1a0a0
-xpc_connection_resume: connection=0x286f66c1a0a0
-op122_plane_connect_resume: PASS
-op122_plane_msg_construct: PASS
-xpc_send: connection=0x286f66c1a0a0, message=0x286f66c0e380, id=1
-1 nvl = 0x287b68c00000
-nv = 0x287b68c00000
+op122_plane_connect: PASS
+xpc_connection_set_event_handler: connection=0x3349298100a0
+xpc_connection_resume: connection=0x3349298100a0
+op122_plane_resume: PASS
+op122_plane_request_construct: PASS
+xpc_send: connection=0x3349298100a0, message=0x33492980e380, id=1
+1 nvl = 0x33492a401000
+nv = 0x33492a401000
+xpc_connection_recv_message: connection=0x7d5bd00e000
+xpc_connection_recv_message: message=0x7d5bd014080, id=1, remote=<28>
+xpc_connection_recv_message: new peer on port <28>
+OP122_ECHO_PEER status=0 peer=0x7d5bd00e0a0
+xpc_connection_set_event_handler: connection=0x7d5bd00e0a0
+xpc_connection_resume: connection=0x7d5bd00e0a0
+OP122_ECHO_REPLY status=1 reason=create_reply_null_fallback
+OP122_ECHO_REPLY status=0 seqid=3405643777 fallback=1
+xpc_send: connection=0x7d5bd00e0a0, message=0x7d5bd014340, id=1
+1 nvl = 0x7d5bd00b0c0
+nv = 0x7d5bd00b0c0
+xpc_connection_recv_message: connection=0x3349298100a0
+xpc_connection_recv_message: message=0x33492980e540, id=1, remote=<27>
+Jun 26 22:41:52 freebsd xpc-harness-plane[972]: /usr/src/lib/libxpc/xpc_misc.c:458: 
+Jun 26 22:41:52 freebsd xpc-harness-plane[972]: unpacking data_size=20
+Jun 26 22:41:52 freebsd op122-xpc-echo[969]: /usr/src/lib/libxpc/xpc_misc.c:458: 
+Jun 26 22:41:52 freebsd op122-xpc-echo[969]: unpacking data_size=196
 ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
-xpc_send: send failed, kr=22
-op122_plane_reply_received: FAIL
-op122_plane_reply_valid: FAIL
-op122_plane_seqid_correlation: FAIL
-  (note: no reply within 5s — service may not be registered)
-op122_plane_typed_int64: PASS
-op122_plane_typed_string: PASS
-op122_plane_typed_bool: PASS
-op122_plane_typed_uint64: PASS
-op122_plane_typed_count: PASS
-op122_plane_cancel_connect: PASS
-xpc_connection_set_event_handler: connection=0x286f66c1a0a0
-xpc_connection_resume: connection=0x286f66c1a0a0
-op122_plane_cancel_event_fired: FAIL
-op122_plane_cancel_event_obj: FAIL
-op122_plane_cancel_error_desc_present: FAIL
-xpc_release: PASS
-op122_matrix_fails=6
-op122_matrix_terminal status=0
 ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
-xpc_dictionary_create: PASS
-xpc_int64_create: PASS
-xpc_int64_get_value: PASS
-xpc_dictionary_get_string: PASS
-xpc_dictionary_get_int64: PASS
-xpc_dictionary_get_count: PASS
-xpc_string_create: PASS
-xpc_data_create: PASS
-xpc_data_get_length: PASS
-xpc_data_get_bytes_ptr: PASS
-xpc_hash_consistent: PASS
-xpc_connection_create: PASS
-xpc_connection_set_event_handler: connection=0x38fd1fe1a000
-xpc_connection_resume: connection=0x38fd1fe1a000
-xpc_connection_lifecycle: PASS
-
---- PLANE CASES (op-122) ---
-op122_plane_connect_create: PASS
-xpc_connectioipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
-n_set_event_handler: connection=0x38fd1fe1a0a0
-xpc_connection_resume: connection=0x38fd1fe1a0a0
-op122_plane_connect_resume: PASS
-op122_plane_msg_construct: PASS
-xpc_send: connection=0x38fd1fe1a0a0, message=0x38fd1fe0e380, id=1
-1 nvl = 0x390921e00000
-nv = 0x390921e00000
-xpc_send: send failed, kr=22
 ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
 ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
 ipc_entry_lookup failed on 0 /usr/src/sys/compat/mach/ipc/ipc_kmsg.c:1318
 Shutdown NOW!
-shutdown: [pid 977]
+shutdown: [pid 978]
 
 System shutdown time has arrived
-Jun 26 21:12:53 freebsd shutdown[977]: power-down by root: 
-Jun 26 21:12:53 freebsd syslogd: exiting on signal 15
+Jun 26 22:42:13 freebsd shutdown[978]: power-down by root: 
+Jun 26 22:42:13 freebsd syslogd: exiting on signal 15
 Waiting (max 60 seconds) for system process `vnlru' to stop... done
 Waiting (max 60 seconds) for system process `syncer' to stop... 
 Syncing disks, vnodes remaining... 0 done
 All buffers synced.
-Uptime: 21s
+Uptime: 30s
 acpi0: Powering system off
