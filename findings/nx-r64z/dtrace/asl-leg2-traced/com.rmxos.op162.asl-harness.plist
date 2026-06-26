@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- op-162 asl-harness plist — launchd-JOB model (id-016), NOT shell-launch.
+     RunAtLoad=false; rc.local does launchctl start after .d is armed.
+     StandardOutPath routes to /tmp/op162-harness.out; rc.local tails it to
+     /dev/console so the host detector sees liveness (op-155 lesson). -->
+<plist version="1.0"><dict>
+<key>Label</key><string>com.rmxos.op162.asl-harness</string>
+<key>ProgramArguments</key><array><string>/root/asl-harness</string></array>
+<key>RunAtLoad</key><false/>
+<key>KeepAlive</key><false/>
+<key>StandardOutPath</key><string>/tmp/op162-harness.out</string>
+<key>StandardErrorPath</key><string>/tmp/op162-harness.err</string>
+<key>EnvironmentVariables</key><dict>
+<key>LD_LIBRARY_PATH</key><string>/usr/lib</string>
+</dict>
+</dict></plist>

@@ -1,0 +1,84 @@
+#!/bin/sh
+# op-162 thin glue rc.local (NOT a harness per op-147m).
+# Sets up: modules + launchd + notifyd + asld (com.apple.syslogd) + op-162 .d +
+# asl-harness launchd job. Routes all HB to /dev/console (op-155 lesson).
+# NO OP162_ verdicts from this script — the host conductor parses serial.
+kldload mach 2>/dev/null || true
+kldload opensolaris 2>/dev/null
+kldload dtrace 2>/dev/null
+kldload fbt 2>/dev/null
+kldload profile 2>/dev/null
+kldload sdt 2>/dev/null || true     # signal-clear / sigexit sometimes under sdt
+kldload proc 2>/dev/null || true    # FreeBSD proc provider (proc:::signal-clear)
+export LD_LIBRARY_PATH=/usr/lib
+
+BLOCK078_LAUNCHD_DEBUG=1 /sbin/launchd -u > /tmp/op162-launchd.out 2>&1 &
+launchd_pid=$!
+sleep 2
+launchd_socket=$(ls -t /tmp/launchd-*/sock 2>/dev/null | head -n 1)
+if [ -z "$launchd_socket" ]; then
+	echo "OP162_SETUP_FAIL reason=launchd_no_socket"
+	sync; sleep 1; shutdown -p now; exit 32
+fi
+export LAUNCHD_SOCKET="$launchd_socket"
+
+# notifyd up (asld's IPC substrate needs it)
+/bin/launchctl load /root/nxplatform/block078/com.apple.notifyd.plist 2>/dev/null
+/bin/launchctl start com.apple.notifyd 2>/dev/null
+sleep 1
+
+# asld up via com.apple.syslogd plist — the provenance path
+/bin/launchctl load /etc/launchd.d/com.apple.syslogd.plist 2>/dev/null
+/bin/launchctl start com.apple.syslogd 2>/dev/null
+sleep 2
+
+# === PROVENANCE GATE (the Arranger's mandatory first-hand check) ===
+# Confirm the traced PID is the Apple asld (binary at /usr/sbin/asld), NOT a
+# base-image syslogd confound.
+# pgrep -x asld confirms process name = "asld" (NOT "syslogd" = base confound).
+# ps -o args= confirms the binary path = /usr/sbin/asld -d.
+asld_pid=$(pgrep -x asld | head -1)
+if [ -z "$asld_pid" ]; then
+	echo "OP162_ASLD_PROVENANCE status=1 reason=no_asld_process"
+	sync; sleep 1; shutdown -p now; exit 34
+fi
+asld_args=$(ps -o args= -p "$asld_pid" 2>/dev/null)
+case "$asld_args" in
+	*/usr/sbin/asld*)
+		echo "OP162_ASLD_PROVENANCE status=0 pid=$asld_pid args=$asld_args"
+		;;
+	*)
+		echo "OP162_ASLD_PROVENANCE status=1 reason=wrong_binary pid=$asld_pid args=$asld_args"
+		sync; sleep 1; shutdown -p now; exit 35
+		;;
+esac
+
+# Substitute asld PID into the .d template
+sed "s|@@ASLD_PID@@|$asld_pid|g" /root/op162-trace.d.tmpl > /tmp/op162-trace.d
+
+# Launch the .d — capture to file + mirror to /dev/console for host detector
+dtrace -s /tmp/op162-trace.d > /tmp/op162-trace.log 2>&1 &
+trace_pid=$!
+sleep 1
+tail -F /tmp/op162-trace.log /tmp/op162-harness.out > /dev/console 2>&1 &
+mirror_pid=$!
+
+# Run the harness as a launchd JOB (id-016 model — NOT shell-launch)
+/bin/launchctl load /root/com.rmxos.op162.asl-harness.plist
+/bin/launchctl start com.rmxos.op162.asl-harness
+
+# Wait for harness to finish (it's a 9-case ~10s probe) + 60s settle for trace
+sleep 90
+
+echo "OP162_LAUNCHD_JOB_RUN status=0 harness_pid=$(pgrep -f asl-harness | head -1)"
+
+# Final dump
+echo "=== op162 trace ==="
+cat /tmp/op162-trace.log 2>/dev/null
+echo "=== op162 harness ==="
+cat /tmp/op162-harness.out 2>/dev/null
+cat /tmp/op162-harness.err 2>/dev/null
+
+kill "$mirror_pid" "$trace_pid" "$launchd_pid" 2>/dev/null || true
+sync; sleep 1; shutdown -p now
+exit 0

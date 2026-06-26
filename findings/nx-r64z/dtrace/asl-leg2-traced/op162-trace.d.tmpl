@@ -1,0 +1,101 @@
+/*
+ * op-162 asl leg-2 (traced conformance) — fbt-kernel-only observation.
+ *
+ * Per op-147m pillar + Arranger directive:
+ *   - asld has NO USDT → no userspace-symbol probes (would be a violation)
+ *   - crash-bar = fbt::sigexit:entry + proc:::signal-clear, BOTH predicated
+ *     on the asld PID (kernel-side filters, not userspace symbols)
+ *   - IPC trace = fbt::mach_msg_send:entry + ipc_mqueue_send/receive:entry
+ *     on the asld PID, to capture the com.apple.system.logger round-trip
+ *   - Providers loaded INDIVIDUALLY (dtrace, fbt, profile, opensolaris, sdt,
+ *     proc) — NOT dtraceall (op-104 lineage)
+ *
+ * The asld PID is substituted by the staging script from `pgrep -x asld`
+ * into @@ASLD_PID@@ before dtrace launch. This is the provenance gate: the
+ * trace fires ONLY for the Apple asld (the syslogd that registered
+ * com.apple.system.logger), never for a hypothetical base-image syslogd
+ * confound.
+ *
+ * Self-terminating at 240s (asl-harness takes ~10s; 240s is generous cap).
+ */
+
+/* === Globals (op-147m: NOT aggregations) === */
+int asld_pid = @@ASLD_PID@@;
+int crash_signals;
+int sends_observed;
+int recvs_observed;
+int ipc_send_observed;
+int ipc_recv_observed;
+int mqueue_pset_seen;
+
+/* === CRASH BAR — fbt::sigexit:entry predicated on asld PID ===
+ * sigexit fires when the kernel is about to deliver a fatal signal to a
+ * process. If asld receives SIGSEGV/SIGABRT/etc during the harness run,
+ * this is the marker — followed by a kernel stack() to localize. */
+fbt::sigexit:entry
+/ pid == asld_pid /
+{
+    printf("OP162_CRASH_BAR sigexit pid=%d signal=%d\n", pid, arg0);
+    stack();
+    crash_signals++;
+}
+
+/* === CRASH BAR — proc:::signal-clear predicated on asld PID ===
+ * signal-clear fires when a pending signal is delivered. Catches both fatal
+ * AND non-fatal (e.g., SIGTERM from launchctl stop). */
+proc:::signal-clear
+/ args[0]->p_pid == asld_pid /
+{
+    printf("OP162_CRASH_BAR signal-clear pid=%d signal=%d\n", args[0]->p_pid, args[1]);
+    crash_signals++;
+}
+
+/* === IPC trace — mach_msg_send on the logger port ===
+ * The asl-harness sends log messages via libasl → mach_msg_send to
+ * com.apple.system.logger. This traces the SEND side on the asld PID
+ * (asld is the RECEIVING side). Hmm wait — the SEND happens in the
+ * harness PID, not asld. Adjust: predicate on mach_msg_send in ANY pid
+ * destined for the logger port.
+ *
+ * Actually for the receiver side (asld), the relevant probes are:
+ *   - ipc_mqueue_receive / ipc_mqueue_pset_receive (asld receiving)
+ *   - mach_msg_receive (the userspace trap entry, in asld PID)
+ *
+ * Send-side is in the harness PID. For the crash-bar + logger-round-trip
+ * proof, asld-side receive probes suffice. */
+
+/* asld receives a mach message (the libasl log call from the harness) */
+fbt::ipc_mqueue_receive:entry
+/ pid == asld_pid /
+{
+    ipc_recv_observed++;
+}
+
+fbt::ipc_mqueue_pset_receive:entry
+/ pid == asld_pid /
+{
+    ipc_recv_observed++;
+    mqueue_pset_seen++;
+}
+
+/* asld sends a reply (the asl_search result back to the harness) */
+fbt::ipc_mqueue_send:entry
+/ pid == asld_pid /
+{
+    ipc_send_observed++;
+}
+
+/* === Heartbeat (10s) — liveness + counter snapshot === */
+profile:::tick-10s
+{
+    printf("OP162_TRACE_HB recv=%d send=%d pset_seen=%d crash=%d\n",
+        ipc_recv_observed, ipc_send_observed, mqueue_pset_seen, crash_signals);
+}
+
+/* === Self-terminate at 240s === */
+profile:::tick-240s
+{
+    printf("OP162_TRACE_TERMINAL recv=%d send=%d pset_seen=%d crash=%d\n",
+        ipc_recv_observed, ipc_send_observed, mqueue_pset_seen, crash_signals);
+    exit(0);
+}
