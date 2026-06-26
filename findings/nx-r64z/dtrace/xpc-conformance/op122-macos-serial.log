@@ -1,0 +1,35 @@
+xpc_dictionary_create: PASS
+xpc_int64_create: PASS
+xpc_int64_get_value: PASS
+xpc_dictionary_get_string: PASS
+xpc_dictionary_get_int64: PASS
+xpc_dictionary_get_count: PASS
+xpc_string_create: PASS
+xpc_data_create: PASS
+xpc_data_get_length: PASS
+xpc_data_get_bytes_ptr: PASS
+xpc_hash_consistent: PASS
+xpc_connection_create: PASS
+xpc_connection_lifecycle: PASS
+
+--- PLANE CASES (op-122) ---
+op122_plane_connect: PASS
+op122_plane_resume: PASS
+op122_plane_request_construct: PASS
+op122_plane_reply_received: PASS
+op122_plane_reply_pong: PASS
+op122_plane_seqid_echo: PASS
+op122_plane_string_echo: PASS
+op122_plane_int64_echo: PASS
+op122_plane_uint64_echo: PASS
+op122_plane_bool_echo: PASS
+op122_plane_typed_int64: PASS
+op122_plane_typed_string: PASS
+op122_plane_typed_bool: PASS
+op122_plane_typed_uint64: PASS
+op122_plane_typed_count: PASS
+op122_plane_cancel_event_seen: FAIL
+OP122_CANCEL_DESC description=(no event)
+xpc_release: PASS
+op122_matrix_fails=1
+op122_matrix_terminal status=0

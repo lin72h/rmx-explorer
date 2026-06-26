@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.rmxos.op122.echo</string>
+  <key>ProgramArguments</key>
+  <array><string>/Users/linz/Local/wip-mach/rmx-explorer/findings/nx-r64z/dtrace/xpc-conformance/op122-xpc-echo.macos</string></array>
+  <key>MachServices</key>
+  <dict><key>com.rmxos.op122.echo</key><true/></dict>
+  <key>RunAtLoad</key><false/>
+  <key>StandardOutPath</key><string>/Users/linz/Local/wip-mach/rmx-explorer/findings/nx-r64z/dtrace/xpc-conformance/op122-echo.stdout.log</string>
+  <key>StandardErrorPath</key><string>/Users/linz/Local/wip-mach/rmx-explorer/findings/nx-r64z/dtrace/xpc-conformance/op122-echo.stderr.log</string>
+</dict>
+</plist>
