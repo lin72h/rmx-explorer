@@ -1,0 +1,22 @@
+
+=== D1a: local cancel ===
+D1a: established=1 reply="pong"
+D1a: handler FIRED
+[D2-ERROR-STRUCT] D1a_local_cancel: fired=1  is_XPC_TYPE_ERROR=1  eq_CONNECTION_INVALID=1  eq_CONNECTION_INTERRUPTED=0  eq_TERMINATION_IMMINENT=0  dict_count=1
+[D2-ERROR-STRUCT]   description="(no 'description' key)"
+
+=== D1b: remote peer death ===
+D1b: pre-death reply="exiting"
+D1b: handler FIRED
+[D2-ERROR-STRUCT] D1b_remote_death: fired=1  is_XPC_TYPE_ERROR=1  eq_CONNECTION_INVALID=0  eq_CONNECTION_INTERRUPTED=1  eq_TERMINATION_IMMINENT=0  dict_count=1
+[D2-ERROR-STRUCT]   description="(no 'description' key)"
+
+=== D3: cancel vs pending _with_reply_sync ===
+D3: cancelling the connection mid-pending-reply
+D3: _with_reply_sync RETURNED
+D3: waiter reply="(null)" is_XPC_TYPE_ERROR=1
+D3: handler FIRED
+[D2-ERROR-STRUCT] D3_reply_pending: fired=1  is_XPC_TYPE_ERROR=1  eq_CONNECTION_INVALID=1  eq_CONNECTION_INTERRUPTED=0  eq_TERMINATION_IMMINENT=0  dict_count=1
+[D2-ERROR-STRUCT]   description="(no 'description' key)"
+
+OP190_TERMINAL status=0
