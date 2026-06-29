@@ -1,0 +1,41 @@
+#!/bin/sh
+kldload mach 2>/dev/null || true
+ldconfig -m /usr/lib >/dev/null 2>&1
+export LD_LIBRARY_PATH=/usr/lib
+
+echo "OP213_SMOKE_START"
+
+/sbin/launchd -u > /tmp/op213-launchd.out 2>&1 &
+sleep 2
+export LAUNCHD_SOCKET=$(ls -t /tmp/launchd-*/sock 2>/dev/null | head -1)
+if [ -z "$LAUNCHD_SOCKET" ]; then
+  echo "OP213_SETUP_FAIL reason=launchd_no_socket"
+  sync; sleep 1; shutdown -p now; exit 32
+fi
+/bin/launchctl load /root/nxplatform/block078/com.apple.notifyd.plist 2>/dev/null
+/bin/launchctl start com.apple.notifyd 2>/dev/null
+sleep 2
+/bin/launchctl load /etc/launchd.d/com.apple.syslogd.plist 2>/dev/null
+/bin/launchctl start com.apple.syslogd 2>/dev/null
+sleep 2
+
+echo "--- R1: identity ---"
+sha256 /root/aslmanager-op204
+readelf -d /root/aslmanager-op204 2>/dev/null | grep NEEDED | head -3
+
+echo "--- R1: reaches main (no SIGSEGV) ---"
+/root/aslmanager-op204 -d -s /var/log/asl 2>&1 | head -20
+R1_RC=$?
+echo "OP213_ASLMGR_RUNS rc=$R1_RC"
+
+echo "--- R2b: reclaim with -size 500K ---"
+ls -la /var/log/asl/
+echo "Running aslmanager -d -size 500K..."
+/root/aslmanager-op204 -d -size 500K -s /var/log/asl 2>&1
+echo "OP213_RECLAIM rc=$?"
+echo "--- post-reclaim ---"
+ls -la /var/log/asl/
+
+echo "OP213_SMOKE_TERMINAL"
+kill %1 2>/dev/null
+sync; sleep 1; shutdown -p now
