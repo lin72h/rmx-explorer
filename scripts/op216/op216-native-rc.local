@@ -1,0 +1,56 @@
+#!/bin/sh
+# op-216 thin glue — asl native-submit launchd-context re-test
+kldload mach 2>/dev/null || true
+ldconfig -m /usr/lib >/dev/null 2>&1
+export LD_LIBRARY_PATH=/usr/lib
+
+echo "OP216_START"
+
+/sbin/launchd -u > /tmp/op216-launchd.out 2>&1 &
+sleep 2
+export LAUNCHD_SOCKET=$(ls -t /tmp/launchd-*/sock 2>/dev/null | head -1)
+if [ -z "$LAUNCHD_SOCKET" ]; then
+  echo "OP216_SETUP_FAIL reason=launchd_no_socket"
+  sync; sleep 1; shutdown -p now; exit 32
+fi
+
+# notifyd up (asl_core needs notify infrastructure)
+/bin/launchctl load /root/nxplatform/block078/com.apple.notifyd.plist 2>/dev/null
+/bin/launchctl start com.apple.notifyd 2>/dev/null
+sleep 1
+
+# asld up via com.apple.syslogd plist
+/bin/launchctl load /etc/launchd.d/com.apple.syslogd.plist 2>/dev/null
+/bin/launchctl start com.apple.syslogd 2>/dev/null
+sleep 3
+
+# Confirm asld identity
+ASLD_PID=$(pgrep -x asld | head -1)
+echo "OP216_ASLD_PID=$ASLD_PID"
+if [ -z "$ASLD_PID" ]; then
+  echo "OP216_SETUP_FAIL reason=asld_not_running"
+  kill %1 2>/dev/null; sync; sleep 1; shutdown -p now; exit 33
+fi
+
+# D1: bootstrap context check — run asl-harness as a LAUNCHD CHILD
+# (inherits bootstrap from launchd via run-as-launchd-job.sh)
+echo "--- D1: bootstrap context + native submit via launchd-child ---"
+/root/run-as-launchd-job.sh /root/asl-harness 2>&1
+RUNNER_RC=$?
+
+echo "--- asl-harness output above ---"
+echo "OP216_RUNNER_RC=$RUNNER_RC"
+
+# Check if the harness found asl_search results
+# The harness emits "asl_search_roundtrip: PASS" if found>0
+
+echo "--- D2: check store for messages ---"
+ls -la /var/log/asl/ 2>/dev/null
+# Look for today's store file
+TODAY=$(date +%Y.%m.%d)
+echo "Today's store:"
+ls -la /var/log/asl/${TODAY}* 2>/dev/null || echo "no today store file"
+
+echo "OP216_TERMINAL"
+kill %1 2>/dev/null
+sync; sleep 1; shutdown -p now
