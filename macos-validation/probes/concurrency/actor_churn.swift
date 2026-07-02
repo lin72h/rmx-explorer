@@ -15,12 +15,28 @@ actor Counter {
     func read() -> Int { value }
 }
 
+// op-231 D3 ordering invariant: per-actor mailbox is serial (FIFO).
+// OrderedCounter records the sequence of increment calls to verify ordering.
+actor OrderedCounter {
+    private(set) var value: Int = 0
+    private(set) var sequence: [Int] = []
+    private var next: Int = 1
+
+    func increment() {
+        sequence.append(next)
+        next += 1
+        value += 1
+    }
+    func read() -> (Int, [Int]) { (value, sequence) }
+}
+
 let sem = DispatchSemaphore(value: 0)
 var output: [String: Any] = [:]
 
 Task {
     let start = Date()
     var allConsistent = true
+    var orderingOk = true
     var totalOps = 0
     var totalExpected = 0
     let lock = NSLock()
@@ -29,7 +45,7 @@ Task {
     await withTaskGroup(of: Bool.self) { group in
         for churn in 0..<CHURN_COUNT {
             group.addTask {
-                let counter = Counter()
+                let counter = OrderedCounter()
 
                 // Each actor gets OPS_PER_ACTOR increments from concurrent tasks
                 await withTaskGroup(of: Void.self) { subgroup in
@@ -40,16 +56,19 @@ Task {
                     }
                 }
 
-                let finalValue = await counter.read()
+                let (finalValue, seq) = await counter.read()
                 let consistent = (finalValue == OPS_PER_ACTOR)
+                // Ordering invariant: sequence should be 1,2,3,...,N (per-actor mailbox serial)
+                let ordered = (seq.count == OPS_PER_ACTOR && seq == Array(1...OPS_PER_ACTOR))
 
                 lock.lock()
                 if !consistent { allConsistent = false }
+                if !ordered { orderingOk = false }
                 totalOps += OPS_PER_ACTOR
                 totalExpected += OPS_PER_ACTOR
                 lock.unlock()
 
-                return consistent
+                return consistent && ordered
             }
         }
         for await ok in group {
@@ -58,7 +77,7 @@ Task {
     }
 
     let elapsed = Int(Date().timeIntervalSince(start) * 1000)
-    let pass = allConsistent && totalOps == totalExpected
+    let pass = allConsistent && orderingOk && totalOps == totalExpected
 
     output = [
         "test_id": "actor_churn_\(CHURN_COUNT)x\(OPS_PER_ACTOR)",
@@ -68,10 +87,11 @@ Task {
         "total_ops": totalOps,
         "total_expected": totalExpected,
         "all_consistent": allConsistent,
+        "ordering_ok": orderingOk,
         "elapsed_ms": elapsed
     ]
     if !pass {
-        output["fail_reason"] = "consistent=\(allConsistent) ops_match=\(totalOps == totalExpected)"
+        output["fail_reason"] = "consistent=\(allConsistent) ordering=\(orderingOk) ops_match=\(totalOps == totalExpected)"
     }
     sem.signal()
 }
