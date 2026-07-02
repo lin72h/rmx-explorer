@@ -1,0 +1,46 @@
+#!/bin/sh
+# op-248 STEP 1: op-165 EXACT reproduction at SOAK_DURATION=300.
+# NO profile kldload. NO | tail pipe. Direct driver invocation.
+# This is the CLEAN baseline reproduction — if it passes, the op-243 hang was a harness artifact.
+export LD_LIBRARY_PATH=/usr/lib
+ldconfig -m /usr/lib >/dev/null 2>&1
+
+kldload mach 2>/dev/null || true
+
+echo "OP248_KERNEL_IDENT $(uname -i 2>/dev/null || echo unknown)"
+echo "OP248_MACH_KO_SHA $(sha256 /boot/modules/mach.ko 2>/dev/null | awk '{print $4}')"
+
+BLOCK078_LAUNCHD_DEBUG=1 /sbin/launchd -u > /tmp/op248-launchd.out 2>&1 &
+launchd_pid=$!
+sleep 2
+launchd_socket=$(ls -t /tmp/launchd-*/sock 2>/dev/null | head -n 1)
+if [ -z "$launchd_socket" ]; then
+  echo "OP248_FIRST_BLOCKER rung=launchd_socket"
+  sync; sleep 1; shutdown -p now; exit 32
+fi
+export LAUNCHD_SOCKET="$launchd_socket"
+echo "OP248_LAUNCHD_UP pid=$launchd_pid"
+
+# notifyd up (NO syslogd — matches op-165)
+/bin/launchctl load /root/nxplatform/block078/com.apple.notifyd.plist 2>/dev/null
+/bin/launchctl start com.apple.notifyd 2>/dev/null
+sleep 1
+if pgrep -x notifyd >/dev/null 2>&1; then
+  echo "OP248_NOTIFYD_UP status=0"
+else
+  echo "OP248_FIRST_BLOCKER rung=notifyd_up"
+  kill "$launchd_pid" 2>/dev/null; sync; sleep 1; shutdown -p now; exit 33
+fi
+
+# DIRECT driver invocation — NO | tail pipe (the op-165 pattern)
+# NO profile kldload (the op-165 pattern)
+export SOAK_DURATION=300
+echo "OP248_SOAK_START step=1_clean duration=300 no_profile=no_pipe=yes"
+/bin/sh /root/notifyd-soak-driver.sh
+echo "OP248_SOAK_END timestamp=$(date +%s)"
+
+echo "OP248_WITNESS_CHECK"
+dmesg 2>/dev/null | grep -iE "INVARIANTS|WITNESS|DEADLKRES|panic|KASSERT" | grep -v "option enabled" | tail -5
+
+echo "=== DONE ==="
+sync; sleep 1; shutdown -p now
