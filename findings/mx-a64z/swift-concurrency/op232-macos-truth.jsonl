@@ -1,3 +1,4 @@
-{"shape":"a_fanout_taskgroup","completed":256,"checksum":115196192640,"single_ns":335417,"elapsed_ns":774542,"parallelism_ratio":110.86132449886513}
-{"shape":"b_actor_churn","actors":256,"hops_each":32,"consistency_sum":143360,"expected_sum":143360,"consistency_ok":true,"elapsed_ns":37766292}
-{"shape":"c_deep_chain","depth":800,"result":800,"depth_reached":800,"elapsed_ns":21458}
+{"_regime":{"host":"mm4.local","os":"macOS 27.0","arch":"arm64","swift":"6.4 (xcrun --toolchain XcodeDefault swiftc -O)","probes":"macos-validation/probes/concurrency/{fan_out_taskgroup,actor_churn,deep_async_chain}.swift @a9df114 (canonical corpus)","agent":"mx-a64z","item":"op-232 item-1 macOS truth","regime_note":"full op-230 regime-label pending op-231 D3"}}
+{"_probe": "fan_out_taskgroup", "all_unique": true, "elapsed_ms": 1, "result": "PASS", "sum_actual": 999000, "sum_expected": 999000, "tasks_completed": 1000, "tasks_spawned": 1000, "test_id": "fan_out_taskgroup_1000"}
+{"_probe": "actor_churn", "actors_churned": 500, "all_consistent": true, "elapsed_ms": 14, "ops_per_actor": 20, "result": "PASS", "test_id": "actor_churn_500x20", "total_expected": 10000, "total_ops": 10000}
+{"_probe": "deep_async_chain", "actual_values": [500, 500, 500, 500, 500, 500, 500, 500, 500, 500], "all_correct_depth": true, "chain_count": 10, "chain_depth": 500, "chains_completed": 10, "elapsed_ms": 0, "expected_value": 500, "result": "PASS", "test_id": "deep_async_chain_500x10"}
