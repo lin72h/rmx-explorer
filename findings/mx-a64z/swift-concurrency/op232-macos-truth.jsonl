@@ -1,0 +1,3 @@
+{"shape":"a_fanout_taskgroup","completed":256,"checksum":115196192640,"single_ns":335417,"elapsed_ns":774542,"parallelism_ratio":110.86132449886513}
+{"shape":"b_actor_churn","actors":256,"hops_each":32,"consistency_sum":143360,"expected_sum":143360,"consistency_ok":true,"elapsed_ns":37766292}
+{"shape":"c_deep_chain","depth":800,"result":800,"depth_reached":800,"elapsed_ns":21458}
